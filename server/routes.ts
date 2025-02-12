@@ -17,6 +17,18 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.get("/api/bitcoin/topics/:id", async (req, res) => {
+    try {
+      const topic = await storage.getBitcoinTopic(parseInt(req.params.id));
+      if (!topic) {
+        return res.status(404).json({ message: "Topic not found" });
+      }
+      res.json(topic);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch Bitcoin topic" });
+    }
+  });
+
   // Chat session routes
   app.post("/api/chat/start", async (req, res) => {
     try {
@@ -31,6 +43,7 @@ export function registerRoutes(app: Express): Server {
 
       res.json({ session: newSession, learningPath });
     } catch (error) {
+      console.error("Error starting chat session:", error);
       res.status(400).json({ message: "Invalid session data" });
     }
   });
@@ -59,7 +72,7 @@ export function registerRoutes(app: Express): Server {
         topicId: session.topicId,
         completedExercises: Math.floor(session.messages.length / 2),
         confidenceLevel: 1,
-        lastActive: new Date().toISOString(),
+        lastActive: new Date(),
       });
 
       res.json({ 
@@ -67,6 +80,7 @@ export function registerRoutes(app: Express): Server {
         analysis 
       });
     } catch (error) {
+      console.error("Error processing message:", error);
       res.status(500).json({ message: "Failed to process message" });
     }
   });
