@@ -7,7 +7,13 @@ import {
   type InsertSubject,
   type InsertChatSession,
   type InsertProgress,
+  users,
+  subjects,
+  chatSessions,
+  progress
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -21,23 +27,60 @@ export interface IStorage {
   updateProgress(progress: InsertProgress): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private subjects: Map<number, Subject>;
-  private chatSessions: Map<number, ChatSession>;
-  private progress: Map<number, Progress>;
-  private currentId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.subjects = new Map();
-    this.chatSessions = new Map();
-    this.progress = new Map();
-    this.currentId = 1;
-    this.initializeSubjects();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
-  private initializeSubjects() {
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+
+  async getSubjects(): Promise<Subject[]> {
+    return db.select().from(subjects);
+  }
+
+  async getChatSessions(userId: number): Promise<ChatSession[]> {
+    return db.select()
+      .from(chatSessions)
+      .where(eq(chatSessions.userId, userId));
+  }
+
+  async createChatSession(session: InsertChatSession): Promise<ChatSession> {
+    const [newSession] = await db.insert(chatSessions)
+      .values(session)
+      .returning();
+    return newSession;
+  }
+
+  async updateChatSession(id: number, messages: { role: string; content: string }[]): Promise<void> {
+    await db.update(chatSessions)
+      .set({ messages })
+      .where(eq(chatSessions.id, id));
+  }
+
+  async getProgress(userId: number): Promise<Progress[]> {
+    return db.select()
+      .from(progress)
+      .where(eq(progress.userId, userId));
+  }
+
+  async updateProgress(progressData: InsertProgress): Promise<void> {
+    await db.insert(progress).values(progressData);
+  }
+}
+
+// Initialize default subjects
+async function initializeDefaultSubjects() {
+  const existingSubjects = await db.select().from(subjects);
+  if (existingSubjects.length === 0) {
     const defaultSubjects: InsertSubject[] = [
       { name: "Python Programming", category: "Coding", description: "Learn Python programming from basics to advanced concepts" },
       { name: "Web Development", category: "Coding", description: "Master HTML, CSS, and JavaScript" },
@@ -46,63 +89,9 @@ export class MemStorage implements IStorage {
       { name: "Spanish", category: "Languages", description: "Learn Spanish conversation and grammar" },
     ];
 
-    defaultSubjects.forEach((subject) => {
-      const id = this.currentId++;
-      this.subjects.set(id, { ...subject, id });
-    });
-  }
-
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
-    const user = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
-  }
-
-  async getSubjects(): Promise<Subject[]> {
-    return Array.from(this.subjects.values());
-  }
-
-  async getChatSessions(userId: number): Promise<ChatSession[]> {
-    return Array.from(this.chatSessions.values()).filter(
-      (session) => session.userId === userId,
-    );
-  }
-
-  async createChatSession(session: InsertChatSession): Promise<ChatSession> {
-    const id = this.currentId++;
-    const chatSession = { ...session, id };
-    this.chatSessions.set(id, chatSession);
-    return chatSession;
-  }
-
-  async updateChatSession(id: number, messages: { role: string; content: string }[]): Promise<void> {
-    const session = this.chatSessions.get(id);
-    if (session) {
-      this.chatSessions.set(id, { ...session, messages });
-    }
-  }
-
-  async getProgress(userId: number): Promise<Progress[]> {
-    return Array.from(this.progress.values()).filter(
-      (p) => p.userId === userId,
-    );
-  }
-
-  async updateProgress(insertProgress: InsertProgress): Promise<void> {
-    const id = this.currentId++;
-    this.progress.set(id, { ...insertProgress, id });
+    await db.insert(subjects).values(defaultSubjects);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
+initializeDefaultSubjects().catch(console.error);
