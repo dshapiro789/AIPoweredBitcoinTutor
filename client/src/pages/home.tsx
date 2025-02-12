@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import SubjectCard from "@/components/subject-card";
+import TopicCard from "@/components/subject-card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Subject } from "@shared/schema";
+import type { BitcoinTopic } from "@shared/schema";
+import { Bitcoin } from "lucide-react";
 
 export default function Home() {
-  const { data: subjects, isLoading } = useQuery<Subject[]>({
-    queryKey: ["/api/subjects"],
+  const { data: topics, isLoading } = useQuery<BitcoinTopic[]>({
+    queryKey: ["/api/bitcoin/topics"],
   });
 
   if (isLoading) {
@@ -21,16 +22,20 @@ export default function Home() {
   return (
     <div className="space-y-8">
       <div className="max-w-2xl">
-        <h1 className="text-4xl font-bold mb-4">Welcome to AI Tutor</h1>
+        <div className="flex items-center gap-3 mb-4">
+          <Bitcoin className="w-8 h-8 text-primary" />
+          <h1 className="text-4xl font-bold">Bitcoin Learning Hub</h1>
+        </div>
         <p className="text-muted-foreground">
-          Choose a subject below to start learning with your personal AI tutor.
-          Get instant feedback and guidance tailored to your needs.
+          Start your Bitcoin journey with our AI-powered tutor. From basics to advanced concepts,
+          learn how to securely store, manage, and transact with Bitcoin through interactive
+          lessons tailored to your level.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {subjects?.map((subject) => (
-          <SubjectCard key={subject.id} subject={subject} />
+        {topics?.map((topic) => (
+          <TopicCard key={topic.id} topic={topic} />
         ))}
       </div>
     </div>

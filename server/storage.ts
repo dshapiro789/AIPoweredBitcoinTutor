@@ -1,16 +1,16 @@
 import {
   type User,
-  type Subject,
+  type BitcoinTopic,
   type ChatSession,
-  type Progress,
+  type LearningProgress,
   type InsertUser,
-  type InsertSubject,
+  type InsertBitcoinTopic,
   type InsertChatSession,
-  type InsertProgress,
+  type InsertLearningProgress,
   users,
-  subjects,
+  bitcoinTopics,
   chatSessions,
-  progress
+  learningProgress
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -19,12 +19,14 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  getSubjects(): Promise<Subject[]>;
+  getBitcoinTopics(): Promise<BitcoinTopic[]>;
+  getBitcoinTopic(id: number): Promise<BitcoinTopic | undefined>;
   getChatSessions(userId: number): Promise<ChatSession[]>;
+  getChatSession(id: number): Promise<ChatSession | undefined>;
   createChatSession(session: InsertChatSession): Promise<ChatSession>;
   updateChatSession(id: number, messages: { role: string; content: string }[]): Promise<void>;
-  getProgress(userId: number): Promise<Progress[]>;
-  updateProgress(progress: InsertProgress): Promise<void>;
+  getLearningProgress(userId: number): Promise<LearningProgress[]>;
+  updateLearningProgress(progress: InsertLearningProgress): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -43,14 +45,26 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async getSubjects(): Promise<Subject[]> {
-    return db.select().from(subjects);
+  async getBitcoinTopics(): Promise<BitcoinTopic[]> {
+    return db.select().from(bitcoinTopics);
+  }
+
+  async getBitcoinTopic(id: number): Promise<BitcoinTopic | undefined> {
+    const [topic] = await db.select().from(bitcoinTopics).where(eq(bitcoinTopics.id, id));
+    return topic;
   }
 
   async getChatSessions(userId: number): Promise<ChatSession[]> {
     return db.select()
       .from(chatSessions)
       .where(eq(chatSessions.userId, userId));
+  }
+
+  async getChatSession(id: number): Promise<ChatSession | undefined> {
+    const [session] = await db.select()
+      .from(chatSessions)
+      .where(eq(chatSessions.id, id));
+    return session;
   }
 
   async createChatSession(session: InsertChatSession): Promise<ChatSession> {
@@ -66,32 +80,57 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatSessions.id, id));
   }
 
-  async getProgress(userId: number): Promise<Progress[]> {
+  async getLearningProgress(userId: number): Promise<LearningProgress[]> {
     return db.select()
-      .from(progress)
-      .where(eq(progress.userId, userId));
+      .from(learningProgress)
+      .where(eq(learningProgress.userId, userId));
   }
 
-  async updateProgress(progressData: InsertProgress): Promise<void> {
-    await db.insert(progress).values(progressData);
+  async updateLearningProgress(progressData: InsertLearningProgress): Promise<void> {
+    await db.insert(learningProgress).values(progressData);
   }
 }
 
-// Initialize default subjects
-async function initializeDefaultSubjects() {
-  const existingSubjects = await db.select().from(subjects);
-  if (existingSubjects.length === 0) {
-    const defaultSubjects: InsertSubject[] = [
-      { name: "Python Programming", category: "Coding", description: "Learn Python programming from basics to advanced concepts" },
-      { name: "Web Development", category: "Coding", description: "Master HTML, CSS, and JavaScript" },
-      { name: "Calculus", category: "Math", description: "Understanding derivatives, integrals, and their applications" },
-      { name: "Physics", category: "Science", description: "Explore mechanics, electricity, and modern physics" },
-      { name: "Spanish", category: "Languages", description: "Learn Spanish conversation and grammar" },
+// Initialize default Bitcoin topics
+async function initializeDefaultBitcoinTopics() {
+  const existingTopics = await db.select().from(bitcoinTopics);
+  if (existingTopics.length === 0) {
+    const defaultTopics: InsertBitcoinTopic[] = [
+      { 
+        name: "Bitcoin Basics",
+        category: "basics",
+        difficulty: "beginner",
+        description: "Understanding what Bitcoin is, its history, and fundamental concepts"
+      },
+      {
+        name: "Wallet Security",
+        category: "security",
+        difficulty: "beginner",
+        description: "Learn how to securely store and manage your Bitcoin"
+      },
+      {
+        name: "Transaction Fundamentals",
+        category: "transactions",
+        difficulty: "beginner",
+        description: "Understanding Bitcoin transactions, fees, and confirmation process"
+      },
+      {
+        name: "UTXO Management",
+        category: "transactions",
+        difficulty: "intermediate",
+        description: "Advanced transaction handling and UTXO optimization"
+      },
+      {
+        name: "Cold Storage",
+        category: "security",
+        difficulty: "intermediate",
+        description: "Setting up and managing cold storage solutions for Bitcoin"
+      }
     ];
 
-    await db.insert(subjects).values(defaultSubjects);
+    await db.insert(bitcoinTopics).values(defaultTopics);
   }
 }
 
 export const storage = new DatabaseStorage();
-initializeDefaultSubjects().catch(console.error);
+initializeDefaultBitcoinTopics().catch(console.error);

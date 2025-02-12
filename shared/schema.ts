@@ -8,39 +8,41 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
 });
 
-export const subjects = pgTable("subjects", {
+export const bitcoinTopics = pgTable("bitcoin_topics", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
-  category: text("category").notNull(),
+  category: text("category").notNull(), // e.g., 'basics', 'security', 'transactions'
+  difficulty: text("difficulty").notNull(), // 'beginner', 'intermediate'
   description: text("description").notNull(),
 });
 
 export const chatSessions = pgTable("chat_sessions", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  subjectId: integer("subject_id").notNull(),
+  topicId: integer("topic_id").notNull(),
   messages: jsonb("messages").$type<{role: string, content: string}[]>().notNull(),
   isActive: boolean("is_active").notNull().default(true),
 });
 
-export const progress = pgTable("progress", {
+export const learningProgress = pgTable("learning_progress", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  subjectId: integer("subject_id").notNull(),
-  sessionsCompleted: integer("sessions_completed").notNull().default(0),
+  topicId: integer("topic_id").notNull(),
+  completedExercises: integer("completed_exercises").notNull().default(0),
+  confidenceLevel: integer("confidence_level").notNull().default(1), // 1-5 scale
   lastActive: timestamp("last_active").notNull(),
 });
 
 export const insertUserSchema = createInsertSchema(users);
-export const insertSubjectSchema = createInsertSchema(subjects);
+export const insertBitcoinTopicSchema = createInsertSchema(bitcoinTopics);
 export const insertChatSessionSchema = createInsertSchema(chatSessions);
-export const insertProgressSchema = createInsertSchema(progress);
+export const insertLearningProgressSchema = createInsertSchema(learningProgress);
 
 export type User = typeof users.$inferSelect;
-export type Subject = typeof subjects.$inferSelect;
+export type BitcoinTopic = typeof bitcoinTopics.$inferSelect;
 export type ChatSession = typeof chatSessions.$inferSelect;
-export type Progress = typeof progress.$inferSelect;
+export type LearningProgress = typeof learningProgress.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type InsertSubject = z.infer<typeof insertSubjectSchema>;
+export type InsertBitcoinTopic = z.infer<typeof insertBitcoinTopicSchema>;
 export type InsertChatSession = z.infer<typeof insertChatSessionSchema>;
-export type InsertProgress = z.infer<typeof insertProgressSchema>;
+export type InsertLearningProgress = z.infer<typeof insertLearningProgressSchema>;
