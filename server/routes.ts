@@ -2,18 +2,18 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getTutorResponse, analyzeProgress, generateLearningPath } from "./openai";
-import { insertUserSchema, insertChatSessionSchema, insertProgressSchema } from "@shared/schema";
+import { insertUserSchema, insertChatSessionSchema, insertLearningProgressSchema } from "@shared/schema";
 
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
 
-  // Subject routes
-  app.get("/api/subjects", async (req, res) => {
+  // Bitcoin topics routes
+  app.get("/api/bitcoin/topics", async (req, res) => {
     try {
-      const subjects = await storage.getSubjects();
-      res.json(subjects);
+      const topics = await storage.getBitcoinTopics();
+      res.json(topics);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch subjects" });
+      res.status(500).json({ message: "Failed to fetch Bitcoin topics" });
     }
   });
 
@@ -25,7 +25,7 @@ export function registerRoutes(app: Express): Server {
 
       // Generate initial learning path
       const learningPath = await generateLearningPath(
-        (await storage.getSubject(session.subjectId))?.name || "",
+        (await storage.getBitcoinTopic(session.topicId))?.name || "",
         "beginner"
       );
 
@@ -54,10 +54,11 @@ export function registerRoutes(app: Express): Server {
       const analysis = await analyzeProgress(updatedMessages);
 
       await storage.updateChatSession(sessionId, updatedMessages);
-      await storage.updateProgress({
+      await storage.updateLearningProgress({
         userId: session.userId,
-        subjectId: session.subjectId,
-        sessionsCompleted: session.messages.length / 2, // Count message pairs
+        topicId: session.topicId,
+        completedExercises: Math.floor(session.messages.length / 2),
+        confidenceLevel: 1,
         lastActive: new Date().toISOString(),
       });
 
@@ -70,13 +71,13 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Progress routes
+  // Learning progress routes
   app.get("/api/progress/:userId", async (req, res) => {
     try {
-      const progress = await storage.getProgress(parseInt(req.params.userId));
+      const progress = await storage.getLearningProgress(parseInt(req.params.userId));
       res.json(progress);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch progress" });
+      res.status(500).json({ message: "Failed to fetch learning progress" });
     }
   });
 
