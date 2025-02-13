@@ -8,7 +8,7 @@ export default function Nav() {
         <div className="flex items-center justify-between">
           <Link href="/">
             <Button variant="ghost" className="text-xl font-bold">
-              AI Tutor
+              AI BTC Tutor
             </Button>
           </Link>
           <div className="flex gap-4">
