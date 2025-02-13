@@ -374,10 +374,22 @@ async function initializeDefaultAchievements() {
   }
 }
 
-// Modify initialization
+// Move initialization into a separate async function
+async function initializeDatabase() {
+  try {
+    await Promise.all([
+      initializeDefaultBitcoinTopics(),
+      initializeDefaultQuestions(),
+      initializeDefaultAchievements()
+    ]);
+  } catch (error) {
+    console.error("Database initialization error:", error);
+    // Don't throw - allow server to start even if seeding fails
+  }
+}
+
+// Start initialization in background
+initializeDatabase().catch(console.error);
+
+// Remove the direct Promise.all call at the bottom of the file
 export const storage = new DatabaseStorage();
-Promise.all([
-  initializeDefaultBitcoinTopics(),
-  initializeDefaultQuestions(),
-  initializeDefaultAchievements()
-]).catch(console.error);

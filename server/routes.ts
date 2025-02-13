@@ -306,6 +306,10 @@ function getSpanishDescription(topicName: string): string {
     "Digital Security": "Aprenda sobre la seguridad digital y cómo proteger sus bitcoins",
     "Trading Fundamentals": "Comprenda los conceptos básicos del trading de Bitcoin",
     "Advanced Concepts": "Profundice en conceptos avanzados de Bitcoin y blockchain",
+    "Wallet Security": "Aprenda cómo almacenar y gestionar sus Bitcoin de forma segura",
+    "Transaction Fundamentals": "Comprenda las transacciones de Bitcoin, las comisiones y el proceso de confirmación",
+    "UTXO Management": "Gestión avanzada de transacciones y optimización de UTXO",
+    "Cold Storage": "Configuración y gestión de soluciones de almacenamiento en frío para Bitcoin"
   };
   return descriptions[topicName] || "";
 }
@@ -317,6 +321,10 @@ function getLatinAmericanSpanishDescription(topicName: string): string {
     "Digital Security": "Aprende sobre la seguridad digital y cómo proteger tus bitcoins",
     "Trading Fundamentals": "Comprende los conceptos básicos del trading de Bitcoin",
     "Advanced Concepts": "Profundiza en conceptos avanzados de Bitcoin y blockchain",
+    "Wallet Security": "Aprende cómo guardar y administrar tus Bitcoin de forma segura",
+    "Transaction Fundamentals": "Comprende las transacciones de Bitcoin, las comisiones y el proceso de confirmación",
+    "UTXO Management": "Manejo avanzado de transacciones y optimización de UTXO",
+    "Cold Storage": "Configuración y administración de soluciones de almacenamiento en frío para Bitcoin"
   };
   return descriptions[topicName] || "";
 }
@@ -328,6 +336,10 @@ function getChineseDescription(topicName: string): string {
     "Digital Security": "学习数字安全和如何保护您的比特币",
     "Trading Fundamentals": "理解比特币交易的基本概念",
     "Advanced Concepts": "深入了解比特币和区块链的高级概念",
+    "Wallet Security": "学习如何安全地存储和管理您的比特币",
+    "Transaction Fundamentals": "了解比特币交易、费用和确认流程",
+    "UTXO Management": "高级交易处理和UTXO优化",
+    "Cold Storage": "设置和管理比特币冷存储解决方案"
   };
   return descriptions[topicName] || "";
 }
@@ -339,6 +351,10 @@ function getJapaneseDescription(topicName: string): string {
     "Digital Security": "デジタルセキュリティとビットコインの保護方法を学ぶ",
     "Trading Fundamentals": "ビットコイン取引の基本概念を理解する",
     "Advanced Concepts": "ビットコインとブロックチェーンの高度な概念を深く学ぶ",
+    "Wallet Security": "ビットコインを安全に保管・管理する方法を学ぶ",
+    "Transaction Fundamentals": "ビットコインの取引、手数料、承認プロセスを理解する",
+    "UTXO Management": "高度な取引処理とUTXOの最適化",
+    "Cold Storage": "ビットコインのコールドストレージソリューションの設定と管理"
   };
   return descriptions[topicName] || "";
 }
