@@ -18,16 +18,16 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("OpenAI test failed:", error);
       // Enhanced error response
-      const isRateLimit = error instanceof Error && 
+      const isRateLimit = error instanceof Error &&
         error.message.toLowerCase().includes('rate limit');
 
-      res.status(isRateLimit ? 429 : 500).json({ 
-        success: false, 
+      res.status(isRateLimit ? 429 : 500).json({
+        success: false,
         error: error instanceof Error ? error.message : "Unknown error",
         isRateLimit,
         fallbackAvailable: true,
-        suggestion: isRateLimit ? 
-          "The AI service is currently at capacity. The application will use pre-defined responses temporarily." : 
+        suggestion: isRateLimit ?
+          "The AI service is currently at capacity. The application will use pre-defined responses temporarily." :
           "An unexpected error occurred. The application will use pre-defined responses."
       });
     }
@@ -37,7 +37,25 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/bitcoin/topics", async (req, res) => {
     try {
       const topics = await storage.getBitcoinTopics();
-      res.json(topics);
+      const lang = req.query.lang?.toString() || 'en';
+
+      // Add localized descriptions
+      const localizedTopics = topics.map(topic => {
+        const descriptions = {
+          en: topic.description,
+          es: getSpanishDescription(topic.name),
+          'es-419': getLatinAmericanSpanishDescription(topic.name),
+          zh: getChineseDescription(topic.name),
+          ja: getJapaneseDescription(topic.name)
+        };
+
+        return {
+          ...topic,
+          description: descriptions[lang] || descriptions.en
+        };
+      });
+
+      res.json(localizedTopics);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch Bitcoin topics" });
     }
@@ -50,7 +68,7 @@ export function registerRoutes(app: Express): Server {
       const questions = await storage.getQuestionsByTopic(topicId);
 
       if (!questions.length) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           message: "No questions found for this topic",
           suggestion: "Try another topic or check back later when more questions are available."
         });
@@ -91,9 +109,9 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error submitting quiz attempt:", error);
       if (error instanceof ZodError) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Invalid quiz attempt data",
-          details: error.errors 
+          details: error.errors
         });
       }
       res.status(500).json({ message: "Failed to submit quiz attempt" });
@@ -167,12 +185,12 @@ export function registerRoutes(app: Express): Server {
     } catch (error) {
       console.error("Error starting chat session:", error);
       if (error instanceof ZodError) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Invalid session data",
-          details: error.errors 
+          details: error.errors
         });
       }
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to start chat session. Please try again.",
         details: error instanceof Error ? error.message : "Unknown error"
       });
@@ -206,9 +224,9 @@ export function registerRoutes(app: Express): Server {
         lastActive: new Date(),
       });
 
-      res.json({ 
+      res.json({
         message: tutorResponse,
-        analysis 
+        analysis
       });
     } catch (error) {
       console.error("Error processing message:", error);
@@ -227,4 +245,49 @@ export function registerRoutes(app: Express): Server {
   });
 
   return httpServer;
+}
+
+// Helper functions for translations
+function getSpanishDescription(topicName: string): string {
+  const descriptions = {
+    "Bitcoin Basics": "Comprenda qué es Bitcoin, su historia y conceptos fundamentales",
+    "Blockchain Technology": "Explore la tecnología blockchain y cómo funciona Bitcoin",
+    "Digital Security": "Aprenda sobre la seguridad digital y cómo proteger sus bitcoins",
+    "Trading Fundamentals": "Comprenda los conceptos básicos del trading de Bitcoin",
+    "Advanced Concepts": "Profundice en conceptos avanzados de Bitcoin y blockchain",
+  };
+  return descriptions[topicName] || "";
+}
+
+function getLatinAmericanSpanishDescription(topicName: string): string {
+  const descriptions = {
+    "Bitcoin Basics": "Entiende qué es Bitcoin, su historia y conceptos fundamentales",
+    "Blockchain Technology": "Explora la tecnología blockchain y cómo funciona Bitcoin",
+    "Digital Security": "Aprende sobre la seguridad digital y cómo proteger tus bitcoins",
+    "Trading Fundamentals": "Comprende los conceptos básicos del trading de Bitcoin",
+    "Advanced Concepts": "Profundiza en conceptos avanzados de Bitcoin y blockchain",
+  };
+  return descriptions[topicName] || "";
+}
+
+function getChineseDescription(topicName: string): string {
+  const descriptions = {
+    "Bitcoin Basics": "了解比特币是什么、其历史和基本概念",
+    "Blockchain Technology": "探索区块链技术和比特币的运作方式",
+    "Digital Security": "学习数字安全和如何保护您的比特币",
+    "Trading Fundamentals": "理解比特币交易的基本概念",
+    "Advanced Concepts": "深入了解比特币和区块链的高级概念",
+  };
+  return descriptions[topicName] || "";
+}
+
+function getJapaneseDescription(topicName: string): string {
+  const descriptions = {
+    "Bitcoin Basics": "ビットコインとは何か、その歴史と基本的な概念を理解する",
+    "Blockchain Technology": "ブロックチェーン技術とビットコインの仕組みを探る",
+    "Digital Security": "デジタルセキュリティとビットコインの保護方法を学ぶ",
+    "Trading Fundamentals": "ビットコイン取引の基本概念を理解する",
+    "Advanced Concepts": "ビットコインとブロックチェーンの高度な概念を深く学ぶ",
+  };
+  return descriptions[topicName] || "";
 }

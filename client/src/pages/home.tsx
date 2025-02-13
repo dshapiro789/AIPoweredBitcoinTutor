@@ -6,9 +6,13 @@ import { Bitcoin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 export default function Home() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: topics, isLoading } = useQuery<BitcoinTopic[]>({
-    queryKey: ["/api/bitcoin/topics"],
+    queryKey: ["/api/bitcoin/topics", i18n.language],
+    queryFn: async () => {
+      const response = await fetch(`/api/bitcoin/topics?lang=${i18n.language}`);
+      return response.json();
+    },
   });
 
   if (isLoading) {
