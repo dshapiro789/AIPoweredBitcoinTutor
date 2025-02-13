@@ -33,7 +33,7 @@ export default function TopicCard({ topic }: TopicCardProps) {
             </Button>
           </Link>
           <Link href={`/quiz/${topic.id}`} className="flex-1">
-            <Button className="w-full text-sm sm:text-base py-2" variant="outline">
+            <Button className="w-full text-sm sm:text-base py-2" variant="secondary">
               <BrainCircuit className="w-4 h-4 mr-2" />
               Take Quiz
             </Button>
