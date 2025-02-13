@@ -1,0 +1,28 @@
+{
+  "app": {
+    "title": "The AI-Powered Bitcoin Tutor",
+    "shortTitle": "AI BTC Tutor",
+    "description": "Start your Bitcoin journey with our AI-powered tutor. From basics to advanced concepts, learn how to securely store, manage, and transact with Bitcoin through interactive lessons tailored to your level."
+  },
+  "nav": {
+    "subjects": "Subjects",
+    "dashboard": "Dashboard"
+  },
+  "topics": {
+    "startLearning": "Start Learning",
+    "takeQuiz": "Take Quiz",
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    }
+  },
+  "quiz": {
+    "title": "Quiz",
+    "nextQuestion": "Next Question",
+    "submitQuiz": "Submit Quiz",
+    "loading": "Loading quiz...",
+    "score": "Score",
+    "of": "of"
+  }
+}
