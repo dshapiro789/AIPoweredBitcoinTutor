@@ -6,22 +6,43 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
   const lastMessage = messages[messages.length - 1]?.content || '';
-  return `I apologize, but I'm currently experiencing some technical difficulties with the AI service. 
-  Let me provide you with some general guidance about Bitcoin:
+  const fallbackResponses: Record<string, string> = {
+    "What is Bitcoin?": `Bitcoin is a decentralized digital currency that operates without the need for intermediaries like banks. Key points:
 
-  1. For beginners, I recommend starting with understanding:
-     - What Bitcoin is and how it works
-     - Setting up a wallet safely
-     - Basic transaction concepts
+1. Digital Currency: It exists purely in digital form
+2. Decentralized: No central authority controls it
+3. Secure: Uses advanced cryptography
+4. Transparent: All transactions are public
+5. Limited Supply: Only 21 million bitcoins will ever exist
 
-  2. For intermediate users:
-     - UTXO management
-     - Advanced security practices
-     - Transaction fee optimization
+Would you like to learn more about any of these aspects?`,
+    "default": `I apologize, but I'm currently experiencing some technical difficulties with the AI service. 
+Let me provide you with some general guidance about Bitcoin:
 
-  Please try your question again in a few moments when the service is restored.
+1. For beginners, I recommend starting with:
+   - What Bitcoin is and how it works
+   - Setting up a wallet safely
+   - Basic transaction concepts
 
-  Your question was: "${lastMessage}"`;
+2. For intermediate users:
+   - UTXO management
+   - Advanced security practices
+   - Transaction fee optimization
+
+Please try your question again in a few moments when the service is restored.
+
+Your question was: "${lastMessage}"`
+  };
+
+  // Check if we have a specific response for this question
+  const normalizedQuestion = lastMessage.toLowerCase().trim();
+  for (const [key, value] of Object.entries(fallbackResponses)) {
+    if (normalizedQuestion.includes(key.toLowerCase())) {
+      return value;
+    }
+  }
+
+  return fallbackResponses.default;
 }
 
 export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {

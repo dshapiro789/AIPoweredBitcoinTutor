@@ -17,7 +17,19 @@ export function registerRoutes(app: Express): Server {
       res.json({ success: true, response: testResponse });
     } catch (error) {
       console.error("OpenAI test failed:", error);
-      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Unknown error" });
+      // Enhanced error response
+      const isRateLimit = error instanceof Error && 
+        error.message.toLowerCase().includes('rate limit');
+
+      res.status(isRateLimit ? 429 : 500).json({ 
+        success: false, 
+        error: error instanceof Error ? error.message : "Unknown error",
+        isRateLimit,
+        fallbackAvailable: true,
+        suggestion: isRateLimit ? 
+          "The AI service is currently at capacity. The application will use pre-defined responses temporarily." : 
+          "An unexpected error occurred. The application will use pre-defined responses."
+      });
     }
   });
 
