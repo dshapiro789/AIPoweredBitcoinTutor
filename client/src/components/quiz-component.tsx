@@ -10,6 +10,8 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useTranslation } from "react-i18next";
 import { AchievementBadge } from "./achievements/achievement-badge";
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface QuizComponentProps {
   topicId: number;
@@ -40,7 +42,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
             title: t('achievements.new', 'New Achievement Unlocked!'),
             description: (
               <div className="flex items-center gap-3">
-                <AchievementBadge achievement={achievement.achievement} unlocked />
+                <AchievementBadge achievement={achievement.achievement} unlocked showAnimation />
                 <div>
                   <p className="font-semibold">{achievement.achievement.name}</p>
                   <p className="text-sm text-muted-foreground">
@@ -49,18 +51,19 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
                 </div>
               </div>
             ),
+            duration: 5000,
           });
         });
       }
 
       toast({
-        title: t('quiz.title'),
-        description: "Your answers have been submitted successfully.",
+        title: t('quiz.completed'),
+        description: t('quiz.submittedSuccessfully'),
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to submit quiz",
+        title: t('quiz.submitFailed'),
         description: error.message,
         variant: "destructive",
       });
@@ -72,7 +75,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <Loader2 className="h-8 w-8 animate-spin" />
           </div>
         </CardContent>
       </Card>
@@ -118,10 +121,10 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
       <CardHeader>
         <div className="flex justify-between items-center mb-4">
           <CardTitle className="text-xl">
-            {t('quiz.title')} {currentQuestionIndex + 1} {t('quiz.of')} {questions.length}
+            {t('quiz.question')} {currentQuestionIndex + 1} {t('quiz.of')} {questions.length}
           </CardTitle>
           <span className="text-sm text-muted-foreground">
-            {t('quiz.score')}: {Object.keys(selectedAnswers).length} {t('quiz.of')} {questions.length}
+            {t('quiz.answered')}: {Object.keys(selectedAnswers).length} {t('quiz.of')} {questions.length}
           </span>
         </div>
         <Progress value={progress} className="h-2" />
@@ -137,16 +140,32 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
           className="space-y-4"
         >
           {currentQuestion.options.map((option, index) => (
-            <div key={index} className="flex items-center space-x-2">
+            <div 
+              key={index} 
+              className={cn(
+                "flex items-center space-x-2 p-3 rounded-lg transition-colors",
+                selectedAnswers[currentQuestion.id] === index ? "bg-primary/10" : "hover:bg-muted"
+              )}
+            >
               <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-              <Label htmlFor={`option-${index}`} className="text-base">
+              <Label 
+                htmlFor={`option-${index}`} 
+                className="text-base flex-grow cursor-pointer"
+              >
                 {option}
               </Label>
             </div>
           ))}
         </RadioGroup>
 
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-between pt-4">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+            disabled={currentQuestionIndex === 0}
+          >
+            {t('quiz.previousQuestion')}
+          </Button>
           <Button
             onClick={handleNext}
             disabled={!selectedAnswers[currentQuestion.id]}
