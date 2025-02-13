@@ -24,5 +24,14 @@
     "loading": "Loading quiz...",
     "score": "Score",
     "of": "of"
+  },
+  "achievements": {
+    "title": "Achievements",
+    "description": "Complete learning milestones to earn badges",
+    "new": "New Achievement Unlocked!",
+    "unlocked": "Unlocked",
+    "points": "points",
+    "progress": "Progress",
+    "locked": "Keep learning to unlock this achievement"
   }
 }

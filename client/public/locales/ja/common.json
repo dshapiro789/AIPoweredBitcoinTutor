@@ -24,5 +24,14 @@
     "loading": "クイズを読み込み中...",
     "score": "スコア",
     "of": "/"
+  },
+  "achievements": {
+    "title": "実績",
+    "description": "学習の節目を達成してバッジを獲得しよう",
+    "new": "新しい実績を解除しました！",
+    "unlocked": "解除済み",
+    "points": "ポイント",
+    "progress": "進捗",
+    "locked": "学習を続けてこの実績を解除しましょう"
   }
 }

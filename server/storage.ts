@@ -5,18 +5,24 @@ import {
   type LearningProgress,
   type Question,
   type UserQuizAttempt,
+  type Achievement,
+  type UserAchievement,
   type InsertUser,
   type InsertBitcoinTopic,
   type InsertChatSession,
   type InsertLearningProgress,
   type InsertQuestion,
   type InsertUserQuizAttempt,
+  type InsertAchievement,
+  type InsertUserAchievement,
   users,
   bitcoinTopics,
   chatSessions,
   learningProgress,
   questions,
-  userQuizAttempts
+  userQuizAttempts,
+  achievements,
+  userAchievements
 } from "@shared/schema";
 import { db } from "./db";
 import { eq } from "drizzle-orm";
@@ -40,10 +46,16 @@ export interface IStorage {
   createQuizAttempt(attempt: InsertUserQuizAttempt): Promise<UserQuizAttempt>;
   getUserQuizAttempts(userId: number, topicId: number): Promise<UserQuizAttempt[]>;
   getQuestion(id: number): Promise<Question | undefined>;
+
+  // New achievement-related methods
+  getAchievements(): Promise<Achievement[]>;
+  getUserAchievements(userId: number): Promise<(UserAchievement & { achievement: Achievement })[]>;
+  awardAchievement(achievement: InsertUserAchievement): Promise<UserAchievement>;
+  checkAndAwardAchievements(userId: number): Promise<UserAchievement[]>;
 }
 
 export class DatabaseStorage implements IStorage {
-  // Existing implementations remain unchanged
+  // Existing implementations
   async getUser(id: number): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
     return user;
@@ -130,6 +142,87 @@ export class DatabaseStorage implements IStorage {
       .from(userQuizAttempts)
       .where(eq(userQuizAttempts.userId, userId))
       .where(eq(userQuizAttempts.topicId, topicId));
+  }
+
+  // New achievement-related implementations
+  async getAchievements(): Promise<Achievement[]> {
+    return db.select().from(achievements);
+  }
+
+  async getUserAchievements(userId: number): Promise<(UserAchievement & { achievement: Achievement })[]> {
+    const results = await db
+      .select({
+        userAchievement: userAchievements,
+        achievement: achievements,
+      })
+      .from(userAchievements)
+      .leftJoin(achievements, eq(userAchievements.achievementId, achievements.id))
+      .where(eq(userAchievements.userId, userId));
+
+    return results.map(({ userAchievement, achievement }) => ({
+      ...userAchievement,
+      achievement,
+    }));
+  }
+
+  async awardAchievement(achievement: InsertUserAchievement): Promise<UserAchievement> {
+    const [newAchievement] = await db
+      .insert(userAchievements)
+      .values(achievement)
+      .returning();
+    return newAchievement;
+  }
+
+  async checkAndAwardAchievements(userId: number): Promise<UserAchievement[]> {
+    const progress = await this.getLearningProgress(userId);
+    const quizAttempts = await db
+      .select()
+      .from(userQuizAttempts)
+      .where(eq(userQuizAttempts.userId, userId));
+    const existingAchievements = await this.getUserAchievements(userId);
+    const allAchievements = await this.getAchievements();
+
+    const newAchievements: UserAchievement[] = [];
+
+    for (const achievement of allAchievements) {
+      // Skip if user already has this achievement
+      if (existingAchievements.some(ua => ua.achievementId === achievement.id)) {
+        continue;
+      }
+
+      // Check if requirements are met
+      let requirementsMet = true;
+      for (const requirement of achievement.requirements) {
+        switch (requirement.type) {
+          case 'quiz_score':
+            // Check if user has achieved the required quiz score
+            requirementsMet = quizAttempts.some(attempt => attempt.score >= requirement.value);
+            break;
+          case 'topics_completed':
+            // Check if user has completed the required number of topics
+            requirementsMet = progress.filter(p => p.completedExercises > 0).length >= requirement.value;
+            break;
+          case 'total_points':
+            // Check if user has earned enough total points
+            const totalPoints = progress.reduce((sum, p) => sum + p.totalPoints, 0);
+            requirementsMet = totalPoints >= requirement.value;
+            break;
+        }
+
+        if (!requirementsMet) break;
+      }
+
+      if (requirementsMet) {
+        const awarded = await this.awardAchievement({
+          userId,
+          achievementId: achievement.id,
+          unlockedAt: new Date(),
+        });
+        newAchievements.push(awarded);
+      }
+    }
+
+    return newAchievements;
   }
 }
 
@@ -227,9 +320,64 @@ async function initializeDefaultQuestions() {
   }
 }
 
-// Modified initialization
+// Add after initializeDefaultQuestions function
+async function initializeDefaultAchievements() {
+  const existingAchievements = await db.select().from(achievements);
+  if (existingAchievements.length === 0) {
+    const defaultAchievements: InsertAchievement[] = [
+      {
+        name: "Bitcoin Beginner",
+        description: "Complete your first Bitcoin topic",
+        type: "topic_completion",
+        requirements: [{ type: "topics_completed", value: 1 }],
+        points: 50,
+        badge: "🎓"
+      },
+      {
+        name: "Quiz Master",
+        description: "Score 100% on any quiz",
+        type: "quiz_expert",
+        requirements: [{ type: "quiz_score", value: 100 }],
+        points: 100,
+        badge: "🏆"
+      },
+      {
+        name: "Dedicated Learner",
+        description: "Complete 5 different topics",
+        type: "topic_completion",
+        requirements: [{ type: "topics_completed", value: 5 }],
+        points: 200,
+        badge: "📚"
+      },
+      {
+        name: "Point Collector",
+        description: "Earn a total of 500 points",
+        type: "milestone",
+        requirements: [{ type: "total_points", value: 500 }],
+        points: 150,
+        badge: "⭐"
+      },
+      {
+        name: "Bitcoin Scholar",
+        description: "Pass all quizzes with a score of 80% or higher",
+        type: "quiz_expert",
+        requirements: [
+          { type: "topics_completed", value: 5 },
+          { type: "quiz_score", value: 80 }
+        ],
+        points: 300,
+        badge: "🎯"
+      }
+    ];
+
+    await db.insert(achievements).values(defaultAchievements);
+  }
+}
+
+// Modify initialization
 export const storage = new DatabaseStorage();
 Promise.all([
   initializeDefaultBitcoinTopics(),
-  initializeDefaultQuestions()
+  initializeDefaultQuestions(),
+  initializeDefaultAchievements()
 ]).catch(console.error);

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Question, InsertUserQuizAttempt } from "@shared/schema";
+import { Question, InsertUserQuizAttempt, Achievement, UserAchievement } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -9,6 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useTranslation } from "react-i18next";
+import { AchievementBadge } from "./achievements/achievement-badge";
 
 interface QuizComponentProps {
   topicId: number;
@@ -30,8 +31,28 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
       const response = await apiRequest("POST", "/api/quiz/attempt", attempt);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`/api/quiz/history/${userId}/${topicId}`] });
+
+      if (data.newAchievements?.length > 0) {
+        data.newAchievements.forEach((achievement: UserAchievement & { achievement: Achievement }) => {
+          toast({
+            title: t('achievements.new', 'New Achievement Unlocked!'),
+            description: (
+              <div className="flex items-center gap-3">
+                <AchievementBadge achievement={achievement.achievement} unlocked />
+                <div>
+                  <p className="font-semibold">{achievement.achievement.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {achievement.achievement.description}
+                  </p>
+                </div>
+              </div>
+            ),
+          });
+        });
+      }
+
       toast({
         title: t('quiz.title'),
         description: "Your answers have been submitted successfully.",

@@ -24,5 +24,14 @@
     "loading": "Cargando examen...",
     "score": "Puntaje",
     "of": "de"
+  },
+  "achievements": {
+    "title": "Logros",
+    "description": "Completa metas de aprendizaje para ganar insignias",
+    "new": "¡Nuevo Logro Desbloqueado!",
+    "unlocked": "Desbloqueado",
+    "points": "puntos",
+    "progress": "Progreso",
+    "locked": "Sigue aprendiendo para desbloquear este logro"
   }
 }

@@ -24,5 +24,14 @@
     "loading": "加载测验中...",
     "score": "分数",
     "of": "/"
+  },
+  "achievements": {
+    "title": "成就",
+    "description": "完成学习里程碑获得徽章",
+    "new": "解锁新成就！",
+    "unlocked": "已解锁",
+    "points": "点数",
+    "progress": "进度",
+    "locked": "继续学习以解锁此成就"
   }
 }

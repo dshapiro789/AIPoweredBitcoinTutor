@@ -105,7 +105,13 @@ export function registerRoutes(app: Express): Server {
         totalPoints: validatedAttempt.score
       });
 
-      res.json(attempt);
+      // Check for new achievements
+      const newAchievements = await storage.checkAndAwardAchievements(validatedAttempt.userId);
+
+      res.json({
+        attempt,
+        newAchievements: newAchievements.length > 0 ? newAchievements : null
+      });
     } catch (error) {
       console.error("Error submitting quiz attempt:", error);
       if (error instanceof ZodError) {
@@ -243,6 +249,51 @@ export function registerRoutes(app: Express): Server {
       res.status(500).json({ message: "Failed to fetch learning progress" });
     }
   });
+
+  // Achievement routes
+  app.get("/api/achievements", async (req, res) => {
+    try {
+      const achievements = await storage.getAchievements();
+      res.json(achievements);
+    } catch (error) {
+      console.error("Error fetching achievements:", error);
+      res.status(500).json({ message: "Failed to fetch achievements" });
+    }
+  });
+
+  app.get("/api/achievements/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const userAchievements = await storage.getUserAchievements(userId);
+      res.json(userAchievements);
+    } catch (error) {
+      console.error("Error fetching user achievements:", error);
+      res.status(500).json({ message: "Failed to fetch user achievements" });
+    }
+  });
+
+  app.post("/api/achievements/check/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const newAchievements = await storage.checkAndAwardAchievements(userId);
+
+      if (newAchievements.length > 0) {
+        res.json({
+          message: "New achievements unlocked!",
+          achievements: newAchievements
+        });
+      } else {
+        res.json({
+          message: "No new achievements unlocked",
+          achievements: []
+        });
+      }
+    } catch (error) {
+      console.error("Error checking achievements:", error);
+      res.status(500).json({ message: "Failed to check achievements" });
+    }
+  });
+
 
   return httpServer;
 }
