@@ -65,9 +65,13 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/quiz/:topicId", async (req, res) => {
     try {
       const topicId = parseInt(req.params.topicId);
+      if (isNaN(topicId)) {
+        return res.status(400).json({ message: "Invalid topic ID" });
+      }
+
       const questions = await storage.getQuestionsByTopic(topicId);
 
-      if (!questions.length) {
+      if (!questions || questions.length === 0) {
         return res.status(404).json({
           message: "No questions found for this topic",
           suggestion: "Try another topic or check back later when more questions are available."
@@ -77,7 +81,10 @@ export function registerRoutes(app: Express): Server {
       res.json(questions);
     } catch (error) {
       console.error("Error fetching quiz questions:", error);
-      res.status(500).json({ message: "Failed to fetch quiz questions" });
+      res.status(500).json({ 
+        message: "Failed to fetch quiz questions",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 

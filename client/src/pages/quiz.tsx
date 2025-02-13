@@ -8,9 +8,24 @@ export default function QuizPage() {
   const { topicId } = useParams<{ topicId: string }>();
   const { t } = useTranslation();
 
-  const { data: topic, isLoading } = useQuery<BitcoinTopic>({
+  const { data: topic, isLoading, error } = useQuery<BitcoinTopic>({
     queryKey: [`/api/bitcoin/topics/${topicId}`],
   });
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-bold text-destructive mb-2">
+            {t('error.title')}
+          </h1>
+          <p className="text-muted-foreground">
+            {t('error.failedToLoad')}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading || !topic) {
     return (
