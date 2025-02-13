@@ -10,8 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useTranslation } from "react-i18next";
 import { AchievementBadge } from "./achievements/achievement-badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trophy, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLocation } from "wouter";
 
 interface QuizComponentProps {
   topicId: number;
@@ -21,8 +22,11 @@ interface QuizComponentProps {
 export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [finalScore, setFinalScore] = useState(0);
   const { toast } = useToast();
   const { t } = useTranslation();
+  const [, setLocation] = useLocation();
 
   const { data: questions, isLoading } = useQuery<Question[]>({
     queryKey: [`/api/quiz/${topicId}`],
@@ -35,6 +39,9 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [`/api/quiz/history/${userId}/${topicId}`] });
+
+      setIsCompleted(true);
+      setFinalScore(data.attempt.score);
 
       if (data.newAchievements?.length > 0) {
         data.newAchievements.forEach((achievement: UserAchievement & { achievement: Achievement }) => {
@@ -58,7 +65,8 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
 
       toast({
         title: t('quiz.completed'),
-        description: t('quiz.submittedSuccessfully'),
+        description: t('quiz.finalScore', { score: data.attempt.score }),
+        duration: 5000,
       });
     },
     onError: (error: Error) => {
@@ -76,6 +84,39 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-center h-48">
             <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (isCompleted) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader className="text-center">
+          <Trophy className="w-16 h-16 mx-auto text-primary mb-4" />
+          <CardTitle className="text-2xl mb-2">
+            {t('quiz.congratulations')}
+          </CardTitle>
+          <CardDescription className="text-lg">
+            {t('quiz.yourScore')}: {finalScore}%
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex flex-col gap-4 items-center">
+            <Button 
+              onClick={() => setLocation('/dashboard')} 
+              className="w-full max-w-sm"
+              variant="outline"
+            >
+              {t('quiz.returnToDashboard')}
+            </Button>
+            <Button 
+              onClick={() => setLocation('/')} 
+              className="w-full max-w-sm"
+            >
+              {t('quiz.continueLeaning')} <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>
