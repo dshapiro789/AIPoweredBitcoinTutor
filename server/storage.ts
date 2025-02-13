@@ -267,7 +267,7 @@ async function initializeDefaultBitcoinTopics() {
   }
 }
 
-// Add after initializeDefaultBitcoinTopics function
+// Add more default questions for Transaction Fundamentals topic
 async function initializeDefaultQuestions() {
   const existingQuestions = await db.select().from(questions);
   if (existingQuestions.length === 0) {
@@ -287,32 +287,46 @@ async function initializeDefaultQuestions() {
         points: 10
       },
       {
-        topicId: 1,
-        questionText: "Who created Bitcoin?",
+        topicId: 3, // Transaction Fundamentals
+        questionText: "What is a Bitcoin transaction fee?",
         options: [
-          "Bill Gates",
-          "Satoshi Nakamoto",
-          "Mark Zuckerberg",
-          "Elon Musk"
+          "A tax paid to governments",
+          "A reward paid to miners for processing transactions",
+          "A subscription fee for using Bitcoin",
+          "A fee paid to Bitcoin's creator"
         ],
         correctAnswer: 1,
-        explanation: "Bitcoin was created by an anonymous person or group using the pseudonym Satoshi Nakamoto in 2008.",
+        explanation: "Transaction fees are rewards paid to miners for processing and validating Bitcoin transactions on the network.",
         difficulty: "beginner",
         points: 10
       },
       {
-        topicId: 2, // Wallet Security
-        questionText: "What is a private key in Bitcoin?",
+        topicId: 3,
+        questionText: "What happens when a Bitcoin transaction is confirmed?",
         options: [
-          "A password for your email",
-          "A secret code that allows you to spend your Bitcoin",
-          "Your Bitcoin address",
-          "Your wallet backup file"
+          "The coins are physically minted",
+          "The transaction is included in a block and added to the blockchain",
+          "An email is sent to both parties",
+          "The Bitcoin disappears from the network"
         ],
         correctAnswer: 1,
-        explanation: "A private key is a secret piece of data that proves your right to spend Bitcoin from a specific wallet.",
+        explanation: "When a transaction is confirmed, it means it has been included in a block and added to the blockchain, making it permanent and irreversible.",
         difficulty: "beginner",
         points: 10
+      },
+      {
+        topicId: 3,
+        questionText: "What is the minimum number of confirmations recommended for large Bitcoin transactions?",
+        options: [
+          "1 confirmation",
+          "3 confirmations",
+          "6 confirmations",
+          "10 confirmations"
+        ],
+        correctAnswer: 2,
+        explanation: "6 confirmations are traditionally recommended for large Bitcoin transactions to ensure they are securely recorded in the blockchain.",
+        difficulty: "intermediate",
+        points: 15
       }
     ];
 
