@@ -6,9 +6,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiRequest } from "@/lib/queryClient";
 import type { ChatSession } from "@shared/schema";
-import { BookOpen, Brain, Target, Activity } from "lucide-react";
+import { Brain, Target, Activity, AlertTriangle } from "lucide-react";
 
 interface ChatInterfaceProps {
   session: ChatSession;
@@ -19,6 +20,7 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState(session.messages);
   const [analysis, setAnalysis] = useState<any>(null);
+  const [isAIAvailable, setIsAIAvailable] = useState(true);
   const { toast } = useToast();
 
   const sendMessage = async () => {
@@ -33,6 +35,13 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
       });
 
       const data = await response.json();
+
+      // Check if we're getting a fallback response
+      if (data.message.includes("technical difficulties")) {
+        setIsAIAvailable(false);
+      } else {
+        setIsAIAvailable(true);
+      }
 
       setMessages([
         ...messages,
@@ -55,6 +64,15 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
       <div className="col-span-2">
         <Card className="h-[600px]">
           <CardContent className="p-4">
+            {!isAIAvailable && (
+              <Alert variant="warning" className="mb-4">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  The AI tutor is currently in fallback mode. You'll receive general guidance about Bitcoin topics.
+                  We're working to restore full AI capabilities.
+                </AlertDescription>
+              </Alert>
+            )}
             <ScrollArea className="h-[500px] mb-4">
               <div className="space-y-4">
                 {messages.map((msg, i) => (
@@ -75,7 +93,9 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
               <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type your message..."
+                placeholder={isAIAvailable 
+                  ? "Type your message..." 
+                  : "AI tutor is in fallback mode, but you can still ask basic questions..."}
                 className="resize-none"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
