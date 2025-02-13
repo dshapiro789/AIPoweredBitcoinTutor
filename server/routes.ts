@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getTutorResponse, analyzeProgress, generateLearningPath } from "./openai";
 import { insertUserSchema, insertChatSessionSchema, insertLearningProgressSchema } from "@shared/schema";
+import { ZodError } from "zod";
 
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
@@ -32,19 +33,54 @@ export function registerRoutes(app: Express): Server {
   // Chat session routes
   app.post("/api/chat/start", async (req, res) => {
     try {
-      const session = insertChatSessionSchema.parse(req.body);
-      const newSession = await storage.createChatSession(session);
+      const sessionData = {
+        userId: req.body.userId,
+        topicId: parseInt(req.body.topicId),
+        messages: [],
+        isActive: true
+      };
 
-      // Generate initial learning path
-      const learningPath = await generateLearningPath(
-        (await storage.getBitcoinTopic(session.topicId))?.name || "",
-        "beginner"
-      );
+      const validatedSession = insertChatSessionSchema.parse(sessionData);
+      const newSession = await storage.createChatSession(validatedSession);
+
+      // Default learning path in case OpenAI is not available
+      const defaultLearningPath = {
+        next_topics: [
+          {
+            topic: "Bitcoin Basics",
+            description: "Learn the fundamentals of Bitcoin",
+            prerequisites: [],
+            practical_exercises: ["Create a wallet", "Send a test transaction"]
+          }
+        ],
+        recommended_resources: ["Bitcoin.org documentation"],
+        estimated_completion_time: "2-3 weeks"
+      };
+
+      let learningPath = defaultLearningPath;
+      try {
+        const topic = await storage.getBitcoinTopic(validatedSession.topicId);
+        if (topic) {
+          const aiLearningPath = await generateLearningPath(topic.name, "beginner");
+          learningPath = aiLearningPath;
+        }
+      } catch (error) {
+        console.error("Using default learning path due to error:", error);
+      }
 
       res.json({ session: newSession, learningPath });
     } catch (error) {
       console.error("Error starting chat session:", error);
-      res.status(400).json({ message: "Invalid session data" });
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid session data",
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ 
+        message: "Failed to start chat session. Please try again.",
+        details: error instanceof Error ? error.message : "Unknown error"
+      });
     }
   });
 
