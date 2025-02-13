@@ -1,0 +1,28 @@
+{
+  "app": {
+    "title": "El Tutor de Bitcoin con IA",
+    "shortTitle": "Tutor IA BTC",
+    "description": "Inicia tu viaje en Bitcoin con nuestro tutor potenciado por IA. Desde conceptos básicos hasta avanzados, aprende a guardar, gestionar y hacer transacciones con Bitcoin a través de lecciones interactivas adaptadas a tu nivel."
+  },
+  "nav": {
+    "subjects": "Temas",
+    "dashboard": "Tablero"
+  },
+  "topics": {
+    "startLearning": "Empezar",
+    "takeQuiz": "Hacer Examen",
+    "difficulty": {
+      "beginner": "Principiante",
+      "intermediate": "Intermedio",
+      "advanced": "Avanzado"
+    }
+  },
+  "quiz": {
+    "title": "Examen",
+    "nextQuestion": "Siguiente Pregunta",
+    "submitQuiz": "Enviar Examen",
+    "loading": "Cargando examen...",
+    "score": "Puntaje",
+    "of": "de"
+  }
+}

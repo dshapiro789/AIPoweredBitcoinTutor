@@ -10,7 +10,8 @@ import {
 
 const languages = {
   en: { name: 'English', flag: '🇺🇸' },
-  es: { name: 'Español', flag: '🇪🇸' },
+  es: { name: 'Español (España)', flag: '🇪🇸' },
+  'es-419': { name: 'Español (Latinoamérica)', flag: '🌎' },
   zh: { name: '中文', flag: '🇨🇳' },
   ja: { name: '日本語', flag: '🇯🇵' },
 };
