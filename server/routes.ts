@@ -8,6 +8,19 @@ import { ZodError } from "zod";
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
 
+  // Test OpenAI integration
+  app.get("/api/test-openai", async (req, res) => {
+    try {
+      const testResponse = await getTutorResponse([
+        { role: "user", content: "What is Bitcoin?" }
+      ], "Bitcoin Basics");
+      res.json({ success: true, response: testResponse });
+    } catch (error) {
+      console.error("OpenAI test failed:", error);
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : "Unknown error" });
+    }
+  });
+
   // Bitcoin topics routes
   app.get("/api/bitcoin/topics", async (req, res) => {
     try {

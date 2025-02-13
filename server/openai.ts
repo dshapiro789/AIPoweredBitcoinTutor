@@ -1,9 +1,10 @@
 import OpenAI from "openai";
+import { type ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-function getFallbackTutorResponse(messages: { role: string; content: string }[]): string {
+function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
   const lastMessage = messages[messages.length - 1]?.content || '';
   return `I apologize, but I'm currently experiencing some technical difficulties with the AI service. 
   Let me provide you with some general guidance about Bitcoin:
@@ -23,9 +24,11 @@ function getFallbackTutorResponse(messages: { role: string; content: string }[])
   Your question was: "${lastMessage}"`;
 }
 
-export async function getTutorResponse(messages: { role: string; content: string }[], subject: string) {
+export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {
   try {
-    const systemPrompt = `You are an expert Bitcoin tutor with deep knowledge of cryptocurrency, blockchain technology, and Bitcoin specifically. Your goal is to:
+    const systemPrompt: ChatCompletionMessageParam = {
+      role: "system",
+      content: `You are an expert Bitcoin tutor with deep knowledge of cryptocurrency, blockchain technology, and Bitcoin specifically. Your goal is to:
 
 1. Teach Bitcoin concepts with real-world applications:
    - Explain how Bitcoin transactions work with practical examples
@@ -55,10 +58,11 @@ Remember to:
 - Use clear, non-technical language for beginners
 - Provide more technical details when user shows advanced understanding
 - Include specific Bitcoin examples in explanations
-- Verify understanding before moving to more complex topics`;
+- Verify understanding before moving to more complex topics`
+    };
 
     const fullMessages = [
-      { role: "system", content: systemPrompt },
+      systemPrompt,
       ...messages,
     ];
 
@@ -69,7 +73,7 @@ Remember to:
       max_tokens: 1000,
     });
 
-    return response.choices[0].message.content;
+    return response.choices[0].message.content || '';
   } catch (error) {
     console.error("OpenAI API error:", error);
     return getFallbackTutorResponse(messages);
@@ -92,7 +96,7 @@ const defaultAnalysis = {
   }
 };
 
-export async function analyzeProgress(chatHistory: { role: string; content: string }[]): Promise<{
+export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[]): Promise<{
   understanding: number;
   engagement: number;
   areas_for_improvement: string[];
@@ -120,34 +124,12 @@ export async function analyzeProgress(chatHistory: { role: string; content: stri
       response_format: { type: "json_object" }
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    return JSON.parse(response.choices[0].message.content || '{}');
   } catch (error) {
     console.error("OpenAI API error:", error);
     return defaultAnalysis;
   }
 }
-
-const defaultLearningPath = {
-  next_topics: [
-    {
-      topic: "Bitcoin Fundamentals",
-      description: "Learn the basics of Bitcoin and blockchain technology",
-      prerequisites: [],
-      practical_exercises: ["Create a wallet", "Send a test transaction"]
-    },
-    {
-      topic: "Wallet Security",
-      description: "Understanding how to secure your Bitcoin",
-      prerequisites: ["Bitcoin Fundamentals"],
-      practical_exercises: ["Setup backup procedures", "Practice recovery"]
-    }
-  ],
-  recommended_resources: [
-    "Bitcoin.org documentation",
-    "Mastering Bitcoin book"
-  ],
-  estimated_completion_time: "2-3 weeks"
-};
 
 export async function generateLearningPath(currentLevel: string, progress: any): Promise<{
   next_topics: Array<{
@@ -180,7 +162,7 @@ export async function generateLearningPath(currentLevel: string, progress: any):
       response_format: { type: "json_object" }
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    return JSON.parse(response.choices[0].message.content || '{}');
   } catch (error) {
     console.error("OpenAI API error:", error);
     return defaultLearningPath;
@@ -213,7 +195,7 @@ export async function generatePracticalExercise(topic: string, difficulty: strin
       response_format: { type: "json_object" }
     });
 
-    return JSON.parse(response.choices[0].message.content);
+    return JSON.parse(response.choices[0].message.content || '{}');
   } catch (error) {
     console.error("OpenAI API error:", error);
     return {
@@ -232,3 +214,25 @@ export async function generatePracticalExercise(topic: string, difficulty: strin
     };
   }
 }
+
+const defaultLearningPath = {
+  next_topics: [
+    {
+      topic: "Bitcoin Fundamentals",
+      description: "Learn the basics of Bitcoin and blockchain technology",
+      prerequisites: [],
+      practical_exercises: ["Create a wallet", "Send a test transaction"]
+    },
+    {
+      topic: "Wallet Security",
+      description: "Understanding how to secure your Bitcoin",
+      prerequisites: ["Bitcoin Fundamentals"],
+      practical_exercises: ["Setup backup procedures", "Practice recovery"]
+    }
+  ],
+  recommended_resources: [
+    "Bitcoin.org documentation",
+    "Mastering Bitcoin book"
+  ],
+  estimated_completion_time: "2-3 weeks"
+};
