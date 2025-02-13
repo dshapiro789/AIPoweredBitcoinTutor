@@ -135,7 +135,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
         </CardDescription>
 
         <RadioGroup
-          value={selectedAnswers[currentQuestion.id]?.toString()}
+          value={selectedAnswers[currentQuestion.id]?.toString() || ''}
           onValueChange={handleAnswer}
           className="space-y-4"
         >
