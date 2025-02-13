@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useTranslation } from "react-i18next";
 
 interface QuizComponentProps {
   topicId: number;
@@ -18,6 +19,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   const { data: questions, isLoading } = useQuery<Question[]>({
     queryKey: [`/api/quiz/${topicId}`],
@@ -31,7 +33,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/quiz/history/${userId}/${topicId}`] });
       toast({
-        title: "Quiz completed!",
+        title: t('quiz.title'),
         description: "Your answers have been submitted successfully.",
       });
     },
@@ -70,7 +72,6 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      // Calculate score
       const questionsAnswered = Object.entries(selectedAnswers).map(([questionId, answer]) => ({
         questionId: parseInt(questionId),
         answer,
@@ -81,7 +82,6 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
         return total + (question?.correctAnswer === answer ? question?.points || 0 : 0);
       }, 0);
 
-      // Submit quiz attempt
       submitAttemptMutation.mutate({
         userId,
         topicId,
@@ -96,9 +96,11 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <div className="flex justify-between items-center mb-4">
-          <CardTitle className="text-xl">Question {currentQuestionIndex + 1} of {questions.length}</CardTitle>
+          <CardTitle className="text-xl">
+            {t('quiz.title')} {currentQuestionIndex + 1} {t('quiz.of')} {questions.length}
+          </CardTitle>
           <span className="text-sm text-muted-foreground">
-            Score: {Object.keys(selectedAnswers).length} / {questions.length}
+            {t('quiz.score')}: {Object.keys(selectedAnswers).length} {t('quiz.of')} {questions.length}
           </span>
         </div>
         <Progress value={progress} className="h-2" />
@@ -107,7 +109,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
         <CardDescription className="text-lg font-medium">
           {currentQuestion.questionText}
         </CardDescription>
-        
+
         <RadioGroup
           value={selectedAnswers[currentQuestion.id]?.toString()}
           onValueChange={handleAnswer}
@@ -128,7 +130,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
             onClick={handleNext}
             disabled={!selectedAnswers[currentQuestion.id]}
           >
-            {currentQuestionIndex < questions.length - 1 ? "Next Question" : "Submit Quiz"}
+            {currentQuestionIndex < questions.length - 1 ? t('quiz.nextQuestion') : t('quiz.submitQuiz')}
           </Button>
         </div>
       </CardContent>

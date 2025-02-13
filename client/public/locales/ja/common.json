@@ -1,0 +1,28 @@
+{
+  "app": {
+    "title": "AI搭載ビットコインチューター",
+    "shortTitle": "AI BTCチューター",
+    "description": "AI搭載チューターでビットコインの旅を始めましょう。基礎から応用まで、あなたのレベルに合わせたインタラクティブなレッスンを通じて、ビットコインの安全な保管、管理、取引方法を学びます。"
+  },
+  "nav": {
+    "subjects": "科目",
+    "dashboard": "ダッシュボード"
+  },
+  "topics": {
+    "startLearning": "学習を始める",
+    "takeQuiz": "クイズに挑戦",
+    "difficulty": {
+      "beginner": "初級",
+      "intermediate": "中級",
+      "advanced": "上級"
+    }
+  },
+  "quiz": {
+    "title": "クイズ",
+    "nextQuestion": "次の質問",
+    "submitQuiz": "クイズを提出",
+    "loading": "クイズを読み込み中...",
+    "score": "スコア",
+    "of": "/"
+  }
+}

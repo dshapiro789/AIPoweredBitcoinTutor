@@ -1,0 +1,28 @@
+{
+  "app": {
+    "title": "AI比特币导师",
+    "shortTitle": "AI BTC导师",
+    "description": "通过我们的AI驱动导师开始您的比特币之旅。从基础到高级概念，通过针对您水平定制的互动课程，学习如何安全地存储、管理和交易比特币。"
+  },
+  "nav": {
+    "subjects": "课程",
+    "dashboard": "仪表板"
+  },
+  "topics": {
+    "startLearning": "开始学习",
+    "takeQuiz": "参加测验",
+    "difficulty": {
+      "beginner": "初学者",
+      "intermediate": "中级",
+      "advanced": "高级"
+    }
+  },
+  "quiz": {
+    "title": "测验",
+    "nextQuestion": "下一题",
+    "submitQuiz": "提交测验",
+    "loading": "加载测验中...",
+    "score": "分数",
+    "of": "/"
+  }
+}
