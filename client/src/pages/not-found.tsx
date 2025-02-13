@@ -12,7 +12,7 @@ export default function NotFound() {
           </div>
 
           <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
+            Please check the URL or return to The AI-Powered Bitcoin Tutor homepage.
           </p>
         </CardContent>
       </Card>

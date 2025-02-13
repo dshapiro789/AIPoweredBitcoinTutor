@@ -26,7 +26,7 @@ export default function Home() {
       <div className="max-w-2xl">
         <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
           <Bitcoin className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">Bitcoin Learning Hub</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight">The AI-Powered Bitcoin Tutor</h1>
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
           Start your Bitcoin journey with our AI-powered tutor. From basics to advanced concepts,
