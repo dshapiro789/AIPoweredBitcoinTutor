@@ -25,14 +25,14 @@ export default function TopicCard({ topic }: TopicCardProps) {
             <CardDescription className="text-sm sm:text-base line-clamp-3">{topic.description}</CardDescription>
           </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Link href={`/chat/${topic.id}`} className="flex-1">
+        <div className="flex flex-col gap-2">
+          <Link href={`/chat/${topic.id}`}>
             <Button className="w-full text-sm sm:text-base py-2" variant="default">
               <Book className="w-4 h-4 mr-2" />
               Start Learning
             </Button>
           </Link>
-          <Link href={`/quiz/${topic.id}`} className="flex-1">
+          <Link href={`/quiz/${topic.id}`}>
             <Button className="w-full text-sm sm:text-base py-2" variant="secondary">
               <BrainCircuit className="w-4 h-4 mr-2" />
               Take Quiz
