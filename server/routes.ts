@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { getTutorResponse, analyzeProgress, generateLearningPath } from "./openai";
-import { insertUserSchema, insertChatSessionSchema, insertLearningProgressSchema } from "@shared/schema";
+import { insertUserSchema, insertChatSessionSchema, insertLearningProgressSchema, insertUserQuizAttemptSchema } from "@shared/schema";
 import { ZodError } from "zod";
 
 export function registerRoutes(app: Express): Server {
@@ -43,6 +43,76 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Quiz routes
+  app.get("/api/quiz/:topicId", async (req, res) => {
+    try {
+      const topicId = parseInt(req.params.topicId);
+      const questions = await storage.getQuestionsByTopic(topicId);
+
+      if (!questions.length) {
+        return res.status(404).json({ 
+          message: "No questions found for this topic",
+          suggestion: "Try another topic or check back later when more questions are available."
+        });
+      }
+
+      res.json(questions);
+    } catch (error) {
+      console.error("Error fetching quiz questions:", error);
+      res.status(500).json({ message: "Failed to fetch quiz questions" });
+    }
+  });
+
+  app.post("/api/quiz/attempt", async (req, res) => {
+    try {
+      const quizAttempt = {
+        userId: req.body.userId,
+        topicId: req.body.topicId,
+        questionsAnswered: req.body.questionsAnswered,
+        score: req.body.score,
+        completedAt: new Date(),
+      };
+
+      const validatedAttempt = insertUserQuizAttemptSchema.parse(quizAttempt);
+      const attempt = await storage.createQuizAttempt(validatedAttempt);
+
+      // Update learning progress
+      await storage.updateLearningProgress({
+        userId: validatedAttempt.userId,
+        topicId: validatedAttempt.topicId,
+        completedExercises: 1,
+        confidenceLevel: Math.min(5, Math.ceil(validatedAttempt.score / 20)),
+        lastActive: new Date(),
+        quizzesPassed: validatedAttempt.score >= 70 ? 1 : 0,
+        totalPoints: validatedAttempt.score
+      });
+
+      res.json(attempt);
+    } catch (error) {
+      console.error("Error submitting quiz attempt:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({ 
+          message: "Invalid quiz attempt data",
+          details: error.errors 
+        });
+      }
+      res.status(500).json({ message: "Failed to submit quiz attempt" });
+    }
+  });
+
+  app.get("/api/quiz/history/:userId/:topicId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const topicId = parseInt(req.params.topicId);
+      const attempts = await storage.getUserQuizAttempts(userId, topicId);
+      res.json(attempts);
+    } catch (error) {
+      console.error("Error fetching quiz history:", error);
+      res.status(500).json({ message: "Failed to fetch quiz history" });
+    }
+  });
+
+  // Other existing routes remain unchanged...
   app.get("/api/bitcoin/topics/:id", async (req, res) => {
     try {
       const topic = await storage.getBitcoinTopic(parseInt(req.params.id));

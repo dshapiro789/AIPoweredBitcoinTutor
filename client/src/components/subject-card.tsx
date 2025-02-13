@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { BitcoinTopic } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
+import { Book, BrainCircuit } from "lucide-react";
 
 interface TopicCardProps {
   topic: BitcoinTopic;
@@ -24,9 +25,20 @@ export default function TopicCard({ topic }: TopicCardProps) {
             <CardDescription className="text-sm sm:text-base line-clamp-3">{topic.description}</CardDescription>
           </div>
         </div>
-        <Link href={`/chat/${topic.id}`} className="block w-full">
-          <Button className="w-full mt-2 sm:mt-4 text-sm sm:text-base py-2 sm:py-4">Start Learning</Button>
-        </Link>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Link href={`/chat/${topic.id}`} className="flex-1">
+            <Button className="w-full text-sm sm:text-base py-2" variant="default">
+              <Book className="w-4 h-4 mr-2" />
+              Start Learning
+            </Button>
+          </Link>
+          <Link href={`/quiz/${topic.id}`} className="flex-1">
+            <Button className="w-full text-sm sm:text-base py-2" variant="outline">
+              <BrainCircuit className="w-4 h-4 mr-2" />
+              Take Quiz
+            </Button>
+          </Link>
+        </div>
       </CardHeader>
     </Card>
   );
