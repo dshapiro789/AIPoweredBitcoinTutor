@@ -39,7 +39,7 @@
   </g>
 
   <!-- Option D: Mobile Wallet Screenshot -->
-  <g transform="translate(250, 250)">
+  <g transform="translate(400, 250)">
     <rect x="0" y="0" width="100" height="100" fill="none" stroke="#666" stroke-width="2" rx="10"/>
     <text x="50" y="130" text-anchor="middle" font-family="Arial" font-size="14">Option D: Mobile Screenshot</text>
     <rect x="10" y="10" width="80" height="15" fill="#666" rx="2"/>
