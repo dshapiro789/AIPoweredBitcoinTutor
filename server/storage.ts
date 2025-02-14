@@ -27,6 +27,26 @@ import {
 import { db } from "./db";
 import { eq } from "drizzle-orm";
 
+// Add PersonalizedPath type
+type PersonalizedPath = {
+  userId: number;
+  next_topics: Array<{
+    topic: string;
+    description: string;
+    prerequisites: string[];
+    practical_exercises: string[];
+  }>;
+  recommended_resources: string[];
+  estimated_completion_time: string;
+  preferences: {
+    experience: string;
+    goal: string;
+    time: string;
+    style: string;
+  };
+  createdAt: Date;
+};
+
 export interface IStorage {
   // Existing methods
   getUser(id: number): Promise<User | undefined>;
@@ -52,6 +72,10 @@ export interface IStorage {
   getUserAchievements(userId: number): Promise<(UserAchievement & { achievement: Achievement })[]>;
   awardAchievement(achievement: InsertUserAchievement): Promise<UserAchievement>;
   checkAndAwardAchievements(userId: number): Promise<UserAchievement[]>;
+
+  // New personalization methods
+  getPersonalizedPath(userId: number): Promise<PersonalizedPath | null>;
+  savePersonalizedPath(userId: number, path: PersonalizedPath): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -223,6 +247,70 @@ export class DatabaseStorage implements IStorage {
     }
 
     return newAchievements;
+  }
+
+  // New personalization implementations
+  async getPersonalizedPath(userId: number): Promise<PersonalizedPath | null> {
+    try {
+      // For now, we'll store personalized paths in the user's learning progress
+      // In a production environment, this should be in its own table
+      const progress = await this.getLearningProgress(userId);
+      if (!progress || progress.length === 0) return null;
+
+      // Get the latest personalization data from metadata
+      const latestProgress = progress.reduce((latest, current) => {
+        if (!latest) return current;
+        if (!current.metadata?.personalization) return latest;
+        if (latest.metadata?.personalization.createdAt < current.metadata?.personalization.createdAt) {
+          return current;
+        }
+        return latest;
+      }, null);
+
+      if (!latestProgress?.metadata?.personalization) return null;
+
+      return latestProgress.metadata.personalization as PersonalizedPath;
+    } catch (error) {
+      console.error("Error getting personalized path:", error);
+      return null;
+    }
+  }
+
+  async savePersonalizedPath(userId: number, path: PersonalizedPath): Promise<void> {
+    try {
+      // Store the personalization data in the metadata field of learning progress
+      const firstTopic = path.next_topics[0];
+      if (!firstTopic) return;
+
+      const topic = await this.getBitcoinTopicByName(firstTopic.topic);
+      if (!topic) return;
+
+      await this.updateLearningProgress({
+        userId,
+        topicId: topic.id,
+        completedExercises: 0,
+        confidenceLevel: 0,
+        lastActive: new Date(),
+        quizzesPassed: 0,
+        totalPoints: 0,
+        metadata: {
+          personalization: {
+            ...path,
+            createdAt: new Date()
+          }
+        }
+      });
+    } catch (error) {
+      console.error("Error saving personalized path:", error);
+      throw error;
+    }
+  }
+
+  async getBitcoinTopicByName(name: string): Promise<BitcoinTopic | undefined> {
+    const [topic] = await db.select()
+      .from(bitcoinTopics)
+      .where(eq(bitcoinTopics.name, name));
+    return topic;
   }
 }
 

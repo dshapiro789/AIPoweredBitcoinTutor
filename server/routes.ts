@@ -305,7 +305,7 @@ export function registerRoutes(app: Express): Server {
     try {
       const userId = parseInt(req.params.userId);
       const preferences = req.body;
-      const topics = await storage.getBitcoinTopics(); // Added to get topics
+      const topics = await storage.getBitcoinTopics();
 
       // Get existing progress
       const progress = await storage.getLearningProgress(userId);
@@ -318,6 +318,14 @@ export function registerRoutes(app: Express): Server {
           currentProgress: progress
         }
       );
+
+      // Save the personalized path
+      await storage.savePersonalizedPath(userId, {
+        userId,
+        ...personalizedPath,
+        preferences,
+        createdAt: new Date()
+      });
 
       // Update user's learning progress with the new personalized path
       for (const topic of personalizedPath.next_topics) {
@@ -333,7 +341,14 @@ export function registerRoutes(app: Express): Server {
             confidenceLevel: 0,
             lastActive: new Date(),
             quizzesPassed: 0,
-            totalPoints: 0
+            totalPoints: 0,
+            metadata: {
+              topicPreferences: {
+                learningStyle: preferences.style,
+                timeCommitment: preferences.time,
+                practicalExercises: topic.practical_exercises
+              }
+            }
           });
         }
       }
@@ -351,35 +366,29 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Added endpoint from edited code
   app.get("/api/learning-path/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
       const progress = await storage.getLearningProgress(userId);
       const topics = await storage.getBitcoinTopics();
 
-      // If no progress exists yet, return a default path
-      const defaultLearningPath = {
-        next_topics: [
-          {
-            topic: "Bitcoin Basics",
-            description: "Learn the fundamentals of Bitcoin",
-            prerequisites: [],
-            practical_exercises: ["Create a wallet", "Send a test transaction"]
-          }
-        ],
-        recommended_resources: ["Bitcoin.org documentation"],
-        estimated_completion_time: "2-3 weeks"
-      };
-      if (!progress || progress.length === 0) {
-        return res.json(defaultLearningPath);
-      }
-
-      // Get the most recent personalization if it exists
+      // Get the personalized path from storage
       const personalizedPath = await storage.getPersonalizedPath(userId);
 
       if (!personalizedPath) {
-        return res.json(defaultLearningPath);
+        // Return default path if no personalization exists
+        return res.json({
+          next_topics: [
+            {
+              topic: "Bitcoin Basics",
+              description: "Learn the fundamentals of Bitcoin",
+              prerequisites: [],
+              practical_exercises: ["Create a wallet", "Send a test transaction"]
+            }
+          ],
+          recommended_resources: ["Bitcoin.org documentation"],
+          estimated_completion_time: "2-3 weeks"
+        });
       }
 
       // Update topic descriptions with the actual topic descriptions from the database
