@@ -64,7 +64,8 @@
     "playing": "Playing...",
     "error": "Audio Error",
     "playbackError": "Failed to play audio",
-    "generationError": "Failed to generate voice-over"
+    "generationError": "Failed to generate voice-over",
+    "rateLimitError": "Voice-over service is currently at capacity. Please try again later."
   },
   "error": {
     "title": "Error",

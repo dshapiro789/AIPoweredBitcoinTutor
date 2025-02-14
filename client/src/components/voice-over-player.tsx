@@ -13,6 +13,7 @@ interface VoiceOverPlayerProps {
 export function VoiceOverPlayer({ text, className }: VoiceOverPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
   const { i18n, t } = useTranslation();
   const { toast } = useToast();
   const audioRef = useState<HTMLAudioElement | null>(null);
@@ -20,13 +21,17 @@ export function VoiceOverPlayer({ text, className }: VoiceOverPlayerProps) {
   const playVoiceOver = async () => {
     try {
       setIsLoading(true);
+      setHasError(false);
 
       const response = await apiRequest("POST", "/api/voice-over", {
         text,
         language: i18n.language
       });
 
-      if (!response.ok) throw new Error('Failed to generate voice-over');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to generate voice-over');
+      }
 
       const blob = await response.blob();
       const url = URL.createObjectURL(blob);
@@ -46,6 +51,7 @@ export function VoiceOverPlayer({ text, className }: VoiceOverPlayerProps) {
       };
       audio.onerror = () => {
         setIsPlaying(false);
+        setHasError(true);
         URL.revokeObjectURL(url);
         toast({
           title: t('voiceOver.error'),
@@ -56,9 +62,11 @@ export function VoiceOverPlayer({ text, className }: VoiceOverPlayerProps) {
 
       await audio.play();
     } catch (error) {
+      setHasError(true);
+      const isRateLimit = error.message.includes('capacity');
       toast({
         title: t('voiceOver.error'),
-        description: t('voiceOver.generationError'),
+        description: isRateLimit ? t('voiceOver.rateLimitError') : t('voiceOver.generationError'),
         variant: "destructive"
       });
     } finally {

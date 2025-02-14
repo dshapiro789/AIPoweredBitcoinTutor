@@ -281,6 +281,10 @@ export async function generateVoiceOver(text: string, language: string = 'en'): 
     return buffer;
   } catch (error) {
     console.error("TTS Generation error:", error);
+    // Check for rate limit error
+    if (error.status === 429) {
+      throw new Error("TTS service is currently at capacity. Please try again later.");
+    }
     throw new Error("Failed to generate voice-over");
   }
 }
