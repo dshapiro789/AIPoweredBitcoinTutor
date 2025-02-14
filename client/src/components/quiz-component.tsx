@@ -302,37 +302,39 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
     });
   };
 
+  const handleSubmitQuiz = () => {
+    const results = questions.map(question => ({
+      question,
+      selectedAnswer: selectedAnswers[question.id],
+      isCorrect: question.correctAnswerValue !== undefined
+        ? selectedAnswers[question.id] === question.correctAnswerValue
+        : selectedAnswers[question.id] === question.correctAnswer
+    }));
+
+    const questionsAnswered = Object.entries(selectedAnswers).map(([questionId, answer]) => ({
+      questionId: parseInt(questionId),
+      answer,
+      timeSpent
+    }));
+
+    const score = results.reduce((total, { isCorrect, question }) =>
+      total + (isCorrect ? question.points : 0), 0);
+
+    setQuestionResults(results);
+
+    submitAttemptMutation.mutate({
+      userId,
+      topicId,
+      questionsAnswered,
+      score,
+      completedAt: new Date(),
+    });
+  };
+
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setShowHint(false);
-    } else {
-      const results = questions.map(question => ({
-        question,
-        selectedAnswer: selectedAnswers[question.id],
-        isCorrect: question.correctAnswerValue !== undefined
-          ? selectedAnswers[question.id] === question.correctAnswerValue
-          : selectedAnswers[question.id] === question.correctAnswer
-      }));
-
-      const questionsAnswered = Object.entries(selectedAnswers).map(([questionId, answer]) => ({
-        questionId: parseInt(questionId),
-        answer,
-        timeSpent
-      }));
-
-      const score = results.reduce((total, { isCorrect, question }) =>
-        total + (isCorrect ? question.points : 0), 0);
-
-      setQuestionResults(results);
-
-      submitAttemptMutation.mutate({
-        userId,
-        topicId,
-        questionsAnswered,
-        score,
-        completedAt: new Date(),
-      });
     }
   };
 
@@ -446,12 +448,22 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
           >
             {t('quiz.previousQuestion')}
           </Button>
-          <Button
-            onClick={handleNext}
-            disabled={!selectedAnswers[currentQuestion.id]}
-          >
-            {currentQuestionIndex < questions.length - 1 ? t('quiz.nextQuestion') : t('quiz.submitQuiz')}
-          </Button>
+
+          {questions.length === 1 ? (
+            <Button
+              onClick={handleSubmitQuiz}
+              disabled={!selectedAnswers[currentQuestion.id]}
+            >
+              {t('quiz.submitQuiz')}
+            </Button>
+          ) : (
+            <Button
+              onClick={currentQuestionIndex === questions.length - 1 ? handleSubmitQuiz : handleNext}
+              disabled={!selectedAnswers[currentQuestion.id]}
+            >
+              {currentQuestionIndex < questions.length - 1 ? t('quiz.nextQuestion') : t('quiz.submitQuiz')}
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
