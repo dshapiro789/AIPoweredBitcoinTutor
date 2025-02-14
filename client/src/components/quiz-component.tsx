@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Question, InsertUserQuizAttempt, Achievement, UserAchievement } from "@shared/schema";
 import { Button } from "@/components/ui/button";
@@ -10,18 +10,125 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useTranslation } from "react-i18next";
 import { AchievementBadge } from "./achievements/achievement-badge";
-import { Loader2, Trophy, ArrowRight } from "lucide-react";
+import { Loader2, Trophy, ArrowRight, HelpCircle, Timer, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLocation } from "wouter";
+import { Input } from "@/components/ui/input";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface QuizComponentProps {
   topicId: number;
   userId: number;
 }
 
+function TrueFalseQuestion({ 
+  question, 
+  selectedAnswer, 
+  onAnswer 
+}: { 
+  question: Question; 
+  selectedAnswer: any; 
+  onAnswer: (value: any) => void;
+}) {
+  return (
+    <RadioGroup
+      value={selectedAnswer?.toString() || ''}
+      onValueChange={(value) => onAnswer(value === 'true')}
+      className="space-y-4"
+    >
+      {['True', 'False'].map((option, index) => (
+        <div
+          key={index}
+          className={cn(
+            "flex items-center space-x-2 p-3 rounded-lg transition-colors",
+            selectedAnswer === (index === 0) ? "bg-primary/10" : "hover:bg-muted"
+          )}
+        >
+          <RadioGroupItem value={String(index === 0)} id={`option-${index}`} />
+          <Label htmlFor={`option-${index}`} className="text-base flex-grow cursor-pointer">
+            {option}
+          </Label>
+        </div>
+      ))}
+    </RadioGroup>
+  );
+}
+
+function FillBlankQuestion({ 
+  question, 
+  selectedAnswer, 
+  onAnswer 
+}: { 
+  question: Question; 
+  selectedAnswer: any; 
+  onAnswer: (value: any) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center space-x-2">
+        <Input
+          type="text"
+          value={selectedAnswer || ''}
+          onChange={(e) => onAnswer(e.target.value)}
+          placeholder={question.options?.[0] || "Enter your answer"}
+          className="max-w-[200px]"
+        />
+      </div>
+      {question.options && (
+        <div className="text-sm text-muted-foreground mt-2">
+          Suggested answers: {question.options.join(', ')}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MultipleChoiceQuestion({ 
+  question, 
+  selectedAnswer, 
+  onAnswer 
+}: { 
+  question: Question; 
+  selectedAnswer: any; 
+  onAnswer: (value: any) => void;
+}) {
+  return (
+    <RadioGroup
+      value={selectedAnswer?.toString() || ''}
+      onValueChange={(value) => onAnswer(parseInt(value))}
+      className="space-y-4"
+    >
+      {question.options.map((option, index) => (
+        <div
+          key={index}
+          className={cn(
+            "flex items-center space-x-2 p-3 rounded-lg transition-colors",
+            selectedAnswer === index ? "bg-primary/10" : "hover:bg-muted"
+          )}
+        >
+          <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+          <Label
+            htmlFor={`option-${index}`}
+            className="text-base flex-grow cursor-pointer"
+          >
+            {option}
+          </Label>
+        </div>
+      ))}
+    </RadioGroup>
+  );
+}
+
 export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, any>>({});
+  const [questionStartTime, setQuestionStartTime] = useState<Date>(new Date());
+  const [showHint, setShowHint] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const { toast } = useToast();
@@ -31,6 +138,10 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
   const { data: questions, isLoading } = useQuery<Question[]>({
     queryKey: [`/api/quiz/${topicId}`],
   });
+
+  useEffect(() => {
+    setQuestionStartTime(new Date());
+  }, [currentQuestionIndex]);
 
   const submitAttemptMutation = useMutation({
     mutationFn: async (attempt: InsertUserQuizAttempt) => {
@@ -104,15 +215,15 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col gap-4 items-center">
-            <Button 
-              onClick={() => setLocation('/dashboard')} 
+            <Button
+              onClick={() => setLocation('/dashboard')}
               className="w-full max-w-sm"
               variant="outline"
             >
               {t('quiz.returnToDashboard')}
             </Button>
-            <Button 
-              onClick={() => setLocation('/')} 
+            <Button
+              onClick={() => setLocation('/')}
               className="w-full max-w-sm"
             >
               {t('quiz.continueLeaning')} <ArrowRight className="ml-2 h-4 w-4" />
@@ -125,21 +236,24 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
 
   const currentQuestion = questions[currentQuestionIndex];
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+  const timeSpent = Math.round((new Date().getTime() - questionStartTime.getTime()) / 1000);
 
-  const handleAnswer = (value: string) => {
+  const handleAnswer = (value: any) => {
     setSelectedAnswers({
       ...selectedAnswers,
-      [currentQuestion.id]: parseInt(value),
+      [currentQuestion.id]: value,
     });
   };
 
   const handleNext = () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      setShowHint(false);
     } else {
       const questionsAnswered = Object.entries(selectedAnswers).map(([questionId, answer]) => ({
         questionId: parseInt(questionId),
         answer,
+        timeSpent
       }));
 
       const score = questionsAnswered.reduce((total, { questionId, answer }) => {
@@ -157,6 +271,35 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
     }
   };
 
+  const renderQuestion = () => {
+    switch (currentQuestion.type) {
+      case 'true_false':
+        return (
+          <TrueFalseQuestion
+            question={currentQuestion}
+            selectedAnswer={selectedAnswers[currentQuestion.id]}
+            onAnswer={handleAnswer}
+          />
+        );
+      case 'fill_blank':
+        return (
+          <FillBlankQuestion
+            question={currentQuestion}
+            selectedAnswer={selectedAnswers[currentQuestion.id]}
+            onAnswer={handleAnswer}
+          />
+        );
+      default:
+        return (
+          <MultipleChoiceQuestion
+            question={currentQuestion}
+            selectedAnswer={selectedAnswers[currentQuestion.id]}
+            onAnswer={handleAnswer}
+          />
+        );
+    }
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -164,45 +307,76 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
           <CardTitle className="text-xl">
             {t('quiz.question')} {currentQuestionIndex + 1} {t('quiz.of')} {questions.length}
           </CardTitle>
-          <span className="text-sm text-muted-foreground">
-            {t('quiz.answered')}: {Object.keys(selectedAnswers).length} {t('quiz.of')} {questions.length}
-          </span>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground flex items-center gap-2">
+              <Timer className="w-4 h-4" /> {timeSpent}s
+            </span>
+            <span className="text-sm text-muted-foreground">
+              {t('quiz.answered')}: {Object.keys(selectedAnswers).length} {t('quiz.of')} {questions.length}
+            </span>
+          </div>
         </div>
         <Progress value={progress} className="h-2" />
       </CardHeader>
       <CardContent className="space-y-6">
-        <CardDescription className="text-lg font-medium">
-          {currentQuestion.questionText}
-        </CardDescription>
+        <div className="space-y-4">
+          <div className="flex items-start justify-between">
+            <CardDescription className="text-lg font-medium">
+              {currentQuestion.questionText}
+            </CardDescription>
+            {currentQuestion.hints && currentQuestion.hints.length > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowHint(!showHint)}
+                    >
+                      <HelpCircle className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('quiz.showHint')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
 
-        <RadioGroup
-          value={selectedAnswers[currentQuestion.id]?.toString() || ''}
-          onValueChange={handleAnswer}
-          className="space-y-4"
-        >
-          {currentQuestion.options.map((option, index) => (
-            <div 
-              key={index} 
-              className={cn(
-                "flex items-center space-x-2 p-3 rounded-lg transition-colors",
-                selectedAnswers[currentQuestion.id] === index ? "bg-primary/10" : "hover:bg-muted"
-              )}
-            >
-              <RadioGroupItem value={index.toString()} id={`option-${index}`} />
-              <Label 
-                htmlFor={`option-${index}`} 
-                className="text-base flex-grow cursor-pointer"
-              >
-                {option}
-              </Label>
+          {showHint && currentQuestion.hints && currentQuestion.hints.length > 0 && (
+            <div className="bg-muted p-4 rounded-lg flex items-start gap-2">
+              <AlertCircle className="h-4 w-4 mt-1 shrink-0" />
+              <p className="text-sm">{currentQuestion.hints[0]}</p>
             </div>
-          ))}
-        </RadioGroup>
+          )}
+
+          {currentQuestion.context && (
+            <div className="bg-muted/50 p-4 rounded-lg text-sm">
+              {currentQuestion.context}
+            </div>
+          )}
+
+          {currentQuestion.imageUrl && (
+            <div className="my-4">
+              <img
+                src={currentQuestion.imageUrl}
+                alt="Question illustration"
+                className="rounded-lg max-w-full"
+              />
+            </div>
+          )}
+
+          {renderQuestion()}
+        </div>
 
         <div className="flex justify-between pt-4">
           <Button
             variant="outline"
-            onClick={() => setCurrentQuestionIndex(prev => Math.max(0, prev - 1))}
+            onClick={() => {
+              setCurrentQuestionIndex(prev => Math.max(0, prev - 1));
+              setShowHint(false);
+            }}
             disabled={currentQuestionIndex === 0}
           >
             {t('quiz.previousQuestion')}

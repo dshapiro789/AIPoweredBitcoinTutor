@@ -257,34 +257,3 @@ const defaultLearningPath = {
   ],
   estimated_completion_time: "2-3 weeks"
 };
-
-// Add TTS functionality
-export async function generateVoiceOver(text: string, language: string = 'en'): Promise<Buffer> {
-  try {
-    const voiceModels: Record<string, { voice: string, model: string }> = {
-      'en': { voice: 'alloy', model: 'tts-1' },
-      'es': { voice: 'nova', model: 'tts-1' },
-      'es-419': { voice: 'nova', model: 'tts-1' },
-      'ja': { voice: 'shimmer', model: 'tts-1' },
-      'zh': { voice: 'nova', model: 'tts-1' }
-    };
-
-    const { voice, model } = voiceModels[language] || voiceModels['en'];
-
-    const mp3Response = await openai.audio.speech.create({
-      model: model,
-      voice: voice,
-      input: text,
-    });
-
-    const buffer = Buffer.from(await mp3Response.arrayBuffer());
-    return buffer;
-  } catch (error) {
-    console.error("TTS Generation error:", error);
-    // Check for rate limit error
-    if (error.status === 429) {
-      throw new Error("TTS service is currently at capacity. Please try again later.");
-    }
-    throw new Error("Failed to generate voice-over");
-  }
-}

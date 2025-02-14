@@ -272,9 +272,11 @@ async function initializeDefaultQuestions() {
   const existingQuestions = await db.select().from(questions);
   if (existingQuestions.length === 0) {
     const defaultQuestions: InsertQuestion[] = [
+      // Multiple choice questions
       {
         topicId: 1, // Bitcoin Basics
         questionText: "What is Bitcoin?",
+        type: "multiple_choice",
         options: [
           "A digital currency and payment network",
           "A traditional banking system",
@@ -282,51 +284,60 @@ async function initializeDefaultQuestions() {
           "An email service"
         ],
         correctAnswer: 0,
+        correctAnswerValue: 0,
         explanation: "Bitcoin is a decentralized digital currency and payment network that operates without the need for intermediaries like banks.",
         difficulty: "beginner",
-        points: 10
+        points: 10,
+        hints: ["Think about the key features that make Bitcoin unique", "Consider who controls Bitcoin"],
+        context: "Understanding the fundamental nature of Bitcoin is crucial for beginners."
       },
+      // True/False question
       {
         topicId: 3, // Transaction Fundamentals
-        questionText: "What is a Bitcoin transaction fee?",
-        options: [
-          "A tax paid to governments",
-          "A reward paid to miners for processing transactions",
-          "A subscription fee for using Bitcoin",
-          "A fee paid to Bitcoin's creator"
-        ],
+        questionText: "Bitcoin transactions are completely anonymous.",
+        type: "true_false",
+        options: ["True", "False"],
         correctAnswer: 1,
-        explanation: "Transaction fees are rewards paid to miners for processing and validating Bitcoin transactions on the network.",
+        correctAnswerValue: false,
+        explanation: "Bitcoin transactions are pseudonymous, not anonymous. All transactions are recorded on the public blockchain and can be traced.",
         difficulty: "beginner",
-        points: 10
+        points: 10,
+        hints: ["Think about the public nature of the blockchain"],
+        context: "Common misconception about Bitcoin privacy"
       },
+      // Fill in the blank
       {
         topicId: 3,
-        questionText: "What happens when a Bitcoin transaction is confirmed?",
-        options: [
-          "The coins are physically minted",
-          "The transaction is included in a block and added to the blockchain",
-          "An email is sent to both parties",
-          "The Bitcoin disappears from the network"
-        ],
-        correctAnswer: 1,
-        explanation: "When a transaction is confirmed, it means it has been included in a block and added to the blockchain, making it permanent and irreversible.",
-        difficulty: "beginner",
-        points: 10
-      },
-      {
-        topicId: 3,
-        questionText: "What is the minimum number of confirmations recommended for large Bitcoin transactions?",
-        options: [
-          "1 confirmation",
-          "3 confirmations",
-          "6 confirmations",
-          "10 confirmations"
-        ],
+        questionText: "A Bitcoin transaction requires at least ___ confirmation(s) to be considered secure for large value transfers.",
+        type: "fill_blank",
+        options: ["1", "3", "6", "10"],
         correctAnswer: 2,
-        explanation: "6 confirmations are traditionally recommended for large Bitcoin transactions to ensure they are securely recorded in the blockchain.",
+        correctAnswerValue: "6",
+        explanation: "Six confirmations are traditionally recommended for large Bitcoin transactions to ensure they are securely recorded in the blockchain.",
         difficulty: "intermediate",
-        points: 15
+        points: 15,
+        hints: ["Most exchanges wait for this many confirmations", "Think about the security implications"],
+        context: "Understanding transaction finality and security"
+      },
+      // Multiple choice with image
+      {
+        topicId: 2, // Wallet Security
+        questionText: "Which of these shows a correct example of a paper wallet?",
+        type: "multiple_choice",
+        options: [
+          "Option A: Single QR code",
+          "Option B: Two QR codes with public and private keys",
+          "Option C: Written seed phrase only",
+          "Option D: Mobile wallet screenshot"
+        ],
+        correctAnswer: 1,
+        correctAnswerValue: 1,
+        explanation: "A proper paper wallet typically contains two QR codes - one for the public key (receiving address) and one for the private key, along with their text representations.",
+        difficulty: "intermediate",
+        points: 15,
+        hints: ["Consider what information is needed to both receive and spend Bitcoin", "Think about backup best practices"],
+        context: "Paper wallets are a form of cold storage",
+        imageUrl: "/images/quiz/paper-wallet-examples.svg"
       }
     ];
 
