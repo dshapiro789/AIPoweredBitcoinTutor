@@ -6,34 +6,34 @@
     <text x="75" y="180" text-anchor="middle" font-family="Arial" font-size="14">Option A: Single QR Code</text>
     <rect x="25" y="25" width="100" height="100" fill="#666"/>
   </g>
-  
+
   <!-- Option B: Two QR Codes (Correct) -->
   <g transform="translate(250, 50)">
     <rect x="0" y="0" width="300" height="150" fill="none" stroke="#666" stroke-width="2"/>
     <text x="150" y="180" text-anchor="middle" font-family="Arial" font-size="14">Option B: Two QR Codes with Public/Private Keys</text>
-    
+
     <!-- Public Key QR -->
     <g transform="translate(25, 25)">
       <rect width="100" height="100" fill="#666"/>
       <text x="50" y="120" text-anchor="middle" font-family="Arial" font-size="12">Public Key</text>
     </g>
-    
+
     <!-- Private Key QR -->
     <g transform="translate(175, 25)">
       <rect width="100" height="100" fill="#666"/>
       <text x="50" y="120" text-anchor="middle" font-family="Arial" font-size="12">Private Key</text>
     </g>
   </g>
-  
-  <!-- Option C: Written Seed Phrase -->
+
+  <!-- Option C: Written Seed Phrase Only -->
   <g transform="translate(50, 250)">
     <rect x="0" y="0" width="150" height="100" fill="none" stroke="#666" stroke-width="2"/>
-    <text x="75" y="130" text-anchor="middle" font-family="Arial" font-size="14">Option C: Written Seed Phrase</text>
+    <text x="75" y="130" text-anchor="middle" font-family="Arial" font-size="14">Option C: Written Seed Phrase Only</text>
     <text x="75" y="30" text-anchor="middle" font-family="Arial" font-size="10">word1 word2</text>
     <text x="75" y="50" text-anchor="middle" font-family="Arial" font-size="10">word3 word4</text>
     <text x="75" y="70" text-anchor="middle" font-family="Arial" font-size="10">word5 word6</text>
   </g>
-  
+
   <!-- Option D: Mobile Wallet Screenshot -->
   <g transform="translate(250, 250)">
     <rect x="0" y="0" width="100" height="100" fill="none" stroke="#666" stroke-width="2" rx="10"/>
