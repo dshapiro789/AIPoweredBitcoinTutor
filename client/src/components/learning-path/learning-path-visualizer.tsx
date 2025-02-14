@@ -81,6 +81,14 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
     return aIndex - bIndex;
   });
 
+  // Find the next available topic
+  const getNextAvailableTopic = () => {
+    const completedTopicIds = new Set(
+      progress.filter(p => p.quizzesPassed > 0).map(p => p.topicId)
+    );
+    return sortedTopics.find(topic => !completedTopicIds.has(topic.id));
+  };
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -108,7 +116,10 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
         <div className="space-y-6">
           {sortedTopics.map((topic, index) => {
             const { completed, score, confidence } = getTopicProgress(topic.id);
-            const nextTopic = !completed && progress.some(p => p.quizzesPassed > 0);
+            const nextTopic = !completed && (
+              index === 0 || // First topic is always available
+              sortedTopics[index - 1] && getTopicProgress(sortedTopics[index - 1].id).completed // Previous topic is completed
+            );
             const pathInfo = personalizedPath?.next_topics.find(t => t.topic === topic.name);
 
             return (
@@ -183,7 +194,7 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                         <p className="text-sm text-muted-foreground">
                           {nextTopic ? t('learningPath.recommended') : t('learningPath.locked')}
                         </p>
-                        <Link href={nextTopic ? `/quiz/${topic.id}` : '#'}>
+                        <Link href={nextTopic ? `/learn/${topic.id}` : '#'}>
                           <Button 
                             variant={nextTopic ? "default" : "outline"}
                             disabled={!nextTopic}
