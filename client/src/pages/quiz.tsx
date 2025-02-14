@@ -12,6 +12,17 @@ export default function QuizPage() {
     queryKey: [`/api/bitcoin/topics/${topicId}`],
   });
 
+  if (isLoading || !topic) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-muted rounded w-1/4"></div>
+          <div className="h-4 bg-muted rounded w-1/2"></div>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -22,17 +33,6 @@ export default function QuizPage() {
           <p className="text-muted-foreground">
             {t('error.failedToLoad')}
           </p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isLoading || !topic) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/4"></div>
-          <div className="h-4 bg-muted rounded w-1/2"></div>
         </div>
       </div>
     );
