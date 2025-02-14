@@ -1,13 +1,21 @@
 import OpenAI from "openai";
-import { type ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import { type ChatCompletionMessageParam, ChatCompletionContentPart, ChatCompletionContentPartText } from "openai/resources/chat/completions";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
-  const lastMessage = messages[messages.length - 1]?.content || '';
+  const lastMessage = messages[messages.length - 1];
+  const lastMessageContent = typeof lastMessage?.content === 'string' 
+    ? lastMessage.content 
+    : Array.isArray(lastMessage?.content) 
+      ? (lastMessage.content as ChatCompletionContentPartText[]).map(part => part.text).join(' ')
+      : '';
+
+  const normalizedQuestion = lastMessageContent.toLowerCase().trim();
+
   const fallbackResponses: Record<string, string> = {
-    "What is Bitcoin?": `Bitcoin is a decentralized digital currency that operates without the need for intermediaries like banks. Key points:
+    "what is bitcoin?": `Bitcoin is a decentralized digital currency that operates without the need for intermediaries like banks. Key points:
 
 1. Digital Currency: It exists purely in digital form
 2. Decentralized: No central authority controls it
@@ -31,11 +39,10 @@ Let me provide you with some general guidance about Bitcoin:
 
 Please try your question again in a few moments when the service is restored.
 
-Your question was: "${lastMessage}"`
+Your question was: "${lastMessageContent}"`
   };
 
   // Check if we have a specific response for this question
-  const normalizedQuestion = lastMessage.toLowerCase().trim();
   for (const [key, value] of Object.entries(fallbackResponses)) {
     if (normalizedQuestion.includes(key.toLowerCase())) {
       return value;

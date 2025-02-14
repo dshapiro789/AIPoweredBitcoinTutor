@@ -1,9 +1,62 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
+import { Express } from "express";
+import { Server, createServer } from "http";
 import { storage } from "./storage";
 import { getTutorResponse, analyzeProgress, generateLearningPath } from "./openai";
 import { insertUserSchema, insertChatSessionSchema, insertLearningProgressSchema, insertUserQuizAttemptSchema } from "@shared/schema";
 import { ZodError } from "zod";
+import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+
+// Update type interfaces for translations
+type SupportedLanguages = 'en' | 'es' | 'es-419' | 'zh' | 'ja';
+type TranslationDictionary = Record<string, string>;
+
+const translations: Record<SupportedLanguages, TranslationDictionary> = {
+  en: {},
+  es: {
+    "Bitcoin Basics": "Comprenda qué es Bitcoin, su historia y conceptos fundamentales",
+    "Blockchain Technology": "Explore la tecnología blockchain y cómo funciona Bitcoin",
+    "Digital Security": "Aprenda sobre la seguridad digital y cómo proteger sus bitcoins",
+    "Trading Fundamentals": "Comprenda los conceptos básicos del trading de Bitcoin",
+    "Advanced Concepts": "Profundice en conceptos avanzados de Bitcoin y blockchain",
+    "Wallet Security": "Aprenda cómo almacenar y gestionar sus Bitcoin de forma segura",
+    "Transaction Fundamentals": "Comprenda las transacciones de Bitcoin, las comisiones y el proceso de confirmación",
+    "UTXO Management": "Gestión avanzada de transacciones y optimización de UTXO",
+    "Cold Storage": "Configuración y gestión de soluciones de almacenamiento en frío para Bitcoin"
+  },
+  "es-419": {
+    "Bitcoin Basics": "Entiende qué es Bitcoin, su historia y conceptos fundamentales",
+    "Blockchain Technology": "Explora la tecnología blockchain y cómo funciona Bitcoin",
+    "Digital Security": "Aprende sobre la seguridad digital y cómo proteger tus bitcoins",
+    "Trading Fundamentals": "Comprende los conceptos básicos del trading de Bitcoin",
+    "Advanced Concepts": "Profundiza en conceptos avanzados de Bitcoin y blockchain",
+    "Wallet Security": "Aprende cómo guardar y administrar tus Bitcoin de forma segura",
+    "Transaction Fundamentals": "Comprende las transacciones de Bitcoin, las comisiones y el proceso de confirmación",
+    "UTXO Management": "Manejo avanzado de transacciones y optimización de UTXO",
+    "Cold Storage": "Configuración y administración de soluciones de almacenamiento en frío para Bitcoin"
+  },
+  zh: {
+    "Bitcoin Basics": "了解比特币是什么、其历史和基本概念",
+    "Blockchain Technology": "探索区块链技术和比特币的运作方式",
+    "Digital Security": "学习数字安全和如何保护您的比特币",
+    "Trading Fundamentals": "理解比特币交易的基本概念",
+    "Advanced Concepts": "深入了解比特币和区块链的高级概念",
+    "Wallet Security": "学习如何安全地存储和管理您的比特币",
+    "Transaction Fundamentals": "了解比特币交易、费用和确认流程",
+    "UTXO Management": "高级交易处理和UTXO优化",
+    "Cold Storage": "设置和管理比特币冷存储解决方案"
+  },
+  ja: {
+    "Bitcoin Basics": "ビットコインとは何か、その歴史と基本的な概念を理解する",
+    "Blockchain Technology": "ブロックチェーン技術とビットコインの仕組みを探る",
+    "Digital Security": "デジタルセキュリティとビットコインの保護方法を学ぶ",
+    "Trading Fundamentals": "ビットコイン取引の基本概念を理解する",
+    "Advanced Concepts": "ビットコインとブロックチェーンの高度な概念を深く学ぶ",
+    "Wallet Security": "ビットコインを安全に保管・管理する方法を学ぶ",
+    "Transaction Fundamentals": "ビットコインの取引、手数料、承認プロセスを理解する",
+    "UTXO Management": "高度な取引処理とUTXOの最適化",
+    "Cold Storage": "ビットコインのコールドストレージソリューションの設定と管理"
+  }
+};
 
 export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
@@ -37,23 +90,12 @@ export function registerRoutes(app: Express): Server {
   app.get("/api/bitcoin/topics", async (req, res) => {
     try {
       const topics = await storage.getBitcoinTopics();
-      const lang = req.query.lang?.toString() || 'en';
+      const lang = (req.query.lang?.toString() || 'en') as SupportedLanguages;
 
-      // Add localized descriptions
-      const localizedTopics = topics.map(topic => {
-        const descriptions = {
-          en: topic.description,
-          es: getSpanishDescription(topic.name),
-          'es-419': getLatinAmericanSpanishDescription(topic.name),
-          zh: getChineseDescription(topic.name),
-          ja: getJapaneseDescription(topic.name)
-        };
-
-        return {
-          ...topic,
-          description: descriptions[lang] || descriptions.en
-        };
-      });
+      const localizedTopics = topics.map(topic => ({
+        ...topic,
+        description: getLocalizedDescription(topic.name, lang)
+      }));
 
       res.json(localizedTopics);
     } catch (error) {
@@ -218,11 +260,17 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ message: "Session not found" });
       }
 
-      const updatedMessages = [...session.messages, { role: "user", content: message }];
+      const updatedMessages: ChatCompletionMessageParam[] = [
+        ...session.messages,
+        { role: "user", content: message }
+      ];
 
       // Get tutor's response
       const tutorResponse = await getTutorResponse(updatedMessages, subject);
-      updatedMessages.push({ role: "assistant", content: tutorResponse });
+      updatedMessages.push({
+        role: "assistant",
+        content: tutorResponse
+      });
 
       // Analyze progress after interaction
       const analysis = await analyzeProgress(updatedMessages);
@@ -414,66 +462,11 @@ export function registerRoutes(app: Express): Server {
   });
 
 
+
   return httpServer;
 }
 
-// Helper functions for translations
-function getSpanishDescription(topicName: string): string {
-  const descriptions = {
-    "Bitcoin Basics": "Comprenda qué es Bitcoin, su historia y conceptos fundamentales",
-    "Blockchain Technology": "Explore la tecnología blockchain y cómo funciona Bitcoin",
-    "Digital Security": "Aprenda sobre la seguridad digital y cómo proteger sus bitcoins",
-    "Trading Fundamentals": "Comprenda los conceptos básicos del trading de Bitcoin",
-    "Advanced Concepts": "Profundice en conceptos avanzados de Bitcoin y blockchain",
-    "Wallet Security": "Aprenda cómo almacenar y gestionar sus Bitcoin de forma segura",
-    "Transaction Fundamentals": "Comprenda las transacciones de Bitcoin, las comisiones y el proceso de confirmación",
-    "UTXO Management": "Gestión avanzada de transacciones y optimización de UTXO",
-    "Cold Storage": "Configuración y gestión de soluciones de almacenamiento en frío para Bitcoin"
-  };
-  return descriptions[topicName] || "";
-}
-
-function getLatinAmericanSpanishDescription(topicName: string): string {
-  const descriptions = {
-    "Bitcoin Basics": "Entiende qué es Bitcoin, su historia y conceptos fundamentales",
-    "Blockchain Technology": "Explora la tecnología blockchain y cómo funciona Bitcoin",
-    "Digital Security": "Aprende sobre la seguridad digital y cómo proteger tus bitcoins",
-    "Trading Fundamentals": "Comprende los conceptos básicos del trading de Bitcoin",
-    "Advanced Concepts": "Profundiza en conceptos avanzados de Bitcoin y blockchain",
-    "Wallet Security": "Aprende cómo guardar y administrar tus Bitcoin de forma segura",
-    "Transaction Fundamentals": "Comprende las transacciones de Bitcoin, las comisiones y el proceso de confirmación",
-    "UTXO Management": "Manejo avanzado de transacciones y optimización de UTXO",
-    "Cold Storage": "Configuración y administración de soluciones de almacenamiento en frío para Bitcoin"
-  };
-  return descriptions[topicName] || "";
-}
-
-function getChineseDescription(topicName: string): string {
-  const descriptions = {
-    "Bitcoin Basics": "了解比特币是什么、其历史和基本概念",
-    "Blockchain Technology": "探索区块链技术和比特币的运作方式",
-    "Digital Security": "学习数字安全和如何保护您的比特币",
-    "Trading Fundamentals": "理解比特币交易的基本概念",
-    "Advanced Concepts": "深入了解比特币和区块链的高级概念",
-    "Wallet Security": "学习如何安全地存储和管理您的比特币",
-    "Transaction Fundamentals": "了解比特币交易、费用和确认流程",
-    "UTXO Management": "高级交易处理和UTXO优化",
-    "Cold Storage": "设置和管理比特币冷存储解决方案"
-  };
-  return descriptions[topicName] || "";
-}
-
-function getJapaneseDescription(topicName: string): string {
-  const descriptions = {
-    "Bitcoin Basics": "ビットコインとは何か、その歴史と基本的な概念を理解する",
-    "Blockchain Technology": "ブロックチェーン技術とビットコインの仕組みを探る",
-    "Digital Security": "デジタルセキュリティとビットコインの保護方法を学ぶ",
-    "Trading Fundamentals": "ビットコイン取引の基本概念を理解する",
-    "Advanced Concepts": "ビットコインとブロックチェーンの高度な概念を深く学ぶ",
-    "Wallet Security": "ビットコインを安全に保管・管理する方法を学ぶ",
-    "Transaction Fundamentals": "ビットコインの取引、手数料、承認プロセスを理解する",
-    "UTXO Management": "高度な取引処理とUTXOの最適化",
-    "Cold Storage": "ビットコインのコールドストレージソリューションの設定と管理"
-  };
-  return descriptions[topicName] || "";
+// Update the translation helper functions to use type-safe approach
+function getLocalizedDescription(topicName: string, lang: SupportedLanguages): string {
+  return translations[lang]?.[topicName] || translations.en[topicName] || topicName;
 }
