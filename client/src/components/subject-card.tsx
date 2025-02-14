@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import type { BitcoinTopic } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
-import { Book, BrainCircuit } from "lucide-react";
+import { Book, Zap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 interface TopicCardProps {
@@ -37,7 +37,7 @@ export default function TopicCard({ topic }: TopicCardProps) {
           </Link>
           <Link href={`/quiz/${topic.id}`}>
             <Button className="w-full text-sm sm:text-base py-2" variant="secondary">
-              <BrainCircuit className="w-4 h-4 mr-2" />
+              <Zap className="w-4 h-4 mr-2" />
               {t('topics.takeQuiz')}
             </Button>
           </Link>
