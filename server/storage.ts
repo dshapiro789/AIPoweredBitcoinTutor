@@ -338,6 +338,50 @@ async function initializeDefaultQuestions() {
         hints: ["Consider what information is needed to both receive and spend Bitcoin", "Think about backup best practices"],
         context: "Paper wallets are a form of cold storage",
         imageUrl: "/images/quiz/paper-wallet-examples.svg"
+      },
+      {
+        topicId: 2, // Wallet Security
+        questionText: "Which of these is NOT a recommended practice for securing your Bitcoin wallet?",
+        type: "multiple_choice",
+        options: [
+          "Writing down your seed phrase on paper",
+          "Taking a screenshot of your seed phrase",
+          "Using a hardware wallet",
+          "Creating encrypted backups"
+        ],
+        correctAnswer: 1,
+        correctAnswerValue: 1,
+        explanation: "Taking screenshots of your seed phrase is dangerous as they can be accessed by malware or leaked in cloud backups. Always write down your seed phrase physically and store it securely.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["Think about digital security risks", "Consider what could be hacked"],
+        context: "Understanding proper seed phrase storage is crucial for wallet security"
+      },
+      {
+        topicId: 2,
+        questionText: "A hardware wallet provides better security than a software wallet.",
+        type: "true_false",
+        options: ["True", "False"],
+        correctAnswer: 0,
+        correctAnswerValue: true,
+        explanation: "Hardware wallets keep private keys offline and are therefore more secure against online threats compared to software wallets.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["Think about online vs offline storage"],
+        context: "Hardware wallets are considered one of the most secure storage solutions"
+      },
+      {
+        topicId: 2,
+        questionText: "How many words are typically in a Bitcoin seed phrase?",
+        type: "fill_blank",
+        options: ["12", "24"],
+        correctAnswer: 0,
+        correctAnswerValue: "12",
+        explanation: "The most common Bitcoin seed phrase length is 12 words, though 24-word phrases are also used for enhanced security.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["This is a BIP39 standard"],
+        context: "Seed phrases are used to backup and restore Bitcoin wallets"
       }
     ];
 
