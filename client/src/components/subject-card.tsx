@@ -5,6 +5,7 @@ import type { BitcoinTopic } from "@shared/schema";
 import { Badge } from "@/components/ui/badge";
 import { Book, BrainCircuit } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { VoiceOverPlayer } from "./voice-over-player";
 
 interface TopicCardProps {
   topic: BitcoinTopic;
@@ -25,7 +26,10 @@ export default function TopicCard({ topic }: TopicCardProps) {
               </Badge>
               <Badge variant="outline" className="text-xs sm:text-sm">{topic.category}</Badge>
             </div>
-            <CardDescription className="text-sm sm:text-base line-clamp-3">{topic.description}</CardDescription>
+            <div className="space-y-2">
+              <CardDescription className="text-sm sm:text-base line-clamp-3">{topic.description}</CardDescription>
+              <VoiceOverPlayer text={topic.description} className="mt-2" />
+            </div>
           </div>
         </div>
         <div className="flex flex-col gap-2">

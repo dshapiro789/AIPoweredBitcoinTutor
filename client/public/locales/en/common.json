@@ -59,6 +59,13 @@
     "start": "Start Topic",
     "review": "Review Topic"
   },
+  "voiceOver": {
+    "listen": "Listen",
+    "playing": "Playing...",
+    "error": "Audio Error",
+    "playbackError": "Failed to play audio",
+    "generationError": "Failed to generate voice-over"
+  },
   "error": {
     "title": "Error",
     "failedToLoad": "Failed to load data. Please try again."

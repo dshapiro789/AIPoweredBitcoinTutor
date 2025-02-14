@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { getTutorResponse, analyzeProgress, generateLearningPath } from "./openai";
+import { getTutorResponse, analyzeProgress, generateLearningPath, generateVoiceOver } from "./openai";
 import { insertUserSchema, insertChatSessionSchema, insertLearningProgressSchema, insertUserQuizAttemptSchema } from "@shared/schema";
 import { ZodError } from "zod";
 
@@ -81,7 +81,7 @@ export function registerRoutes(app: Express): Server {
       res.json(questions);
     } catch (error) {
       console.error("Error fetching quiz questions:", error);
-      res.status(500).json({ 
+      res.status(500).json({
         message: "Failed to fetch quiz questions",
         error: error instanceof Error ? error.message : "Unknown error"
       });
@@ -143,7 +143,6 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // Other existing routes remain unchanged...
   app.get("/api/bitcoin/topics/:id", async (req, res) => {
     try {
       const topic = await storage.getBitcoinTopic(parseInt(req.params.id));
@@ -301,6 +300,31 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Voice-over generation endpoint
+  app.post("/api/voice-over", async (req, res) => {
+    try {
+      const { text, language } = req.body;
+
+      if (!text) {
+        return res.status(400).json({ message: "Text is required" });
+      }
+
+      const audioBuffer = await generateVoiceOver(text, language);
+
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': audioBuffer.length
+      });
+
+      res.send(audioBuffer);
+    } catch (error) {
+      console.error("Voice-over generation error:", error);
+      res.status(500).json({
+        message: "Failed to generate voice-over",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
 
   return httpServer;
 }
