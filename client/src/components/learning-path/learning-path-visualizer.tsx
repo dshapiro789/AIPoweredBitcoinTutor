@@ -4,7 +4,7 @@ import { BitcoinTopic, LearningProgress } from "@shared/schema";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, CheckCircle2, Circle, Wand2 } from "lucide-react";
+import { ChevronRight, CheckCircle2, Circle, Wand2, Clock, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -25,6 +25,11 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
 
   const { data: progress } = useQuery<LearningProgress[]>({
     queryKey: [`/api/progress/${userId}`],
+  });
+
+  const { data: personalizedPath } = useQuery({
+    queryKey: [`/api/learning-path/${userId}`],
+    enabled: !!progress && progress.length > 0,
   });
 
   if (!topics || !progress) {
@@ -51,9 +56,10 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
 
   const handleWizardComplete = () => {
     setShowWizard(false);
-    // Refresh the learning path data
+    // Refresh all related data
     queryClient.invalidateQueries({ queryKey: [`/api/progress/${userId}`] });
     queryClient.invalidateQueries({ queryKey: ["/api/bitcoin/topics"] });
+    queryClient.invalidateQueries({ queryKey: [`/api/learning-path/${userId}`] });
   };
 
   if (showWizard) {
@@ -65,12 +71,28 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
     );
   }
 
+  // Sort topics based on personalized path if available
+  const sortedTopics = [...topics].sort((a, b) => {
+    if (!personalizedPath) return 0;
+    const aIndex = personalizedPath.next_topics.findIndex(t => t.topic === a.name);
+    const bIndex = personalizedPath.next_topics.findIndex(t => t.topic === b.name);
+    if (aIndex === -1) return 1;
+    if (bIndex === -1) return -1;
+    return aIndex - bIndex;
+  });
+
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>{t('learningPath.title')}</CardTitle>
           <CardDescription>{t('learningPath.description')}</CardDescription>
+          {personalizedPath && (
+            <p className="text-sm text-muted-foreground mt-2">
+              <Clock className="w-4 h-4 inline mr-2" />
+              {t('learningPath.estimatedTime', { time: personalizedPath.estimated_completion_time })}
+            </p>
+          )}
         </div>
         <Button
           variant="outline"
@@ -84,9 +106,10 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {topics.map((topic, index) => {
+          {sortedTopics.map((topic, index) => {
             const { completed, score, confidence } = getTopicProgress(topic.id);
             const nextTopic = !completed && progress.some(p => p.quizzesPassed > 0);
+            const pathInfo = personalizedPath?.next_topics.find(t => t.topic === topic.name);
 
             return (
               <div 
@@ -115,7 +138,28 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-lg">{topic.name}</CardTitle>
-                        <CardDescription>{topic.description}</CardDescription>
+                        <CardDescription>
+                          {pathInfo?.description || topic.description}
+                        </CardDescription>
+                        {pathInfo?.prerequisites.length > 0 && (
+                          <div className="mt-2 text-sm text-muted-foreground">
+                            <span className="font-medium">Prerequisites: </span>
+                            {pathInfo.prerequisites.join(", ")}
+                          </div>
+                        )}
+                        {pathInfo?.practical_exercises.length > 0 && (
+                          <div className="mt-2 space-y-1">
+                            <p className="text-sm font-medium flex items-center">
+                              <BookOpen className="w-4 h-4 mr-1" />
+                              Practical Exercises:
+                            </p>
+                            <ul className="text-sm text-muted-foreground list-disc pl-5">
+                              {pathInfo.practical_exercises.map((exercise, i) => (
+                                <li key={i}>{exercise}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       </div>
                       {completed && (
                         <div className="text-right">

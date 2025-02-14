@@ -300,7 +300,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
-  // New learning path personalization endpoint
+  // New learning path personalization endpoint from edited code
   app.post("/api/learning-path/personalize/:userId", async (req, res) => {
     try {
       const userId = parseInt(req.params.userId);
@@ -350,6 +350,60 @@ export function registerRoutes(app: Express): Server {
       });
     }
   });
+
+  // Added endpoint from edited code
+  app.get("/api/learning-path/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const progress = await storage.getLearningProgress(userId);
+      const topics = await storage.getBitcoinTopics();
+
+      // If no progress exists yet, return a default path
+      const defaultLearningPath = {
+        next_topics: [
+          {
+            topic: "Bitcoin Basics",
+            description: "Learn the fundamentals of Bitcoin",
+            prerequisites: [],
+            practical_exercises: ["Create a wallet", "Send a test transaction"]
+          }
+        ],
+        recommended_resources: ["Bitcoin.org documentation"],
+        estimated_completion_time: "2-3 weeks"
+      };
+      if (!progress || progress.length === 0) {
+        return res.json(defaultLearningPath);
+      }
+
+      // Get the most recent personalization if it exists
+      const personalizedPath = await storage.getPersonalizedPath(userId);
+
+      if (!personalizedPath) {
+        return res.json(defaultLearningPath);
+      }
+
+      // Update topic descriptions with the actual topic descriptions from the database
+      const updatedTopics = personalizedPath.next_topics.map(topic => {
+        const dbTopic = topics.find(t => t.name === topic.topic);
+        return {
+          ...topic,
+          description: topic.description || dbTopic?.description || ""
+        };
+      });
+
+      res.json({
+        ...personalizedPath,
+        next_topics: updatedTopics
+      });
+    } catch (error) {
+      console.error("Error fetching learning path:", error);
+      res.status(500).json({
+        message: "Failed to fetch learning path",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
 
   return httpServer;
 }

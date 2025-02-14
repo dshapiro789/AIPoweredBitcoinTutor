@@ -67,7 +67,10 @@
       "complete": "Complete Setup"
     },
     "wizardComplete": "Learning Path Created",
-    "pathGenerated": "Your personalized learning path has been generated successfully!"
+    "pathGenerated": "Your personalized learning path has been generated successfully!",
+    "estimatedTime": "Estimated completion time: {{time}}",
+    "prerequisites": "Prerequisites",
+    "practicalExercises": "Practical Exercises"
   },
   "error": {
     "title": "Error",
