@@ -452,14 +452,14 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
           {questions.length === 1 ? (
             <Button
               onClick={handleSubmitQuiz}
-              disabled={!selectedAnswers[currentQuestion.id]}
+              disabled={selectedAnswers[currentQuestion.id] === undefined}
             >
               {t('quiz.submitQuiz')}
             </Button>
           ) : (
             <Button
               onClick={currentQuestionIndex === questions.length - 1 ? handleSubmitQuiz : handleNext}
-              disabled={!selectedAnswers[currentQuestion.id]}
+              disabled={selectedAnswers[currentQuestion.id] === undefined}
             >
               {currentQuestionIndex < questions.length - 1 ? t('quiz.nextQuestion') : t('quiz.submitQuiz')}
             </Button>
