@@ -6,6 +6,7 @@ import Nav from "@/components/nav";
 import Home from "@/pages/home";
 import Chat from "@/pages/chat";
 import Quiz from "@/pages/quiz";
+import Learn from "@/pages/learn";
 import Dashboard from "@/pages/dashboard";
 import NotFound from "@/pages/not-found";
 
@@ -15,6 +16,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/chat/:topicId" component={Chat} />
       <Route path="/quiz/:topicId" component={Quiz} />
+      <Route path="/learn/:topicId" component={Learn} />
       <Route path="/dashboard" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
