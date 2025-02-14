@@ -152,7 +152,18 @@ export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[])
   }
 }
 
-export async function generateLearningPath(currentLevel: string, progress: any): Promise<{
+export async function generateLearningPath(
+  currentLevel: string,
+  context: {
+    userPreferences: {
+      experience: string;
+      goal: string;
+      time: string;
+      style: string;
+    };
+    currentProgress: any;
+  }
+): Promise<{
   next_topics: Array<{
     topic: string;
     description: string;
@@ -168,22 +179,41 @@ export async function generateLearningPath(currentLevel: string, progress: any):
       messages: [
         {
           role: "system",
-          content: `Create a personalized Bitcoin learning path based on the user's current level and progress. Include:
-1. Next recommended topics
-2. Prerequisites for each topic
-3. Practical exercises
-4. Additional learning resources
-5. Estimated time to complete each section`
+          content: `Create a personalized Bitcoin learning path based on the user's preferences and current progress. Consider:
+1. User's experience level: ${context.userPreferences.experience}
+2. Learning goal: ${context.userPreferences.goal}
+3. Available time: ${context.userPreferences.time}
+4. Learning style: ${context.userPreferences.style}
+
+Tailor the path to match these preferences while maintaining a logical progression through Bitcoin concepts.`
         },
         {
           role: "user",
-          content: JSON.stringify({ currentLevel, progress })
+          content: JSON.stringify({
+            currentLevel,
+            context
+          })
         }
       ],
       response_format: { type: "json_object" }
     });
 
-    return JSON.parse(response.choices[0].message.content || '{}');
+    const path = JSON.parse(response.choices[0].message.content || '{}');
+
+    // Ensure the path includes mandatory topics regardless of preferences
+    const mandatoryTopics = ["Bitcoin Basics", "Wallet Security"];
+    if (!path.next_topics) {
+      path.next_topics = [];
+    }
+    const existingTopics = path.next_topics.map(topic => topic.topic);
+    mandatoryTopics.forEach(topic => {
+      if (!existingTopics.includes(topic)) {
+        path.next_topics.push({ topic, description: "", prerequisites: [], practical_exercises: [] });
+      }
+    });
+
+
+    return path;
   } catch (error) {
     console.error("OpenAI API error:", error);
     return defaultLearningPath;

@@ -300,6 +300,56 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // New learning path personalization endpoint
+  app.post("/api/learning-path/personalize/:userId", async (req, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const preferences = req.body;
+      const topics = await storage.getBitcoinTopics(); // Added to get topics
+
+      // Get existing progress
+      const progress = await storage.getLearningProgress(userId);
+
+      // Generate personalized learning path using OpenAI
+      const personalizedPath = await generateLearningPath(
+        preferences.experience,
+        {
+          userPreferences: preferences,
+          currentProgress: progress
+        }
+      );
+
+      // Update user's learning progress with the new personalized path
+      for (const topic of personalizedPath.next_topics) {
+        const existingProgress = progress.find(p =>
+          p.topicId === topics.find(t => t.name === topic.topic)?.id
+        );
+
+        if (!existingProgress) {
+          await storage.updateLearningProgress({
+            userId,
+            topicId: topics.find(t => t.name === topic.topic)?.id || 0,
+            completedExercises: 0,
+            confidenceLevel: 0,
+            lastActive: new Date(),
+            quizzesPassed: 0,
+            totalPoints: 0
+          });
+        }
+      }
+
+      res.json({
+        message: "Learning path personalized successfully",
+        path: personalizedPath
+      });
+    } catch (error) {
+      console.error("Error personalizing learning path:", error);
+      res.status(500).json({
+        message: "Failed to personalize learning path",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
 
   return httpServer;
 }

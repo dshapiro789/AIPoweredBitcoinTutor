@@ -59,10 +59,25 @@
     "recommended": "Ready to start",
     "locked": "Complete previous topics to unlock",
     "start": "Start Topic",
-    "review": "Review Topic"
+    "review": "Review Topic",
+    "wizard": {
+      "title": "Personalize Your Learning Path",
+      "description": "Let's create a learning path tailored to your needs and goals",
+      "start": "Start Personalization",
+      "complete": "Complete Setup"
+    },
+    "wizardComplete": "Learning Path Created",
+    "pathGenerated": "Your personalized learning path has been generated successfully!"
   },
   "error": {
     "title": "Error",
-    "failedToLoad": "Failed to load data. Please try again."
+    "failedToLoad": "Failed to load data. Please try again.",
+    "failedToGeneratePath": "Failed to generate learning path. Please try again."
+  },
+  "common": {
+    "back": "Back",
+    "next": "Next",
+    "complete": "Complete",
+    "generating": "Generating..."
   }
 }

@@ -1,12 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { BitcoinTopic, LearningProgress } from "@shared/schema";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, CheckCircle2, Circle } from "lucide-react";
+import { ChevronRight, CheckCircle2, Circle, Wand2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
+import { LearningPathWizard } from "./learning-path-wizard";
 
 interface LearningPathVisualizerProps {
   userId: number;
@@ -14,6 +16,8 @@ interface LearningPathVisualizerProps {
 
 export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [showWizard, setShowWizard] = useState(false);
 
   const { data: topics } = useQuery<BitcoinTopic[]>({
     queryKey: ["/api/bitcoin/topics"],
@@ -45,18 +49,45 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
     } : { completed: false, score: 0, confidence: 0 };
   };
 
+  const handleWizardComplete = () => {
+    setShowWizard(false);
+    // Refresh the learning path data
+    queryClient.invalidateQueries({ queryKey: [`/api/progress/${userId}`] });
+    queryClient.invalidateQueries({ queryKey: ["/api/bitcoin/topics"] });
+  };
+
+  if (showWizard) {
+    return (
+      <LearningPathWizard
+        userId={userId}
+        onComplete={handleWizardComplete}
+      />
+    );
+  }
+
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle>{t('learningPath.title')}</CardTitle>
-        <CardDescription>{t('learningPath.description')}</CardDescription>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <div>
+          <CardTitle>{t('learningPath.title')}</CardTitle>
+          <CardDescription>{t('learningPath.description')}</CardDescription>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-4"
+          onClick={() => setShowWizard(true)}
+        >
+          <Wand2 className="w-4 h-4 mr-2" />
+          {t('learningPath.wizard.start')}
+        </Button>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           {topics.map((topic, index) => {
             const { completed, score, confidence } = getTopicProgress(topic.id);
             const nextTopic = !completed && progress.some(p => p.quizzesPassed > 0);
-            
+
             return (
               <div 
                 key={topic.id}
@@ -74,7 +105,7 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                     <Circle className="w-8 h-8 text-muted-foreground" />
                   )}
                 </div>
-                
+
                 <Card className={cn(
                   "transition-colors",
                   completed && "border-primary",
