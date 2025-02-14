@@ -17,6 +17,13 @@
       "advanced": "Advanced"
     }
   },
+  "learn": {
+    "content": "Learning Content",
+    "followPath": "Follow your personalized learning path",
+    "exerciseDescription": "Exercise {{number}}: Practice what you've learned",
+    "startQuiz": "Start Quiz",
+    "back": "Back to Topics"
+  },
   "quiz": {
     "title": "Quiz",
     "nextQuestion": "Next Question",

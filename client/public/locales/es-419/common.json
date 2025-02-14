@@ -17,6 +17,13 @@
       "advanced": "Avanzado"
     }
   },
+  "learn": {
+    "content": "Contenido de Aprendizaje",
+    "followPath": "Sigue tu ruta de aprendizaje personalizada",
+    "exerciseDescription": "Ejercicio {{number}}: Practica lo que has aprendido",
+    "startQuiz": "Comenzar Examen",
+    "back": "Volver a Temas"
+  },
   "quiz": {
     "title": "Examen",
     "nextQuestion": "Siguiente Pregunta",

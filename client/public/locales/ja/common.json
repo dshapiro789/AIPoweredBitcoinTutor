@@ -17,6 +17,13 @@
       "advanced": "上級"
     }
   },
+  "learn": {
+    "content": "学習コンテンツ",
+    "followPath": "パーソナライズされた学習パスに従う",
+    "exerciseDescription": "練習 {{number}}: 学んだことを実践する",
+    "startQuiz": "クイズを始める",
+    "back": "科目に戻る"
+  },
   "quiz": {
     "title": "クイズ",
     "nextQuestion": "次の質問",
