@@ -32,7 +32,9 @@
     "yourScore": "Your Score",
     "finalScore": "Final Score: {{score}}%",
     "returnToDashboard": "Return to Dashboard",
-    "continueLeaning": "Continue Learning"
+    "continueLeaning": "Continue Learning",
+    "showHint": "Show Hint",
+    "reviewAnswers": "Review Your Answers"
   },
   "achievements": {
     "title": "Achievements",

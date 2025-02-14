@@ -26,13 +26,13 @@ interface QuizComponentProps {
   userId: number;
 }
 
-function TrueFalseQuestion({ 
-  question, 
-  selectedAnswer, 
-  onAnswer 
-}: { 
-  question: Question; 
-  selectedAnswer: any; 
+function TrueFalseQuestion({
+  question,
+  selectedAnswer,
+  onAnswer
+}: {
+  question: Question;
+  selectedAnswer: any;
   onAnswer: (value: any) => void;
 }) {
   return (
@@ -59,13 +59,13 @@ function TrueFalseQuestion({
   );
 }
 
-function FillBlankQuestion({ 
-  question, 
-  selectedAnswer, 
-  onAnswer 
-}: { 
-  question: Question; 
-  selectedAnswer: any; 
+function FillBlankQuestion({
+  question,
+  selectedAnswer,
+  onAnswer
+}: {
+  question: Question;
+  selectedAnswer: any;
   onAnswer: (value: any) => void;
 }) {
   return (
@@ -88,13 +88,13 @@ function FillBlankQuestion({
   );
 }
 
-function MultipleChoiceQuestion({ 
-  question, 
-  selectedAnswer, 
-  onAnswer 
-}: { 
-  question: Question; 
-  selectedAnswer: any; 
+function MultipleChoiceQuestion({
+  question,
+  selectedAnswer,
+  onAnswer
+}: {
+  question: Question;
+  selectedAnswer: any;
   onAnswer: (value: any) => void;
 }) {
   return (
@@ -131,6 +131,11 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
   const [showHint, setShowHint] = useState(false);
   const [isCompleted, setIsCompleted] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
+  const [questionResults, setQuestionResults] = useState<Array<{
+    question: Question;
+    selectedAnswer: any;
+    isCorrect: boolean;
+  }>>([]);
   const { toast } = useToast();
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
@@ -214,7 +219,59 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          <div className="flex flex-col gap-4 items-center">
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold mb-4">{t('quiz.reviewAnswers')}</h3>
+            {questionResults.map(({ question, selectedAnswer, isCorrect }, index) => (
+              <div
+                key={question.id}
+                className={cn(
+                  "p-4 rounded-lg",
+                  isCorrect ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <div className={cn(
+                    "rounded-full p-1.5",
+                    isCorrect ? "bg-green-500/20 text-green-600" : "bg-red-500/20 text-red-600"
+                  )}>
+                    {isCorrect ? "✓" : "✗"}
+                  </div>
+                  <div className="flex-1 space-y-2">
+                    <p className="font-medium">
+                      {index + 1}. {question.questionText}
+                    </p>
+                    <div className="space-y-1 text-sm">
+                      <p className="text-muted-foreground">
+                        Your answer: {
+                          question.type === 'true_false'
+                            ? String(selectedAnswer)
+                            : question.type === 'multiple_choice'
+                              ? question.options[selectedAnswer]
+                              : selectedAnswer
+                        }
+                      </p>
+                      {!isCorrect && (
+                        <p className="text-muted-foreground">
+                          Correct answer: {
+                            question.type === 'true_false'
+                              ? String(question.correctAnswerValue)
+                              : question.type === 'multiple_choice'
+                                ? question.options[question.correctAnswer]
+                                : String(question.correctAnswerValue)
+                          }
+                        </p>
+                      )}
+                      {!isCorrect && (
+                        <p className="text-sm mt-2">{question.explanation}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-4 items-center pt-4">
             <Button
               onClick={() => setLocation('/dashboard')}
               className="w-full max-w-sm"
@@ -250,16 +307,24 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setShowHint(false);
     } else {
+      const results = questions.map(question => ({
+        question,
+        selectedAnswer: selectedAnswers[question.id],
+        isCorrect: question.correctAnswerValue !== undefined
+          ? selectedAnswers[question.id] === question.correctAnswerValue
+          : selectedAnswers[question.id] === question.correctAnswer
+      }));
+
       const questionsAnswered = Object.entries(selectedAnswers).map(([questionId, answer]) => ({
         questionId: parseInt(questionId),
         answer,
         timeSpent
       }));
 
-      const score = questionsAnswered.reduce((total, { questionId, answer }) => {
-        const question = questions.find(q => q.id === questionId);
-        return total + (question?.correctAnswer === answer ? question?.points || 0 : 0);
-      }, 0);
+      const score = results.reduce((total, { isCorrect, question }) =>
+        total + (isCorrect ? question.points : 0), 0);
+
+      setQuestionResults(results);
 
       submitAttemptMutation.mutate({
         userId,
