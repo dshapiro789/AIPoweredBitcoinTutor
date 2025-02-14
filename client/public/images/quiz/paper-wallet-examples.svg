@@ -29,9 +29,13 @@
   <g transform="translate(50, 250)">
     <rect x="0" y="0" width="150" height="100" fill="none" stroke="#666" stroke-width="2"/>
     <text x="75" y="130" text-anchor="middle" font-family="Arial" font-size="14">Option C: Written Seed Phrase Only</text>
-    <text x="75" y="30" text-anchor="middle" font-family="Arial" font-size="10">word1 word2</text>
-    <text x="75" y="50" text-anchor="middle" font-family="Arial" font-size="10">word3 word4</text>
-    <text x="75" y="70" text-anchor="middle" font-family="Arial" font-size="10">word5 word6</text>
+    <!-- Increased spacing between words -->
+    <text x="45" y="30" text-anchor="end" font-family="Arial" font-size="10">word1</text>
+    <text x="105" y="30" text-anchor="start" font-family="Arial" font-size="10">word2</text>
+    <text x="45" y="50" text-anchor="end" font-family="Arial" font-size="10">word3</text>
+    <text x="105" y="50" text-anchor="start" font-family="Arial" font-size="10">word4</text>
+    <text x="45" y="70" text-anchor="end" font-family="Arial" font-size="10">word5</text>
+    <text x="105" y="70" text-anchor="start" font-family="Arial" font-size="10">word6</text>
   </g>
 
   <!-- Option D: Mobile Wallet Screenshot -->
