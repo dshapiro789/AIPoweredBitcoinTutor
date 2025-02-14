@@ -20,10 +20,19 @@
   "quiz": {
     "title": "Quiz",
     "nextQuestion": "Next Question",
+    "previousQuestion": "Previous Question",
     "submitQuiz": "Submit Quiz",
     "loading": "Loading quiz...",
     "score": "Score",
-    "of": "of"
+    "of": "of",
+    "question": "Question",
+    "answered": "Answered",
+    "completed": "Quiz Completed!",
+    "congratulations": "Congratulations!",
+    "yourScore": "Your Score",
+    "finalScore": "Final Score: {{score}}%",
+    "returnToDashboard": "Return to Dashboard",
+    "continueLeaning": "Continue Learning"
   },
   "achievements": {
     "title": "Achievements",
@@ -33,5 +42,25 @@
     "points": "points",
     "progress": "Progress",
     "locked": "Keep learning to unlock this achievement"
+  },
+  "dashboard": {
+    "title": "Learning Dashboard",
+    "subtitle": "Track your progress and continue your Bitcoin learning journey",
+    "totalSessions": "Total Sessions",
+    "activeTopics": "Active Topics"
+  },
+  "learningPath": {
+    "title": "Your Learning Path",
+    "description": "Track your progress and unlock new topics as you learn",
+    "score": "Score",
+    "confidence": "Confidence Level",
+    "recommended": "Ready to start",
+    "locked": "Complete previous topics to unlock",
+    "start": "Start Topic",
+    "review": "Review Topic"
+  },
+  "error": {
+    "title": "Error",
+    "failedToLoad": "Failed to load data. Please try again."
   }
 }
