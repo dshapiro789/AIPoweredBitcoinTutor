@@ -161,6 +161,9 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
   const submitAttemptMutation = useMutation({
     mutationFn: async (attempt: InsertUserQuizAttempt) => {
       const response = await apiRequest("POST", "/api/quiz/attempt", attempt);
+      if (!response.ok) {
+        throw new Error("Failed to submit quiz attempt");
+      }
       return response.json();
     },
     onSuccess: (data) => {
@@ -182,21 +185,23 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
 
       if (data.newAchievements?.length > 0) {
         data.newAchievements.forEach((achievement: UserAchievement & { achievement: Achievement }) => {
-          toast({
-            title: t('achievements.new', 'New Achievement Unlocked!'),
-            description: (
-              <div className="flex items-center gap-3">
-                <AchievementBadge achievement={achievement.achievement} unlocked showAnimation />
-                <div>
-                  <p className="font-semibold">{achievement.achievement.name}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {achievement.achievement.description}
-                  </p>
+          if (achievement?.achievement) {
+            toast({
+              title: t('achievements.new', 'New Achievement Unlocked!'),
+              description: (
+                <div className="flex items-center gap-3">
+                  <AchievementBadge achievement={achievement.achievement} unlocked showAnimation />
+                  <div>
+                    <p className="font-semibold">{achievement.achievement.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {achievement.achievement.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ),
-            duration: 5000,
-          });
+              ),
+              duration: 5000,
+            });
+          }
         });
       }
 
