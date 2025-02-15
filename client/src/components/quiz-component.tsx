@@ -302,12 +302,12 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
     });
   };
 
-  const handleSubmitQuiz = () => {
+  const handleSubmit = () => {
     const results = questions.map(question => ({
       question,
       selectedAnswer: selectedAnswers[question.id],
-      isCorrect: question.correctAnswerValue !== undefined
-        ? selectedAnswers[question.id] === question.correctAnswerValue
+      isCorrect: question.type === 'true_false' || question.type === 'fill_blank'
+        ? selectedAnswers[question.id]?.toString().toLowerCase() === question.correctAnswerValue?.toString().toLowerCase()
         : selectedAnswers[question.id] === question.correctAnswer
     }));
 
@@ -317,8 +317,10 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
       timeSpent
     }));
 
-    const score = results.reduce((total, { isCorrect, question }) =>
+    const totalPoints = results.reduce((total, { isCorrect, question }) =>
       total + (isCorrect ? question.points : 0), 0);
+    const maxPoints = questions.reduce((total, question) => total + question.points, 0);
+    const score = Math.round((totalPoints / maxPoints) * 100);
 
     setQuestionResults(results);
 
@@ -451,14 +453,14 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
 
           {questions.length === 1 ? (
             <Button
-              onClick={handleSubmitQuiz}
+              onClick={handleSubmit}
               disabled={selectedAnswers[currentQuestion.id] === undefined}
             >
               {t('quiz.submitQuiz')}
             </Button>
           ) : (
             <Button
-              onClick={currentQuestionIndex === questions.length - 1 ? handleSubmitQuiz : handleNext}
+              onClick={currentQuestionIndex === questions.length - 1 ? handleSubmit : handleNext}
               disabled={selectedAnswers[currentQuestion.id] === undefined}
             >
               {currentQuestionIndex < questions.length - 1 ? t('quiz.nextQuestion') : t('quiz.submitQuiz')}
