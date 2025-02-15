@@ -304,6 +304,35 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  app.post("/api/progress/update", async (req, res) => {
+    try {
+      const progress = {
+        userId: req.body.userId,
+        topicId: req.body.topicId,
+        completedExercises: req.body.completedExercises || 0,
+        confidenceLevel: req.body.confidenceLevel || 1,
+        lastActive: new Date(),
+        quizzesPassed: req.body.quizzesPassed || 0,
+        totalPoints: req.body.totalPoints || 0
+      };
+
+      const validatedProgress = insertLearningProgressSchema.parse(progress);
+      await storage.updateLearningProgress(validatedProgress);
+
+      res.json({ message: "Progress updated successfully" });
+    } catch (error) {
+      console.error("Error updating progress:", error);
+      if (error instanceof ZodError) {
+        return res.status(400).json({
+          message: "Invalid progress data",
+          details: error.errors
+        });
+      }
+      res.status(500).json({ message: "Failed to update progress" });
+    }
+  });
+
+
   // Achievement routes
   app.get("/api/achievements", async (req, res) => {
     try {

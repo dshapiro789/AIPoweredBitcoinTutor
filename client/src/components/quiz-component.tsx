@@ -20,6 +20,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface QuizComponentProps {
   topicId: number;
@@ -159,6 +169,17 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
       setIsCompleted(true);
       setFinalScore(data.attempt.score);
 
+      // If score is 100%, update learning progress
+      if (data.attempt.score === 100) {
+        // Update learning progress
+        apiRequest("POST", `/api/progress/update`, {
+          userId,
+          topicId,
+          completedExercises: 1,
+          quizzesPassed: 1
+        });
+      }
+
       if (data.newAchievements?.length > 0) {
         data.newAchievements.forEach((achievement: UserAchievement & { achievement: Achievement }) => {
           toast({
@@ -272,6 +293,30 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
           </div>
 
           <div className="flex flex-col gap-4 items-center pt-4">
+            {finalScore === 100 && (
+              <AlertDialog>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>{t('quiz.lessonCompleted')}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {t('quiz.moveToNextLesson')}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={() => setLocation('/dashboard')}>
+                      {t('common.later')}
+                    </AlertDialogCancel>
+                    <AlertDialogAction onClick={() => {
+                      // Navigate to the next topic
+                      const nextTopicId = topicId + 1;
+                      setLocation(`/chat/${nextTopicId}`);
+                    }}>
+                      {t('common.continue')}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button
               onClick={() => setLocation('/dashboard')}
               className="w-full max-w-sm"
