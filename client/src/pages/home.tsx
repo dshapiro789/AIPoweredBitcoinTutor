@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { BitcoinTopic } from "@shared/schema";
-import { Bitcoin, Book, ChevronRight } from "lucide-react";
+import { Bitcoin, Book, ChevronRight, MessageSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
@@ -75,6 +75,15 @@ export default function Home() {
             <p className="text-base sm:text-lg text-muted-foreground">
               {t('app.description')}
             </p>
+
+            <Button 
+              size="lg" 
+              className="w-full sm:w-auto"
+              onClick={() => setLocation('/chat/1')}
+            >
+              <MessageSquare className="w-5 h-5 mr-2" />
+              {t('topics.startLearning')}
+            </Button>
           </CardContent>
         </Card>
 

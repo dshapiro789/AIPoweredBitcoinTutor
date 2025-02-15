@@ -58,7 +58,7 @@ Let's get started! Here are some topics we can explore:
    - Transaction fees and confirmation
    - Understanding UTXO model
 
-Feel free to ask any questions about these topics or tell me what interests you most!`,
+Please note: I'm specifically designed to help you learn about Bitcoin and blockchain technology. For other topics, please consult appropriate resources.`,
           timestamp: new Date()
         }];
 
@@ -70,8 +70,29 @@ Feel free to ask any questions about these topics or tell me what interests you 
     }
   }, [session.messages.length, initialMessage]);
 
+  const isBitcoinRelated = (text: string): boolean => {
+    const bitcoinKeywords = [
+      'bitcoin', 'btc', 'blockchain', 'crypto', 'wallet', 'mining', 'block',
+      'transaction', 'satoshi', 'nakamoto', 'node', 'lightning', 'network',
+      'private key', 'public key', 'address', 'hash', 'cryptocurrency',
+      'mempool', 'utxo', 'segwit', 'halving', 'fork'
+    ];
+    const lowercaseText = text.toLowerCase();
+    return bitcoinKeywords.some(keyword => lowercaseText.includes(keyword));
+  };
+
   const handleSendMessage = async (messageToSend: string) => {
     if (!messageToSend.trim()) return;
+
+    // Check if the message is Bitcoin-related
+    if (!isBitcoinRelated(messageToSend)) {
+      toast({
+        title: "Off-topic Question",
+        description: "Please ask questions related to Bitcoin and blockchain technology. For other topics, please use appropriate resources.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       const userMessage: Message = {
