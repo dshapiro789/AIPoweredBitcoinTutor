@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BitcoinTopic, LearningProgress } from "@shared/schema";
+import { BitcoinTopic, LearningProgress, QuizQuestion } from "@shared/schema"; // Added QuizQuestion
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "react-i18next";
-import { ChevronRight, CheckCircle2, Circle, Wand2, Clock, BookOpen } from "lucide-react";
+import { ChevronRight, CheckCircle2, Circle, Wand2, Clock, Book } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
@@ -29,8 +29,15 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
 
   const { data: personalizedPath } = useQuery({
     queryKey: [`/api/learning-path/${userId}`],
-    enabled: !!progress && progress.length > 0,
   });
+
+  // Fetch quiz questions for each topic
+  const quizQuestionsQueries = topics?.map(topic =>
+    useQuery<QuizQuestion[]>({ // Added type
+      queryKey: [`/api/quiz/${topic.id}`],
+      enabled: !!topic.id,
+    })
+  ) || [];
 
   if (!topics || !progress) {
     return (
@@ -73,7 +80,7 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
 
   // Sort topics based on personalized path if available
   const sortedTopics = [...topics].sort((a, b) => {
-    if (!personalizedPath) return 0;
+    if (!personalizedPath?.next_topics) return 0;
     const aIndex = personalizedPath.next_topics.findIndex(t => t.topic === a.name);
     const bIndex = personalizedPath.next_topics.findIndex(t => t.topic === b.name);
     if (aIndex === -1) return 1;
@@ -95,7 +102,7 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
         <div>
           <CardTitle>{t('learningPath.title')}</CardTitle>
           <CardDescription>{t('learningPath.description')}</CardDescription>
-          {personalizedPath && (
+          {personalizedPath?.estimated_completion_time && (
             <p className="text-sm text-muted-foreground mt-2">
               <Clock className="w-4 h-4 inline mr-2" />
               {t('learningPath.estimatedTime', { time: personalizedPath.estimated_completion_time })}
@@ -117,20 +124,21 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
           {sortedTopics.map((topic, index) => {
             const { completed, score, confidence } = getTopicProgress(topic.id);
             const nextTopic = !completed && (
-              index === 0 || 
-              getTopicProgress(sortedTopics[index - 1]?.id).completed 
+              index === 0 ||
+              getTopicProgress(sortedTopics[index - 1]?.id).completed
             );
-            const pathInfo = personalizedPath?.next_topics.find(t => t.topic === topic.name);
+            const pathInfo = personalizedPath?.next_topics?.find(t => t.topic === topic.name);
+            const quizQuestions = quizQuestionsQueries[index]?.data;
 
             return (
-              <div 
+              <div
                 key={topic.id}
                 className={cn(
                   "relative pl-8 pb-6",
                   index !== topics.length - 1 && "border-l-2 border-muted ml-4"
                 )}
               >
-                <div 
+                <div
                   className={cn(
                     "absolute -left-2 top-0",
                     completed && "text-primary",
@@ -161,22 +169,27 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                         <CardDescription>
                           {pathInfo?.description || topic.description}
                         </CardDescription>
-                        {pathInfo?.prerequisites.length > 0 && (
+                        {pathInfo?.prerequisites?.length > 0 && (
                           <div className="mt-2 text-sm text-muted-foreground">
                             <span className="font-medium">Prerequisites: </span>
                             {pathInfo.prerequisites.join(", ")}
                           </div>
                         )}
-                        {pathInfo?.practical_exercises.length > 0 && (
+                        {quizQuestions && quizQuestions.length > 0 && (
                           <div className="mt-2 space-y-1">
                             <p className="text-sm font-medium flex items-center">
-                              <BookOpen className="w-4 h-4 mr-1" />
-                              Practical Exercises:
+                              <Book className="w-4 h-4 mr-1" />
+                              Practice Questions:
                             </p>
                             <ul className="text-sm text-muted-foreground list-disc pl-5">
-                              {pathInfo.practical_exercises.map((exercise, i) => (
-                                <li key={i}>{exercise}</li>
+                              {quizQuestions.slice(0, 3).map((question, i) => (
+                                <li key={i}>{question.questionText}</li>
                               ))}
+                              {quizQuestions.length > 3 && (
+                                <li className="text-sm text-muted-foreground">
+                                  And {quizQuestions.length - 3} more questions...
+                                </li>
+                              )}
                             </ul>
                           </div>
                         )}
@@ -204,7 +217,7 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                           {nextTopic ? t('learningPath.recommended') : t('learningPath.locked')}
                         </p>
                         <Link href={nextTopic ? `/learn/${topic.id}` : '#'}>
-                          <Button 
+                          <Button
                             variant={nextTopic ? "default" : "outline"}
                             disabled={!nextTopic}
                           >
