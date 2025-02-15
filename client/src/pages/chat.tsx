@@ -1,15 +1,20 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import ChatInterface from "@/components/chat-interface";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { BitcoinTopic, ChatSession } from "@shared/schema";
 import { Loader2 } from "lucide-react";
+import { useEffect } from "react";
 
 export default function Chat() {
   const { topicId } = useParams<{ topicId: string }>();
+  const [location] = useLocation();
   const { toast } = useToast();
+
+  // Extract initial message from URL if present
+  const initialMessage = new URLSearchParams(location.split('?')[1]).get('message');
 
   const { data: topic, isLoading: topicLoading } = useQuery<BitcoinTopic>({
     queryKey: [`/api/bitcoin/topics/${topicId}`],
@@ -38,6 +43,13 @@ export default function Chat() {
       });
     },
   });
+
+  // Auto-start session if we have an initial message
+  useEffect(() => {
+    if (initialMessage && !session && !sessionLoading) {
+      startSession();
+    }
+  }, [initialMessage, session, sessionLoading]);
 
   if (topicLoading || sessionLoading) {
     return (
@@ -77,7 +89,11 @@ export default function Chat() {
   return (
     <div className="max-w-4xl mx-auto px-4">
       <h1 className="text-2xl font-bold mb-6">{topic.name}</h1>
-      <ChatInterface session={session.session} subject={topic.name} learningPath={session.learningPath} />
+      <ChatInterface 
+        session={session.session} 
+        subject={topic.name} 
+        initialMessage={initialMessage}
+      />
     </div>
   );
 }

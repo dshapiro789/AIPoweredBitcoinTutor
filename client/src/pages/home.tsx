@@ -1,16 +1,20 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import type { BitcoinTopic } from "@shared/schema";
-import { Bitcoin, MessageSquare, Book, ChevronRight } from "lucide-react";
+import { Bitcoin, MessageSquare, Book, ChevronRight, Send } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
   const [chatMessage, setChatMessage] = useState("");
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
 
   const { data: topics, isLoading } = useQuery<BitcoinTopic[]>({
     queryKey: ["/api/bitcoin/topics", i18n.language],
@@ -19,6 +23,41 @@ export default function Home() {
       return response.json();
     },
   });
+
+  const startChat = useMutation({
+    mutationFn: async () => {
+      if (!chatMessage.trim()) return;
+
+      // Start a chat session with the first topic (Bitcoin Basics)
+      const response = await apiRequest("POST", "/api/chat/start", {
+        userId: 1, // In a real app, get from auth context
+        topicId: 1, // Use Bitcoin Basics as default
+        messages: [],
+        isActive: true,
+      });
+
+      const data = await response.json();
+      return data;
+    },
+    onSuccess: (data) => {
+      // Redirect to chat with the initial message
+      setLocation(`/chat/1?message=${encodeURIComponent(chatMessage)}`);
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to start chat session. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleChatSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (chatMessage.trim()) {
+      startChat.mutate();
+    }
+  };
 
   if (isLoading) {
     return (
@@ -52,20 +91,23 @@ export default function Home() {
               {t('app.description')}
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3">
+            <form onSubmit={handleChatSubmit} className="flex flex-col sm:flex-row gap-3">
               <Input
                 placeholder="Ask anything about Bitcoin..."
                 value={chatMessage}
                 onChange={(e) => setChatMessage(e.target.value)}
                 className="flex-1"
               />
-              <Link href="/dashboard">
-                <Button size="lg" className="w-full sm:w-auto">
-                  <MessageSquare className="w-5 h-5 mr-2" />
-                  {t('topics.startLearning')}
-                </Button>
-              </Link>
-            </div>
+              <Button 
+                type="submit" 
+                size="lg" 
+                className="w-full sm:w-auto"
+                disabled={!chatMessage.trim() || startChat.isPending}
+              >
+                <MessageSquare className="w-5 h-5 mr-2" />
+                {startChat.isPending ? t('common.generating') : t('topics.startLearning')}
+              </Button>
+            </form>
           </CardContent>
         </Card>
 
