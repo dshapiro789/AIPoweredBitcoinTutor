@@ -9,9 +9,14 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiRequest } from "@/lib/queryClient";
 import type { ChatSession } from "@shared/schema";
-import { Brain, Target, Activity, AlertTriangle, Send } from "lucide-react";
+import { Brain, Target, Activity, AlertTriangle, Send, ChevronUp, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface ChatInterfaceProps {
   session: ChatSession;
@@ -50,6 +55,7 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
   const [messages, setMessages] = useState(session.messages.map(msg => ({ ...msg, timestamp: new Date() })));
   const [analysis, setAnalysis] = useState<any>(null);
   const [isAIAvailable, setIsAIAvailable] = useState(true);
+  const [isAnalysisExpanded, setIsAnalysisExpanded] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
 
@@ -105,9 +111,9 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <div className="lg:col-span-2 h-[calc(100vh-12rem)]">
-        <Card className="h-full flex flex-col">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-4rem)] overflow-hidden">
+      <div className="lg:col-span-2 flex flex-col">
+        <Card className="flex-1 flex flex-col overflow-hidden">
           <CardContent className="flex-1 flex flex-col p-0">
             {!isAIAvailable && (
               <Alert className="m-4 mb-0">
@@ -176,69 +182,83 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
         </Card>
       </div>
 
-      <div className="space-y-4">
-        {analysis && (
-          <>
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Brain className="w-5 h-5" />
-                  {t('chat.understanding', 'Understanding Level')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Progress value={analysis.understanding * 100} className="mb-4" />
-                <div className="flex flex-wrap gap-2">
-                  {analysis.areas_for_improvement.map((area: string, i: number) => (
-                    <Badge key={i} variant="outline">
-                      {area}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+      {/* Analysis Panel - Collapsible on Mobile */}
+      <div className="lg:block">
+        <div className="lg:hidden mb-4">
+          <Button
+            variant="outline"
+            onClick={() => setIsAnalysisExpanded(!isAnalysisExpanded)}
+            className="w-full flex items-center justify-between"
+          >
+            {t('chat.analysis', 'Learning Analysis')}
+            {isAnalysisExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+        </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Target className="w-5 h-5" />
-                  {t('chat.nextTopics', 'Next Topics')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="list-disc list-inside space-y-2">
-                  {analysis.recommended_topics.map((topic: string, i: number) => (
-                    <li key={i} className="text-sm">
-                      {topic}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+        <div className={`space-y-4 ${isAnalysisExpanded ? 'block' : 'hidden lg:block'}`}>
+          {analysis && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Brain className="w-5 h-5" />
+                    {t('chat.understanding', 'Understanding Level')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Progress value={analysis.understanding * 100} className="mb-4" />
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.areas_for_improvement.map((area: string, i: number) => (
+                      <Badge key={i} variant="outline">
+                        {area}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Activity className="w-5 h-5" />
-                  {t('chat.confidence', 'Topic Confidence')}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {Object.entries(analysis.confidence_by_topic).map(
-                  ([topic, confidence]: [string, any], i: number) => (
-                    <div key={i} className="mb-4">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>{topic}</span>
-                        <span>{Math.round(Number(confidence) * 100)}%</span>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Target className="w-5 h-5" />
+                    {t('chat.nextTopics', 'Next Topics')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ul className="list-disc list-inside space-y-2">
+                    {analysis.recommended_topics.map((topic: string, i: number) => (
+                      <li key={i} className="text-sm">
+                        {topic}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Activity className="w-5 h-5" />
+                    {t('chat.confidence', 'Topic Confidence')}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {Object.entries(analysis.confidence_by_topic).map(
+                    ([topic, confidence]: [string, any], i: number) => (
+                      <div key={i} className="mb-4">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>{topic}</span>
+                          <span>{Math.round(Number(confidence) * 100)}%</span>
+                        </div>
+                        <Progress value={Number(confidence) * 100} />
                       </div>
-                      <Progress value={Number(confidence) * 100} />
-                    </div>
-                  )
-                )}
-              </CardContent>
-            </Card>
-          </>
-        )}
+                    )
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
