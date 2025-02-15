@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -16,10 +17,11 @@ export default function Home() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
-  const { data: topics, isLoading } = useQuery<BitcoinTopic[]>({
+  const { data: topics, isLoading, error } = useQuery<BitcoinTopic[]>({
     queryKey: ["/api/bitcoin/topics", i18n.language],
     queryFn: async () => {
       const response = await fetch(`/api/bitcoin/topics?lang=${i18n.language}`);
+      if (!response.ok) throw new Error('Failed to fetch topics');
       return response.json();
     },
   });
@@ -62,13 +64,38 @@ export default function Home() {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-6">
-        <div className="animate-pulse space-y-6">
-          <div className="h-48 bg-muted rounded-lg"></div>
-          <div className="space-y-4">
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-2 mb-8">
+            <CardContent className="p-6 sm:p-8">
+              <div className="animate-pulse space-y-4">
+                <div className="h-8 bg-muted rounded w-1/3"></div>
+                <div className="h-4 bg-muted rounded w-2/3"></div>
+                <div className="h-12 bg-muted rounded"></div>
+              </div>
+            </CardContent>
+          </Card>
+          <div className="animate-pulse space-y-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="h-20 bg-muted rounded-lg" />
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-destructive mb-4">Failed to load topics. Please try again later.</p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline"
+          >
+            <Loader2 className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
         </div>
       </div>
     );
@@ -119,7 +146,7 @@ export default function Home() {
           </div>
 
           <div className="space-y-4">
-            {topics?.map((topic) => (
+            {(topics || []).map((topic) => (
               <Card 
                 key={topic.id} 
                 className="transition-colors hover:bg-muted/50"
@@ -131,16 +158,18 @@ export default function Home() {
                       <p className="text-sm text-muted-foreground">
                         {topic.description}
                       </p>
-                      {topic.subCategories && (
+                      {topic.category && (
                         <div className="mt-3 flex flex-wrap gap-2">
-                          {topic.subCategories.map((subCat, index) => (
-                            <span 
-                              key={index}
-                              className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
-                            >
-                              {subCat}
-                            </span>
-                          ))}
+                          <span 
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
+                          >
+                            {topic.category}
+                          </span>
+                          <span 
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
+                          >
+                            {t(`topics.difficulty.${topic.difficulty.toLowerCase()}`)}
+                          </span>
                         </div>
                       )}
                     </div>
