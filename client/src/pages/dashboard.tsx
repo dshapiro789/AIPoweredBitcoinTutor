@@ -27,12 +27,16 @@ export default function Dashboard() {
     );
   }
 
-  const totalSessions = progress?.reduce(
-    (sum, p) => sum + p.sessionsCompleted,
+  const completedExercises = progress?.reduce(
+    (sum, p) => sum + p.completedExercises,
     0
   ) || 0;
 
   const activeTopics = progress?.length || 0;
+  const averageConfidence = progress?.reduce(
+    (sum, p) => sum + p.confidenceLevel,
+    0
+  ) / (progress?.length || 1);
 
   return (
     <div className="space-y-8">
@@ -45,13 +49,13 @@ export default function Dashboard() {
 
       <LearningPathVisualizer userId={1} />
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>{t('dashboard.totalSessions', 'Total Sessions')}</CardTitle>
+            <CardTitle>{t('dashboard.completedExercises', 'Completed Exercises')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{totalSessions}</p>
+            <p className="text-3xl font-bold">{completedExercises}</p>
           </CardContent>
         </Card>
 
@@ -61,6 +65,15 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <p className="text-3xl font-bold">{activeTopics}</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('dashboard.averageConfidence', 'Average Confidence')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">{averageConfidence.toFixed(1)}/5</p>
           </CardContent>
         </Card>
       </div>

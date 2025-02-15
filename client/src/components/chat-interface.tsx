@@ -3,13 +3,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { ChatSession } from "@shared/schema";
-import { Brain, Target, Activity, AlertTriangle, Send } from "lucide-react";
+import { Brain, AlertTriangle, Send } from "lucide-react";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 
@@ -32,6 +31,36 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
   const [isAIAvailable, setIsAIAvailable] = useState(true);
   const { toast } = useToast();
   const { t } = useTranslation();
+  const [sessionStartTime] = useState(new Date());
+
+  // Update learning progress periodically
+  useEffect(() => {
+    const updateProgress = async () => {
+      const timeSpent = (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60; // in minutes
+      const messageCount = messages.filter(m => m.role === 'user').length;
+
+      try {
+        await apiRequest("POST", "/api/progress/update", {
+          userId: session.userId,
+          topicId: session.topicId,
+          completedExercises: Math.floor(messageCount / 2), // Consider every 2 messages as a completed exercise
+          confidenceLevel: analysis?.confidence_level || 1,
+          quizzesPassed: 0,
+          totalPoints: Math.floor(timeSpent) + (messageCount * 10), // Points based on time and interaction
+          lastActive: new Date(),
+        });
+
+        // Invalidate the progress cache to refresh the dashboard
+        queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
+      } catch (error) {
+        console.error("Failed to update progress:", error);
+      }
+    };
+
+    // Update progress every 5 minutes
+    const progressInterval = setInterval(updateProgress, 5 * 60 * 1000);
+    return () => clearInterval(progressInterval);
+  }, [session.userId, session.topicId, messages.length, analysis, sessionStartTime]);
 
   useEffect(() => {
     // Initialize with session messages or welcome message
@@ -40,25 +69,20 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
       : [{
           role: 'assistant',
           content: `👋 Welcome to your Bitcoin learning journey! I'm your AI tutor, and I'm here to help you understand Bitcoin and blockchain technology.
-
-Let's get started! Here are some topics we can explore:
-
-1. 🌟 Bitcoin Basics
+\n\nLet's get started! Here are some topics we can explore:
+\n\n1. 🌟 Bitcoin Basics
    - What is Bitcoin?
    - How does blockchain work?
    - Understanding private keys and addresses
-
-2. 🔒 Security
+\n\n2. 🔒 Security
    - Wallet setup and security
    - Best practices for storing Bitcoin
    - Understanding common risks
-
-3. 💰 Transactions
+\n\n3. 💰 Transactions
    - How to send and receive Bitcoin
    - Transaction fees and confirmation
    - Understanding UTXO model
-
-Please note: I'm specifically designed to help you learn about Bitcoin and blockchain technology. For other topics, please consult appropriate resources.`,
+\n\nPlease note: I'm specifically designed to help you learn about Bitcoin and blockchain technology. For other topics, please consult appropriate resources.`,
           timestamp: new Date()
         }];
 
@@ -152,6 +176,20 @@ Please note: I'm specifically designed to help you learn about Bitcoin and block
             </AlertDescription>
           </Alert>
         )}
+
+        {analysis && (
+          <div className="px-4 py-2 bg-muted/50 border-b">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Brain className="h-4 w-4" />
+              <span>Learning Progress</span>
+            </div>
+            <Progress 
+              value={analysis.progress * 100} 
+              className="h-2 mt-2"
+            />
+          </div>
+        )}
+
         <ScrollArea className="flex-1 px-4">
           <div className="space-y-6 py-4">
             {messages.map((msg, i) => {
@@ -182,6 +220,7 @@ Please note: I'm specifically designed to help you learn about Bitcoin and block
             })}
           </div>
         </ScrollArea>
+
         <div className="sticky bottom-0 border-t bg-background p-4">
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
             <Textarea
