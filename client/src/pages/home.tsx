@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import type { BitcoinTopic } from "@shared/schema";
-import { Bitcoin, MessageSquare, Book, ChevronRight, Send } from "lucide-react";
+import { Bitcoin, MessageSquare, Book, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Link, useLocation } from "wouter";
@@ -26,38 +26,11 @@ export default function Home() {
     },
   });
 
-  const startChat = useMutation({
-    mutationFn: async () => {
-      if (!chatMessage.trim()) return;
-
-      // Start a chat session with the first topic (Bitcoin Basics)
-      const response = await apiRequest("POST", "/api/chat/start", {
-        userId: 1, // In a real app, get from auth context
-        topicId: 1, // Use Bitcoin Basics as default
-        messages: [],
-        isActive: true,
-      });
-
-      const data = await response.json();
-      return data;
-    },
-    onSuccess: (data) => {
-      // Redirect to chat with the initial message
-      setLocation(`/chat/1?message=${encodeURIComponent(chatMessage)}`);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to start chat session. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleChatSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (chatMessage.trim()) {
-      startChat.mutate();
+      // Directly navigate to chat with the initial message
+      setLocation(`/chat/1?message=${encodeURIComponent(chatMessage)}`);
     }
   };
 
@@ -129,10 +102,10 @@ export default function Home() {
                 type="submit" 
                 size="lg" 
                 className="w-full sm:w-auto"
-                disabled={!chatMessage.trim() || startChat.isPending}
+                disabled={!chatMessage.trim()}
               >
                 <MessageSquare className="w-5 h-5 mr-2" />
-                {startChat.isPending ? t('common.generating') : t('topics.startLearning')}
+                {t('topics.startLearning')}
               </Button>
             </form>
           </CardContent>
@@ -150,6 +123,9 @@ export default function Home() {
               <Card 
                 key={topic.id} 
                 className="transition-colors hover:bg-muted/50"
+                onClick={() => setLocation(`/chat/${topic.id}`)}
+                role="button"
+                tabIndex={0}
               >
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex items-start justify-between">

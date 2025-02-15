@@ -2,7 +2,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useParams, useLocation } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import ChatInterface from "@/components/chat-interface";
-import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { BitcoinTopic, ChatSession } from "@shared/schema";
 import { Loader2 } from "lucide-react";
@@ -44,12 +43,12 @@ export default function Chat() {
     },
   });
 
-  // Auto-start session if we have an initial message
+  // Always start session when the component mounts
   useEffect(() => {
-    if (initialMessage && !session && !sessionLoading) {
+    if (!session && !sessionLoading && topic) {
       startSession();
     }
-  }, [initialMessage, session, sessionLoading]);
+  }, [topic, session, sessionLoading]);
 
   if (topicLoading || sessionLoading) {
     return (
@@ -70,18 +69,8 @@ export default function Chat() {
 
   if (!session) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-2xl font-bold">{topic.name}</h1>
-          <p className="text-muted-foreground max-w-md mx-auto">{topic.description}</p>
-        </div>
-        <Button 
-          size="lg"
-          onClick={() => startSession()}
-          className="animate-pulse"
-        >
-          Start Learning Session
-        </Button>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
