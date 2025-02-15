@@ -9,7 +9,9 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiRequest } from "@/lib/queryClient";
 import type { ChatSession } from "@shared/schema";
-import { Brain, Target, Activity, AlertTriangle } from "lucide-react";
+import { Brain, Target, Activity, AlertTriangle, Send } from "lucide-react";
+import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 interface ChatInterfaceProps {
   session: ChatSession;
@@ -38,16 +40,18 @@ Let's get started! Here are some topics we can explore:
    - Transaction fees and confirmation
    - Understanding UTXO model
 
-Feel free to ask any questions about these topics or tell me what interests you most!`
+Feel free to ask any questions about these topics or tell me what interests you most!`,
+    timestamp: new Date()
   }
 ];
 
 export default function ChatInterface({ session, subject }: ChatInterfaceProps) {
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState(session.messages);
+  const [messages, setMessages] = useState(session.messages.map(msg => ({ ...msg, timestamp: new Date() })));
   const [analysis, setAnalysis] = useState<any>(null);
   const [isAIAvailable, setIsAIAvailable] = useState(true);
   const { toast } = useToast();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (session.messages.length === 0) {
@@ -59,6 +63,15 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
     if (!message.trim()) return;
 
     try {
+      const userMessage = {
+        role: "user",
+        content: message.trim(),
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, userMessage]);
+      setMessage("");
+
       const response = await apiRequest("POST", "/api/chat/message", {
         sessionId: session.id,
         message: message.trim(),
@@ -74,17 +87,18 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
         setIsAIAvailable(true);
       }
 
-      setMessages([
-        ...messages,
-        { role: "user", content: message },
-        { role: "assistant", content: data.message },
-      ]);
+      const assistantMessage = {
+        role: "assistant",
+        content: data.message,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
       setAnalysis(data.analysis);
-      setMessage("");
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to send message",
+        title: t('error.title', 'Error'),
+        description: t('error.sendMessage', 'Failed to send message'),
         variant: "destructive",
       });
     }
@@ -94,43 +108,54 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
       <div className="lg:col-span-2 h-[calc(100vh-12rem)]">
         <Card className="h-full flex flex-col">
-          <CardContent className="flex-1 flex flex-col p-4">
+          <CardContent className="flex-1 flex flex-col p-0">
             {!isAIAvailable && (
-              <Alert className="mb-4">
+              <Alert className="m-4 mb-0">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  The AI tutor is currently in fallback mode. You'll receive general guidance about Bitcoin topics.
-                  We're working to restore full AI capabilities.
+                  {t('chat.fallbackMode', 'The AI tutor is currently in fallback mode. You\'ll receive general guidance about Bitcoin topics. We\'re working to restore full AI capabilities.')}
                 </AlertDescription>
               </Alert>
             )}
-            <ScrollArea className="flex-1 mb-4 pr-4">
-              <div className="space-y-4">
-                {messages.map((msg, i) => (
-                  <div
-                    key={i}
-                    className={`p-4 rounded-lg ${
-                      msg.role === "user"
-                        ? "bg-primary text-primary-foreground ml-8 sm:ml-12"
-                        : "bg-muted mr-8 sm:mr-12"
-                    }`}
-                  >
-                    <div className="whitespace-pre-wrap break-words">
-                      {msg.content}
+            <ScrollArea className="flex-1 px-4">
+              <div className="space-y-6 py-4">
+                {messages.map((msg, i) => {
+                  const isUser = msg.role === "user";
+                  const showTimestamp = i === 0 || 
+                    new Date(messages[i-1].timestamp).getTime() - new Date(msg.timestamp).getTime() > 300000;
+
+                  return (
+                    <div key={i} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
+                      {showTimestamp && (
+                        <div className="text-xs text-muted-foreground mb-2 px-2">
+                          {format(new Date(msg.timestamp), 'MMM d, h:mm a')}
+                        </div>
+                      )}
+                      <div
+                        className={`relative max-w-[85%] p-4 rounded-2xl ${
+                          isUser 
+                            ? "bg-primary text-primary-foreground rounded-br-none" 
+                            : "bg-muted rounded-bl-none"
+                        }`}
+                      >
+                        <div className="whitespace-pre-wrap break-words text-sm sm:text-base">
+                          {msg.content}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </ScrollArea>
-            <div className="sticky bottom-0 bg-background pt-2">
-              <div className="flex flex-col sm:flex-row gap-2">
+            <div className="sticky bottom-0 border-t bg-background p-4">
+              <div className="flex items-end gap-2 max-w-5xl mx-auto">
                 <Textarea
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder={isAIAvailable
-                    ? "Type your question about Bitcoin..."
-                    : "AI tutor is in fallback mode, but you can still ask basic questions..."}
-                  className="min-h-[80px] resize-none flex-1"
+                    ? t('chat.inputPlaceholder', 'Type your question about Bitcoin...')
+                    : t('chat.inputPlaceholderFallback', 'AI tutor is in fallback mode, but you can still ask basic questions...')}
+                  className="min-h-[44px] max-h-[160px] resize-none rounded-full px-4 py-3"
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !e.shiftKey) {
                       e.preventDefault();
@@ -140,9 +165,10 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
                 />
                 <Button 
                   onClick={sendMessage}
-                  className="sm:self-end h-10 px-6"
+                  size="icon"
+                  className="h-11 w-11 shrink-0 rounded-full"
                 >
-                  Send
+                  <Send className="h-5 w-5" />
                 </Button>
               </div>
             </div>
@@ -157,7 +183,7 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Brain className="w-5 h-5" />
-                  Understanding Level
+                  {t('chat.understanding', 'Understanding Level')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -176,7 +202,7 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Target className="w-5 h-5" />
-                  Next Topics
+                  {t('chat.nextTopics', 'Next Topics')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -194,7 +220,7 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Activity className="w-5 h-5" />
-                  Topic Confidence
+                  {t('chat.confidence', 'Topic Confidence')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
