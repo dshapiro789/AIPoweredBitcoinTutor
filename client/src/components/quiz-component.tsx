@@ -95,13 +95,13 @@ function FillBlankQuestion({
           type="text"
           value={selectedAnswer || ''}
           onChange={(e) => onAnswer(e.target.value)}
-          placeholder={question.options?.[0] || t('quiz.enterAnswer', 'Enter your answer')}
+          placeholder={t('quiz.enterAnswer', 'Enter your answer')}
           className="w-full sm:max-w-[300px] min-h-[44px]"
         />
       </div>
-      {question.options && (
+      {question.suggestedAnswers && question.suggestedAnswers.length > 0 && (
         <div className="text-sm text-muted-foreground mt-4">
-          {t('quiz.suggestedAnswers')}: {question.options.join(', ')}
+          {t('quiz.suggestedAnswers')}: {question.suggestedAnswers.join(', ')}
         </div>
       )}
     </div>
@@ -181,21 +181,28 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
       }
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: [`/api/quiz/history/${userId}/${topicId}`] });
 
       setIsCompleted(true);
       setFinalScore(data.attempt.score);
 
-      // If score is 100%, update learning progress
-      if (data.attempt.score === 100) {
-        // Update learning progress
-        apiRequest("POST", `/api/progress/update`, {
+      // If score is passing (e.g., >= 70%), update learning progress
+      if (data.attempt.score >= 70) {
+        const progressResponse = await apiRequest("POST", `/api/progress/update`, {
           userId,
           topicId,
           completedExercises: 1,
-          quizzesPassed: 1
+          quizzesPassed: 1,
+          confidenceLevel: Math.round(data.attempt.score / 20), // Convert score to 1-5 scale
+          totalPoints: data.attempt.score
         });
+
+        if (progressResponse.ok) {
+          // Invalidate progress queries to refresh the learning path
+          queryClient.invalidateQueries({ queryKey: [`/api/progress/${userId}`] });
+          queryClient.invalidateQueries({ queryKey: [`/api/learning-path/${userId}`] });
+        }
       }
 
       if (data.newAchievements?.length > 0) {
