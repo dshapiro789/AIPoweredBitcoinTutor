@@ -76,9 +76,6 @@ export interface IStorage {
   // New personalization methods
   getPersonalizedPath(userId: number): Promise<PersonalizedPath | null>;
   savePersonalizedPath(userId: number, path: PersonalizedPath): Promise<void>;
-  // Added methods
-  getUserByEmail(email: string): Promise<User | undefined>;
-  getUserByGoogleId(googleId: string): Promise<User | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -314,17 +311,6 @@ export class DatabaseStorage implements IStorage {
       .from(bitcoinTopics)
       .where(eq(bitcoinTopics.name, name));
     return topic;
-  }
-
-  // Added methods
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
-    return user;
-  }
-
-  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
-    return user;
   }
 }
 
