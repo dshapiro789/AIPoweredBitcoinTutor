@@ -55,12 +55,20 @@ function TrueFalseQuestion({
         <div
           key={index}
           className={cn(
-            "flex items-center space-x-2 p-3 rounded-lg transition-colors",
+            "flex items-center space-x-2 p-4 rounded-lg transition-colors",
+            "cursor-pointer touch-manipulation min-h-[56px]",
             selectedAnswer === (index === 0) ? "bg-primary/10" : "hover:bg-muted"
           )}
         >
-          <RadioGroupItem value={String(index === 0)} id={`option-${index}`} />
-          <Label htmlFor={`option-${index}`} className="text-base flex-grow cursor-pointer">
+          <RadioGroupItem 
+            value={String(index === 0)} 
+            id={`option-${index}`}
+            className="w-5 h-5"
+          />
+          <Label 
+            htmlFor={`option-${index}`} 
+            className="text-base flex-grow cursor-pointer py-1"
+          >
             {option}
           </Label>
         </div>
@@ -80,18 +88,18 @@ function FillBlankQuestion({
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <Input
           type="text"
           value={selectedAnswer || ''}
           onChange={(e) => onAnswer(e.target.value)}
           placeholder={question.options?.[0] || "Enter your answer"}
-          className="max-w-[200px]"
+          className="w-full sm:max-w-[300px] min-h-[44px]"
         />
       </div>
       {question.options && (
-        <div className="text-sm text-muted-foreground mt-2">
-          Suggested answers: {question.options.join(', ')}
+        <div className="text-sm text-muted-foreground mt-4">
+          {t('quiz.suggestedAnswers')}: {question.options.join(', ')}
         </div>
       )}
     </div>
@@ -117,14 +125,19 @@ function MultipleChoiceQuestion({
         <div
           key={index}
           className={cn(
-            "flex items-center space-x-2 p-3 rounded-lg transition-colors",
+            "flex items-center space-x-2 p-4 rounded-lg transition-colors",
+            "cursor-pointer touch-manipulation min-h-[56px]",
             selectedAnswer === index ? "bg-primary/10" : "hover:bg-muted"
           )}
         >
-          <RadioGroupItem value={index.toString()} id={`option-${index}`} />
+          <RadioGroupItem 
+            value={index.toString()} 
+            id={`option-${index}`}
+            className="w-5 h-5"
+          />
           <Label
             htmlFor={`option-${index}`}
-            className="text-base flex-grow cursor-pointer"
+            className="text-base flex-grow cursor-pointer py-1"
           >
             {option}
           </Label>
@@ -421,12 +434,12 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <div className="flex justify-between items-center mb-4">
+      <CardHeader className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <CardTitle className="text-xl">
             {t('quiz.question')} {currentQuestionIndex + 1} {t('quiz.of')} {questions.length}
           </CardTitle>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <span className="text-sm text-muted-foreground flex items-center gap-2">
               <Timer className="w-4 h-4" /> {timeSpent}s
             </span>
@@ -439,27 +452,30 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="space-y-4">
-          <div className="flex items-start justify-between">
-            <CardDescription className="text-lg font-medium">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <CardDescription className="text-lg font-medium flex-grow">
               {currentQuestion.questionText}
             </CardDescription>
             {currentQuestion.hints && currentQuestion.hints.length > 0 && (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => setShowHint(!showHint)}
-                    >
-                      <HelpCircle className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>{t('quiz.showHint')}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <div className="shrink-0">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setShowHint(!showHint)}
+                        className="touch-manipulation"
+                      >
+                        <HelpCircle className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t('quiz.showHint')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
             )}
           </div>
 
@@ -481,15 +497,18 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
               <img
                 src={currentQuestion.imageUrl}
                 alt="Question illustration"
-                className="rounded-lg max-w-full"
+                className="rounded-lg max-w-full h-auto"
+                loading="lazy"
               />
             </div>
           )}
 
-          {renderQuestion()}
+          <div className="mt-6">
+            {renderQuestion()}
+          </div>
         </div>
 
-        <div className="flex justify-between pt-4">
+        <div className="flex flex-col sm:flex-row justify-between gap-4 pt-4">
           <Button
             variant="outline"
             onClick={() => {
@@ -497,6 +516,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
               setShowHint(false);
             }}
             disabled={currentQuestionIndex === 0}
+            className="w-full sm:w-auto min-h-[44px]"
           >
             {t('quiz.previousQuestion')}
           </Button>
@@ -505,6 +525,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
             <Button
               onClick={handleSubmit}
               disabled={selectedAnswers[currentQuestion.id] === undefined}
+              className="w-full sm:w-auto min-h-[44px]"
             >
               {t('quiz.submitQuiz')}
             </Button>
@@ -512,6 +533,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
             <Button
               onClick={currentQuestionIndex === questions.length - 1 ? handleSubmit : handleNext}
               disabled={selectedAnswers[currentQuestion.id] === undefined}
+              className="w-full sm:w-auto min-h-[44px]"
             >
               {currentQuestionIndex < questions.length - 1 ? t('quiz.nextQuestion') : t('quiz.submitQuiz')}
             </Button>
