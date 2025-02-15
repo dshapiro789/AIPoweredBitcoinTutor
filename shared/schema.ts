@@ -5,7 +5,11 @@ import { z } from "zod";
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  email: text("email").notNull().unique(),
+  password: text("password"),
+  googleId: text("google_id").unique(),
+  avatarUrl: text("avatar_url"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 export const bitcoinTopics = pgTable("bitcoin_topics", {
@@ -39,16 +43,16 @@ export const questions = pgTable("questions", {
   id: serial("id").primaryKey(),
   topicId: integer("topic_id").notNull(),
   questionText: text("question_text").notNull(),
-  type: text("type").notNull().default('multiple_choice'), 
+  type: text("type").notNull().default('multiple_choice'),
   options: jsonb("options").$type<string[]>().notNull(),
-  correctAnswer: integer("correct_answer").notNull(),  // Keep for backward compatibility
-  correctAnswerValue: jsonb("correct_answer_value").$type<string | number | boolean>(), // New column for new types
+  correctAnswer: integer("correct_answer").notNull(),
+  correctAnswerValue: jsonb("correct_answer_value").$type<string | number | boolean>(),
   explanation: text("explanation").notNull(),
   difficulty: text("difficulty").notNull(),
   points: integer("points").notNull().default(10),
   hints: jsonb("hints").$type<string[]>().default(['']).notNull(),
-  context: text("context"), 
-  imageUrl: text("image_url"), 
+  context: text("context"),
+  imageUrl: text("image_url"),
 });
 
 export const userQuizAttempts = pgTable("user_quiz_attempts", {
@@ -56,9 +60,9 @@ export const userQuizAttempts = pgTable("user_quiz_attempts", {
   userId: integer("user_id").notNull(),
   topicId: integer("topic_id").notNull(),
   questionsAnswered: jsonb("questions_answered").$type<{
-    questionId: number, 
+    questionId: number,
     answer: string | number | boolean,
-    timeSpent: number 
+    timeSpent: number
   }[]>().notNull(),
   score: integer("score").notNull(),
   completedAt: timestamp("completed_at").notNull(),
@@ -69,7 +73,7 @@ export const exercises = pgTable("exercises", {
   topicId: integer("topic_id").notNull(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  type: text("type").notNull(), 
+  type: text("type").notNull(),
   difficulty: text("difficulty").notNull(),
   points: integer("points").notNull().default(20),
   requirements: jsonb("requirements").$type<string[]>().notNull(),
@@ -79,8 +83,8 @@ export const userExerciseProgress = pgTable("user_exercise_progress", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   exerciseId: integer("exercise_id").notNull(),
-  status: text("status").notNull(), 
-  progress: integer("progress").notNull().default(0), 
+  status: text("status").notNull(),
+  progress: integer("progress").notNull().default(0),
   completedAt: timestamp("completed_at"),
   feedback: text("feedback"),
 });
@@ -89,10 +93,10 @@ export const achievements = pgTable("achievements", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  type: text("type").notNull(), 
+  type: text("type").notNull(),
   requirements: jsonb("requirements").$type<{type: string, value: number}[]>().notNull(),
   points: integer("points").notNull().default(50),
-  badge: text("badge").notNull(), 
+  badge: text("badge").notNull(),
 });
 
 export const userAchievements = pgTable("user_achievements", {
