@@ -20,6 +20,13 @@ export default function Home() {
     },
   });
 
+  const handleStartLearning = () => {
+    // If we have topics, start with the first one, otherwise use a default
+    const firstTopicId = topics?.[0]?.id || 1;
+    const initialMessage = "Hi! I'd like to learn about Bitcoin basics.";
+    setLocation(`/chat/${firstTopicId}?message=${encodeURIComponent(initialMessage)}`);
+  };
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-6">
@@ -79,7 +86,7 @@ export default function Home() {
             <Button 
               size="lg" 
               className="w-full sm:w-auto"
-              onClick={() => setLocation('/chat/1')}
+              onClick={handleStartLearning}
             >
               <MessageSquare className="w-5 h-5 mr-2" />
               {t('topics.startLearning')}
