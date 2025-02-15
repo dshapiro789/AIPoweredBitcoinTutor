@@ -470,6 +470,286 @@ async function initializeDefaultQuestions() {
         points: 10,
         hints: ["This is a BIP39 standard"],
         context: "Seed phrases are used to backup and restore Bitcoin wallets"
+      },
+      // Additional Bitcoin Basics Questions
+      {
+        topicId: 1,
+        questionText: "Who created Bitcoin?",
+        type: "multiple_choice",
+        options: [
+          "Satoshi Nakamoto",
+          "Vitalik Buterin",
+          "Mark Zuckerberg",
+          "Bill Gates"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "Bitcoin was created by an anonymous person or group using the pseudonym Satoshi Nakamoto.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["Think about the pseudonymous creator mentioned in the Bitcoin whitepaper"],
+        context: "Understanding Bitcoin's origins is crucial for beginners."
+      },
+      {
+        topicId: 1,
+        questionText: "What year was Bitcoin launched?",
+        type: "fill_blank",
+        options: ["2009"],
+        correctAnswer: 0,
+        correctAnswerValue: "2009",
+        explanation: "Bitcoin's first block (the genesis block) was mined on January 3, 2009.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["The genesis block was mined in early January of this year"],
+        context: "Timeline of Bitcoin's creation"
+      },
+      {
+        topicId: 1,
+        questionText: "Bitcoin has a fixed maximum supply.",
+        type: "true_false",
+        options: ["True", "False"],
+        correctAnswer: 0,
+        correctAnswerValue: true,
+        explanation: "Bitcoin has a maximum supply cap of 21 million coins.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["Think about Bitcoin's monetary policy"],
+        context: "Understanding Bitcoin's scarcity"
+      },
+      {
+        topicId: 1,
+        questionText: "What is the smallest unit of Bitcoin called?",
+        type: "multiple_choice",
+        options: [
+          "Satoshi",
+          "Bit",
+          "Wei",
+          "Gwei"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "A Satoshi is the smallest unit of Bitcoin, equal to 0.00000001 BTC.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["Named after Bitcoin's creator"],
+        context: "Understanding Bitcoin units"
+      },
+      {
+        topicId: 1,
+        questionText: "What process creates new bitcoins?",
+        type: "multiple_choice",
+        options: [
+          "Mining",
+          "Trading",
+          "Staking",
+          "Lending"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "Bitcoin mining is the process that creates new bitcoins and validates transactions.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["Think about the proof-of-work system"],
+        context: "Bitcoin creation process"
+      },
+
+      // Additional Wallet Security Questions
+      {
+        topicId: 2,
+        questionText: "What is the most secure way to store large amounts of Bitcoin?",
+        type: "multiple_choice",
+        options: [
+          "Hardware wallet",
+          "Mobile wallet",
+          "Exchange wallet",
+          "Browser extension wallet"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "Hardware wallets provide the best security by keeping private keys offline.",
+        difficulty: "intermediate",
+        points: 15,
+        hints: ["Think about offline vs online storage"],
+        context: "Best practices for Bitcoin storage"
+      },
+      {
+        topicId: 2,
+        questionText: "A seed phrase should be stored digitally for easy access.",
+        type: "true_false",
+        options: ["True", "False"],
+        correctAnswer: 1,
+        correctAnswerValue: false,
+        explanation: "Seed phrases should never be stored digitally as they could be compromised by malware or hacks.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["Consider security best practices"],
+        context: "Seed phrase security"
+      },
+      {
+        topicId: 2,
+        questionText: "How many words are in a BIP39 seed phrase?",
+        type: "multiple_choice",
+        options: [
+          "12 or 24",
+          "6 or 12",
+          "24 or 36",
+          "8 or 16"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "BIP39 seed phrases can be either 12 or 24 words long.",
+        difficulty: "intermediate",
+        points: 15,
+        hints: ["Common wallet standards"],
+        context: "Wallet recovery standards"
+      },
+
+      // Additional Transaction Fundamentals Questions
+      {
+        topicId: 3,
+        questionText: "What determines Bitcoin transaction fees?",
+        type: "multiple_choice",
+        options: [
+          "Transaction size and network congestion",
+          "Time of day",
+          "Amount being sent",
+          "Wallet type"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "Transaction fees are primarily determined by the transaction size in bytes and current network demand.",
+        difficulty: "intermediate",
+        points: 15,
+        hints: ["Think about network resources"],
+        context: "Understanding transaction costs"
+      },
+      {
+        topicId: 3,
+        questionText: "What is the average time between Bitcoin blocks?",
+        type: "fill_blank",
+        options: ["10"],
+        correctAnswer: 0,
+        correctAnswerValue: "10",
+        explanation: "Bitcoin blocks are mined approximately every 10 minutes.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["This is maintained by difficulty adjustments"],
+        context: "Block time basics"
+      },
+      {
+        topicId: 3,
+        questionText: "Can Bitcoin transactions be reversed?",
+        type: "true_false",
+        options: ["True", "False"],
+        correctAnswer: 1,
+        correctAnswerValue: false,
+        explanation: "Bitcoin transactions are irreversible once confirmed in the blockchain.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["Think about blockchain immutability"],
+        context: "Transaction finality"
+      },
+
+      // Additional UTXO Management Questions
+      {
+        topicId: 4,
+        questionText: "What does UTXO stand for?",
+        type: "multiple_choice",
+        options: [
+          "Unspent Transaction Output",
+          "Unified Transaction Exchange Order",
+          "Universal Transaction Exchange Output",
+          "Unconfirmed Transaction Order"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "UTXO stands for Unspent Transaction Output, representing spendable Bitcoin.",
+        difficulty: "intermediate",
+        points: 15,
+        hints: ["Think about the components of a transaction"],
+        context: "UTXO model basics"
+      },
+      {
+        topicId: 4,
+        questionText: "Can a single UTXO be partially spent?",
+        type: "true_false",
+        options: ["True", "False"],
+        correctAnswer: 1,
+        correctAnswerValue: false,
+        explanation: "UTXOs must be spent in their entirety, with change returned as a new UTXO.",
+        difficulty: "advanced",
+        points: 20,
+        hints: ["Think about how change works in Bitcoin"],
+        context: "UTXO spending rules"
+      },
+      {
+        topicId: 4,
+        questionText: "What is coin selection?",
+        type: "multiple_choice",
+        options: [
+          "Algorithm to choose which UTXOs to spend",
+          "Process of mining new coins",
+          "Method of creating private keys",
+          "Way to verify transactions"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "Coin selection algorithms determine which UTXOs to use in a transaction.",
+        difficulty: "advanced",
+        points: 20,
+        hints: ["Related to wallet efficiency"],
+        context: "Advanced UTXO management"
+      },
+
+      // Additional Cold Storage Questions
+      {
+        topicId: 5,
+        questionText: "What defines cold storage?",
+        type: "multiple_choice",
+        options: [
+          "Private keys never touch internet-connected devices",
+          "Keys stored in a cold climate",
+          "Using a mobile wallet offline",
+          "Storing crypto on an exchange"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "Cold storage means private keys are kept completely offline for maximum security.",
+        difficulty: "intermediate",
+        points: 15,
+        hints: ["Think about internet connectivity"],
+        context: "Cold storage basics"
+      },
+      {
+        topicId: 5,
+        questionText: "Is a paper wallet a form of cold storage?",
+        type: "true_false",
+        options: ["True", "False"],
+        correctAnswer: 0,
+        correctAnswerValue: true,
+        explanation: "Paper wallets are a form of cold storage as they store private keys offline on paper.",
+        difficulty: "beginner",
+        points: 10,
+        hints: ["Consider the offline nature"],
+        context: "Types of cold storage"
+      },
+      {
+        topicId: 5,
+        questionText: "What is a multisig wallet?",
+        type: "multiple_choice",
+        options: [
+          "Wallet requiring multiple signatures to spend",
+          "Wallet with multiple addresses",
+          "Wallet for multiple cryptocurrencies",
+          "Wallet with multiple backups"
+        ],
+        correctAnswer: 0,
+        correctAnswerValue: 0,
+        explanation: "Multisig wallets require multiple signatures to authorize transactions, enhancing security.",
+        difficulty: "advanced",
+        points: 20,
+        hints: ["Think about shared control"],
+        context: "Advanced wallet security"
       }
     ];
 
