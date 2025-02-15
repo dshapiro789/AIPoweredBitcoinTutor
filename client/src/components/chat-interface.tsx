@@ -111,10 +111,10 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-4rem)] overflow-hidden">
-      <div className="lg:col-span-2 flex flex-col">
-        <Card className="flex-1 flex flex-col overflow-hidden">
-          <CardContent className="flex-1 flex flex-col p-0">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[calc(100vh-4rem)]">
+      <div className="lg:col-span-2">
+        <Card className="flex flex-col h-full">
+          <CardContent className="flex flex-col h-full p-0">
             {!isAIAvailable && (
               <Alert className="m-4 mb-0">
                 <AlertTriangle className="h-4 w-4" />
@@ -127,8 +127,8 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
               <div className="space-y-6 py-4">
                 {messages.map((msg, i) => {
                   const isUser = msg.role === "user";
-                  const showTimestamp = i === 0 || 
-                    new Date(messages[i-1].timestamp).getTime() - new Date(msg.timestamp).getTime() > 300000;
+                  const showTimestamp = i === 0 ||
+                    new Date(messages[i - 1].timestamp).getTime() - new Date(msg.timestamp).getTime() > 300000;
 
                   return (
                     <div key={i} className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
@@ -139,8 +139,8 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
                       )}
                       <div
                         className={`relative max-w-[85%] p-4 rounded-2xl ${
-                          isUser 
-                            ? "bg-primary text-primary-foreground rounded-br-none" 
+                          isUser
+                            ? "bg-primary text-primary-foreground rounded-br-none"
                             : "bg-muted rounded-bl-none"
                         }`}
                       >
@@ -169,7 +169,7 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
                     }
                   }}
                 />
-                <Button 
+                <Button
                   onClick={sendMessage}
                   size="icon"
                   className="h-11 w-11 shrink-0 rounded-full"
@@ -216,7 +216,6 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
                   </div>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
@@ -234,7 +233,6 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
                   </ul>
                 </CardContent>
               </Card>
-
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
