@@ -5,17 +5,20 @@ import ChatInterface from "@/components/chat-interface";
 import { Button } from "@/components/ui/button";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { BitcoinTopic, ChatSession } from "@shared/schema";
+import { Loader2 } from "lucide-react";
 
 export default function Chat() {
-  const { topicId } = useParams();
+  const { topicId } = useParams<{ topicId: string }>();
   const { toast } = useToast();
 
-  const { data: topic } = useQuery<BitcoinTopic>({
+  const { data: topic, isLoading: topicLoading } = useQuery<BitcoinTopic>({
     queryKey: [`/api/bitcoin/topics/${topicId}`],
+    enabled: !!topicId
   });
 
-  const { data: session, mutate: startSession } = useMutation({
+  const { data: session, isLoading: sessionLoading, mutate: startSession } = useMutation({
     mutationFn: async () => {
+      if (!topicId) throw new Error("Topic ID is required");
       const response = await apiRequest("POST", "/api/chat/start", {
         userId: 1, // In a real app, get from auth context
         topicId: parseInt(topicId),
@@ -30,30 +33,51 @@ export default function Chat() {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to start chat session",
+        description: "Failed to start chat session. Please try again.",
         variant: "destructive",
       });
     },
   });
 
+  if (topicLoading || sessionLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   if (!topic) {
-    return <div>Loading topic information...</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <h1 className="text-2xl font-bold text-destructive">Topic Not Found</h1>
+        <p className="text-muted-foreground">The requested topic could not be found.</p>
+      </div>
+    );
   }
 
   if (!session) {
     return (
-      <div className="flex flex-col items-center justify-center h-[60vh]">
-        <h1 className="text-2xl font-bold mb-4">{topic.name}</h1>
-        <p className="text-muted-foreground mb-8">{topic.description}</p>
-        <Button onClick={() => startSession()}>Start Session</Button>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
+        <div className="text-center space-y-4">
+          <h1 className="text-2xl font-bold">{topic.name}</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">{topic.description}</p>
+        </div>
+        <Button 
+          size="lg"
+          onClick={() => startSession()}
+          className="animate-pulse"
+        >
+          Start Learning Session
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-4xl mx-auto px-4">
       <h1 className="text-2xl font-bold mb-6">{topic.name}</h1>
-      <ChatInterface session={session.session} subject={topic.name} />
+      <ChatInterface session={session.session} subject={topic.name} learningPath={session.learningPath} />
     </div>
   );
 }

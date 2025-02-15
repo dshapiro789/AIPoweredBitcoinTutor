@@ -52,7 +52,7 @@ export default function Home() {
                 {t('app.description')}
               </p>
 
-              <Link href="/chat/start">
+              <Link href="/dashboard">
                 <Button size="lg" className="mt-6">
                   <MessageSquare className="w-5 h-5 mr-2" />
                   {t('topics.startLearning')}
