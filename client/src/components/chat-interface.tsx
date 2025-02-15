@@ -50,7 +50,6 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
   const { toast } = useToast();
 
   useEffect(() => {
-    // If this is a new session (no messages), add the initial bot messages
     if (session.messages.length === 0) {
       setMessages(INITIAL_BOT_MESSAGES);
     }
@@ -69,7 +68,6 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
 
       const data = await response.json();
 
-      // Check if we're getting a fallback response
       if (data.message.includes("technical difficulties")) {
         setIsAIAvailable(false);
       } else {
@@ -93,10 +91,10 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
   };
 
   return (
-    <div className="grid grid-cols-3 gap-4">
-      <div className="col-span-2">
-        <Card className="h-[600px]">
-          <CardContent className="p-4">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="lg:col-span-2 h-[calc(100vh-12rem)]">
+        <Card className="h-full flex flex-col">
+          <CardContent className="flex-1 flex flex-col p-4">
             {!isAIAvailable && (
               <Alert className="mb-4">
                 <AlertTriangle className="h-4 w-4" />
@@ -106,38 +104,47 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
                 </AlertDescription>
               </Alert>
             )}
-            <ScrollArea className="h-[500px] mb-4">
+            <ScrollArea className="flex-1 mb-4 pr-4">
               <div className="space-y-4">
                 {messages.map((msg, i) => (
                   <div
                     key={i}
-                    className={`p-3 rounded-lg ${
+                    className={`p-4 rounded-lg ${
                       msg.role === "user"
-                        ? "bg-primary text-primary-foreground ml-12"
-                        : "bg-muted mr-12"
+                        ? "bg-primary text-primary-foreground ml-8 sm:ml-12"
+                        : "bg-muted mr-8 sm:mr-12"
                     }`}
                   >
-                    {msg.content}
+                    <div className="whitespace-pre-wrap break-words">
+                      {msg.content}
+                    </div>
                   </div>
                 ))}
               </div>
             </ScrollArea>
-            <div className="flex gap-2">
-              <Textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder={isAIAvailable
-                  ? "Type your question about Bitcoin..."
-                  : "AI tutor is in fallback mode, but you can still ask basic questions..."}
-                className="resize-none"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    sendMessage();
-                  }
-                }}
-              />
-              <Button onClick={sendMessage}>Send</Button>
+            <div className="sticky bottom-0 bg-background pt-2">
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder={isAIAvailable
+                    ? "Type your question about Bitcoin..."
+                    : "AI tutor is in fallback mode, but you can still ask basic questions..."}
+                  className="min-h-[80px] resize-none flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      sendMessage();
+                    }
+                  }}
+                />
+                <Button 
+                  onClick={sendMessage}
+                  className="sm:self-end h-10 px-6"
+                >
+                  Send
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -148,16 +155,16 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
           <>
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Brain className="w-5 h-5" />
                   Understanding Level
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <Progress value={analysis.understanding * 100} className="mb-2" />
-                <div className="space-y-2">
+                <Progress value={analysis.understanding * 100} className="mb-4" />
+                <div className="flex flex-wrap gap-2">
                   {analysis.areas_for_improvement.map((area: string, i: number) => (
-                    <Badge key={i} variant="outline" className="mr-2">
+                    <Badge key={i} variant="outline">
                       {area}
                     </Badge>
                   ))}
@@ -167,7 +174,7 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Target className="w-5 h-5" />
                   Next Topics
                 </CardTitle>
@@ -185,7 +192,7 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
 
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg">
                   <Activity className="w-5 h-5" />
                   Topic Confidence
                 </CardTitle>
@@ -193,7 +200,7 @@ export default function ChatInterface({ session, subject }: ChatInterfaceProps) 
               <CardContent>
                 {Object.entries(analysis.confidence_by_topic).map(
                   ([topic, confidence]: [string, any], i: number) => (
-                    <div key={i} className="mb-2">
+                    <div key={i} className="mb-4">
                       <div className="flex justify-between text-sm mb-1">
                         <span>{topic}</span>
                         <span>{Math.round(Number(confidence) * 100)}%</span>
