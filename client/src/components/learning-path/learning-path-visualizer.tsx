@@ -117,8 +117,8 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
           {sortedTopics.map((topic, index) => {
             const { completed, score, confidence } = getTopicProgress(topic.id);
             const nextTopic = !completed && (
-              index === 0 || // First topic is always available
-              sortedTopics[index - 1] && getTopicProgress(sortedTopics[index - 1].id).completed // Previous topic is completed
+              index === 0 || 
+              getTopicProgress(sortedTopics[index - 1]?.id).completed 
             );
             const pathInfo = personalizedPath?.next_topics.find(t => t.topic === topic.name);
 
@@ -130,13 +130,22 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                   index !== topics.length - 1 && "border-l-2 border-muted ml-4"
                 )}
               >
-                <div className="absolute -left-2 top-0">
+                <div 
+                  className={cn(
+                    "absolute -left-2 top-0",
+                    completed && "text-primary",
+                    nextTopic && "animate-pulse text-primary",
+                    !completed && !nextTopic && "text-muted-foreground"
+                  )}
+                >
                   {completed ? (
-                    <CheckCircle2 className="w-8 h-8 text-primary" />
+                    <div className="bg-primary rounded-full">
+                      <CheckCircle2 className="w-8 h-8 text-primary-foreground" />
+                    </div>
                   ) : nextTopic ? (
-                    <Circle className="w-8 h-8 text-primary animate-pulse" />
+                    <Circle className="w-8 h-8" />
                   ) : (
-                    <Circle className="w-8 h-8 text-muted-foreground" />
+                    <Circle className="w-8 h-8" />
                   )}
                 </div>
 
