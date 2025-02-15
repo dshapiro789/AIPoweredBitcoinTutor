@@ -60,13 +60,13 @@ function TrueFalseQuestion({
             selectedAnswer === (index === 0) ? "bg-primary/10" : "hover:bg-muted"
           )}
         >
-          <RadioGroupItem 
-            value={String(index === 0)} 
+          <RadioGroupItem
+            value={String(index === 0)}
             id={`option-${index}`}
             className="w-5 h-5"
           />
-          <Label 
-            htmlFor={`option-${index}`} 
+          <Label
+            htmlFor={`option-${index}`}
             className="text-base flex-grow cursor-pointer py-1"
           >
             {option}
@@ -86,6 +86,8 @@ function FillBlankQuestion({
   selectedAnswer: any;
   onAnswer: (value: any) => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -93,7 +95,7 @@ function FillBlankQuestion({
           type="text"
           value={selectedAnswer || ''}
           onChange={(e) => onAnswer(e.target.value)}
-          placeholder={question.options?.[0] || "Enter your answer"}
+          placeholder={question.options?.[0] || t('quiz.enterAnswer', 'Enter your answer')}
           className="w-full sm:max-w-[300px] min-h-[44px]"
         />
       </div>
@@ -130,8 +132,8 @@ function MultipleChoiceQuestion({
             selectedAnswer === index ? "bg-primary/10" : "hover:bg-muted"
           )}
         >
-          <RadioGroupItem 
-            value={index.toString()} 
+          <RadioGroupItem
+            value={index.toString()}
             id={`option-${index}`}
             className="w-5 h-5"
           />
@@ -281,7 +283,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
                     </p>
                     <div className="space-y-1 text-sm">
                       <p className="text-muted-foreground">
-                        Your answer: {
+                        {t('quiz.yourAnswer')}: {
                           question.type === 'true_false'
                             ? String(selectedAnswer)
                             : question.type === 'multiple_choice'
@@ -291,7 +293,7 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
                       </p>
                       {!isCorrect && (
                         <p className="text-muted-foreground">
-                          Correct answer: {
+                          {t('quiz.correctAnswer')}: {
                             question.type === 'true_false'
                               ? String(question.correctAnswerValue)
                               : question.type === 'multiple_choice'
