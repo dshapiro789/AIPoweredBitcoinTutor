@@ -1,21 +1,15 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import type { BitcoinTopic } from "@shared/schema";
-import { Bitcoin, MessageSquare, Book, ChevronRight } from "lucide-react";
+import { Bitcoin, Book, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { Button } from "@/components/ui/button";
-import { Link, useLocation } from "wouter";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
-  const [chatMessage, setChatMessage] = useState("");
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
 
   const { data: topics, isLoading, error } = useQuery<BitcoinTopic[]>({
     queryKey: ["/api/bitcoin/topics", i18n.language],
@@ -26,14 +20,6 @@ export default function Home() {
     },
   });
 
-  const handleChatSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (chatMessage.trim()) {
-      // Directly navigate to chat with the initial message
-      setLocation(`/chat/1?message=${encodeURIComponent(chatMessage)}`);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-6">
@@ -43,7 +29,6 @@ export default function Home() {
               <div className="animate-pulse space-y-4">
                 <div className="h-8 bg-muted rounded w-1/3"></div>
                 <div className="h-4 bg-muted rounded w-2/3"></div>
-                <div className="h-12 bg-muted rounded"></div>
               </div>
             </CardContent>
           </Card>
@@ -77,7 +62,7 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Bitcoin AI Chat Bot Section */}
+        {/* Hero Section */}
         <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-2">
           <CardContent className="p-6 sm:p-8 space-y-6">
             <div className="flex items-center gap-3 mb-4">
@@ -90,24 +75,6 @@ export default function Home() {
             <p className="text-base sm:text-lg text-muted-foreground">
               {t('app.description')}
             </p>
-
-            <form onSubmit={handleChatSubmit} className="flex flex-col sm:flex-row gap-3">
-              <Input
-                placeholder="Ask anything about Bitcoin..."
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                className="flex-1"
-              />
-              <Button 
-                type="submit" 
-                size="lg" 
-                className="w-full sm:w-auto"
-                disabled={!chatMessage.trim()}
-              >
-                <MessageSquare className="w-5 h-5 mr-2" />
-                {t('topics.startLearning')}
-              </Button>
-            </form>
           </CardContent>
         </Card>
 
