@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { BitcoinTopic, LearningProgress, QuizQuestion } from "@shared/schema"; // Added QuizQuestion
+import { BitcoinTopic, LearningProgress } from "@shared/schema";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useTranslation } from "react-i18next";
@@ -31,13 +31,20 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
     queryKey: [`/api/learning-path/${userId}`],
   });
 
-  // Fetch quiz questions for each topic
-  const quizQuestionsQueries = topics?.map(topic =>
-    useQuery<QuizQuestion[]>({ // Added type
-      queryKey: [`/api/quiz/${topic.id}`],
-      enabled: !!topic.id,
-    })
-  ) || [];
+  // Single query for all quiz questions
+  const { data: allQuizQuestions } = useQuery({
+    queryKey: ["/api/quiz/all"],
+    enabled: !!topics?.length,
+  });
+
+  // Organize quiz questions by topic ID
+  const quizQuestionsByTopic = allQuizQuestions?.reduce((acc, question) => {
+    if (!acc[question.topicId]) {
+      acc[question.topicId] = [];
+    }
+    acc[question.topicId].push(question);
+    return acc;
+  }, {} as Record<number, any[]>) || {};
 
   if (!topics || !progress) {
     return (
@@ -88,14 +95,6 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
     return aIndex - bIndex;
   });
 
-  // Find the next available topic
-  const getNextAvailableTopic = () => {
-    const completedTopicIds = new Set(
-      progress.filter(p => p.quizzesPassed > 0).map(p => p.topicId)
-    );
-    return sortedTopics.find(topic => !completedTopicIds.has(topic.id));
-  };
-
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -121,21 +120,22 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
-          {sortedTopics.map((topic, index) => {
+          {sortedTopics.map((topic) => {
             const { completed, score, confidence } = getTopicProgress(topic.id);
+            const currentIndex = sortedTopics.findIndex(t => t.id === topic.id);
             const nextTopic = !completed && (
-              index === 0 ||
-              getTopicProgress(sortedTopics[index - 1]?.id).completed
+              currentIndex === 0 ||
+              getTopicProgress(sortedTopics[currentIndex - 1]?.id).completed
             );
             const pathInfo = personalizedPath?.next_topics?.find(t => t.topic === topic.name);
-            const quizQuestions = quizQuestionsQueries[index]?.data;
+            const topicQuestions = quizQuestionsByTopic[topic.id] || [];
 
             return (
               <div
                 key={topic.id}
                 className={cn(
                   "relative pl-8 pb-6",
-                  index !== topics.length - 1 && "border-l-2 border-muted ml-4"
+                  currentIndex !== sortedTopics.length - 1 && "border-l-2 border-muted ml-4"
                 )}
               >
                 <div
@@ -162,7 +162,7 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                   completed && "border-primary",
                   nextTopic && "border-primary/50"
                 )}>
-                  <CardHeader className="pb-2">
+                  <CardHeader>
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-lg">{topic.name}</CardTitle>
@@ -175,19 +175,19 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                             {pathInfo.prerequisites.join(", ")}
                           </div>
                         )}
-                        {quizQuestions && quizQuestions.length > 0 && (
+                        {topicQuestions.length > 0 && (
                           <div className="mt-2 space-y-1">
                             <p className="text-sm font-medium flex items-center">
                               <Book className="w-4 h-4 mr-1" />
                               Practice Questions:
                             </p>
                             <ul className="text-sm text-muted-foreground list-disc pl-5">
-                              {quizQuestions.slice(0, 3).map((question, i) => (
+                              {topicQuestions.slice(0, 3).map((question, i) => (
                                 <li key={i}>{question.questionText}</li>
                               ))}
-                              {quizQuestions.length > 3 && (
+                              {topicQuestions.length > 3 && (
                                 <li className="text-sm text-muted-foreground">
-                                  And {quizQuestions.length - 3} more questions...
+                                  And {topicQuestions.length - 3} more questions...
                                 </li>
                               )}
                             </ul>

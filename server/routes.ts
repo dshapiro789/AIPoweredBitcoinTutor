@@ -490,7 +490,27 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // New endpoint to get all quiz questions
+  app.get("/api/quiz/all", async (req, res) => {
+    try {
+      const allQuestions = await storage.getAllQuestions();
 
+      if (!allQuestions || allQuestions.length === 0) {
+        return res.status(404).json({
+          message: "No questions found",
+          suggestion: "Please check back later when questions are available."
+        });
+      }
+
+      res.json(allQuestions);
+    } catch (error) {
+      console.error("Error fetching all quiz questions:", error);
+      res.status(500).json({
+        message: "Failed to fetch quiz questions",
+        error: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
 
   return httpServer;
 }
