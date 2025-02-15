@@ -6,10 +6,15 @@ import { useTranslation } from "react-i18next";
 
 export default function QuizPage() {
   const { topicId } = useParams<{ topicId: string }>();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const { data: topic, isLoading, error } = useQuery<BitcoinTopic>({
-    queryKey: [`/api/bitcoin/topics/${topicId}`],
+    queryKey: [`/api/bitcoin/topics/${topicId}`, i18n.language],
+    queryFn: async () => {
+      const response = await fetch(`/api/bitcoin/topics/${topicId}?lang=${i18n.language}`);
+      if (!response.ok) throw new Error('Failed to load topic');
+      return response.json();
+    }
   });
 
   if (isLoading || !topic) {
