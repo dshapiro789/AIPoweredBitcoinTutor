@@ -528,12 +528,24 @@ function getLocalizedDescription(topicName: string, lang: SupportedLanguages): s
 }
 
 // Update default reading materials implementation to include actual content
-function getDefaultReadingMaterials(topicName: string): Array<{
+interface ReadingMaterial {
   title: string;
   content: string;
   estimated_time: string;
-}> {
-  const materials: Record<string, Array<{ title: string; content: string; estimated_time: string; }>> = {
+}
+
+interface TopicQuiz {
+  title: string;
+  questions: Array<{
+    question: string;
+    options: string[];
+    correct_answer: string;
+    explanation: string;
+  }>;
+}
+
+function getDefaultReadingMaterials(topicName: string): ReadingMaterial[] {
+  const materials: Record<string, ReadingMaterial[]> = {
     "Bitcoin Basics": [
       {
         title: "What is Bitcoin?",
@@ -595,17 +607,48 @@ Block Structure:
 
   return materials[topicName] || [{
     title: `Introduction to ${topicName}`,
-    content: `This section will introduce you to the key concepts of ${topicName} in the Bitcoin ecosystem.
-
-Note: Full content will be added in future updates.`,
+    content: `This section will introduce you to the key concepts of ${topicName} in the Bitcoin ecosystem.`,
     estimated_time: "15 minutes"
   }];
 }
 
-function getDefaultQuizzes(topicName: string): string[] {
-  return [`Quiz for ${topicName}`];
+function getDefaultQuizzes(topicName: string): TopicQuiz[] {
+  const quizzes: Record<string, TopicQuiz[]> = {
+    "Bitcoin Basics": [
+      {
+        title: "Bitcoin Fundamentals Quiz",
+        questions: [
+          {
+            question: "What is the maximum supply of Bitcoin?",
+            options: ["21 million", "18 million", "25 million", "Unlimited"],
+            correct_answer: "21 million",
+            explanation: "Bitcoin has a fixed maximum supply of 21 million coins, which helps maintain its value through scarcity."
+          }
+        ]
+      }
+    ]
+  };
+
+  return quizzes[topicName] || [{
+    title: `${topicName} Assessment`,
+    questions: [
+      {
+        question: `What is the main purpose of ${topicName}?`,
+        options: ["Option 1", "Option 2", "Option 3", "Option 4"],
+        correct_answer: "Option 1",
+        explanation: "This is a placeholder question. The actual quiz will contain relevant questions about the topic."
+      }
+    ]
+  }];
 }
 
 function getDefaultExercises(topicName: string): string[] {
-  return [`Exercise for ${topicName}`];
+  const exercises: Record<string, string[]> = {
+    "Bitcoin Basics": [
+      "Create a paper wallet",
+      "Send a test transaction",
+      "Verify a transaction on the blockchain"
+    ]
+  };
+  return exercises[topicName] || [`Practice ${topicName} concepts through hands-on exercises`];
 }

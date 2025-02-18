@@ -6,9 +6,15 @@ import { useTranslation } from "react-i18next";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ChevronRight, BookOpen, Play, CheckCircle2 } from "lucide-react";
+import { ChevronRight, BookOpen, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { apiRequest } from "@/lib/queryClient";
+
+interface ReadingMaterial {
+  title: string;
+  content: string;
+  estimated_time: string;
+}
 
 export default function LearnPage() {
   const { topicId } = useParams<{ topicId: string }>();
@@ -60,7 +66,7 @@ export default function LearnPage() {
   }
 
   const pathInfo = personalizedPath?.next_topics?.find(t => t.topic === topic.name);
-  const readingMaterials = pathInfo?.reading_materials || [];
+  const readingMaterials = (pathInfo?.reading_materials || []) as ReadingMaterial[];
   const currentReading = readingMaterials[currentReadingIndex];
   const isLastReading = currentReadingIndex === readingMaterials.length - 1;
   const hasCompletedReading = progress?.find(p => p.topicId === parseInt(topicId))?.completedExercises >= readingMaterials.length;
@@ -100,15 +106,25 @@ export default function LearnPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <BookOpen className="w-5 h-5 mr-2" />
-              {currentReading?.title || t('learn.content')}
+              {currentReading?.title}
             </CardTitle>
             <CardDescription>
               {t('learn.estimatedTime')}: {currentReading?.estimated_time}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4 prose prose-sm max-w-none">
-            <div className="whitespace-pre-wrap">
-              {currentReading?.content}
+          <CardContent>
+            <div className="prose prose-sm max-w-none dark:prose-invert">
+              {currentReading?.content.split('\n').map((paragraph, index) => (
+                paragraph.trim() && (
+                  paragraph.startsWith('-') ? (
+                    <li key={index} className="ml-4">
+                      {paragraph.substring(1).trim()}
+                    </li>
+                  ) : (
+                    <p key={index}>{paragraph}</p>
+                  )
+                )
+              ))}
             </div>
           </CardContent>
         </Card>
