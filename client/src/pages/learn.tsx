@@ -109,7 +109,7 @@ export default function LearnPage() {
               {currentReading?.title}
             </CardTitle>
             <CardDescription>
-              {t('learn.estimatedTime', { time: currentReading?.estimated_time + ' ' + t('learn.minutes') })}
+              {t('learn.estimatedTime', { time: currentReading?.estimated_time })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -155,7 +155,7 @@ export default function LearnPage() {
                 </Button>
               </Link>
             ) : (
-              <Button 
+              <Button
                 onClick={handleNextReading}
                 disabled={markReadingComplete.isPending}
                 className="flex items-center"
