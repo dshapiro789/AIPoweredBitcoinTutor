@@ -8,6 +8,17 @@
     "subjects": "Subjects",
     "dashboard": "Dashboard"
   },
+  "learn": {
+    "content": "Learning Content",
+    "followPath": "Follow your personalized learning path",
+    "exerciseDescription": "Exercise {{number}}: Practice what you've learned",
+    "startQuiz": "Start Quiz",
+    "back": "Back to Topics",
+    "progress": "Progress",
+    "estimatedTime": "{{time}} minutes",
+    "minutes": "minutes",
+    "complete": "Complete"
+  },
   "topics": {
     "startLearning": "Start Learning",
     "takeQuiz": "Take Quiz",
@@ -16,16 +27,6 @@
       "intermediate": "Intermediate",
       "advanced": "Advanced"
     }
-  },
-  "learn": {
-    "content": "Learning Content",
-    "followPath": "Follow your personalized learning path",
-    "exerciseDescription": "Exercise {{number}}: Practice what you've learned",
-    "startQuiz": "Start Quiz",
-    "back": "Back to Topics",
-    "progress": "Progress",
-    "estimatedTime": "Estimated Time: {{time}}",
-    "minutes": "minutes"
   },
   "quiz": {
     "title": "Quiz",

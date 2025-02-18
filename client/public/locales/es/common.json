@@ -15,8 +15,9 @@
     "startQuiz": "Comenzar Quiz",
     "back": "Volver a Temas",
     "progress": "Progreso",
-    "estimatedTime": "Tiempo Estimado: {{time}}",
-    "minutes": "minutos"
+    "estimatedTime": "{{time}} minutos",
+    "minutes": "minutos",
+    "complete": "Completado"
   },
   "topics": {
     "startLearning": "Comenzar",
