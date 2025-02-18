@@ -466,7 +466,22 @@ export function registerRoutes(app: Express): Server {
           next_topics: topics.map(topic => ({
             topic: topic.name,
             description: topic.description,
-            reading_materials: getDefaultReadingMaterials(topic.name),
+            reading_materials: [
+              {
+                title: "What is Bitcoin?",
+                content: `Bitcoin is a decentralized digital currency that was created in 2009 by an unknown person or group using the name Satoshi Nakamoto. It enables peer-to-peer transactions without the need for intermediaries like banks or payment processors.
+
+Key Points:
+- Bitcoin operates on a technology called blockchain
+- Transactions are verified by network nodes through cryptography
+- Bitcoin has a limited supply of 21 million coins
+- Transactions are irreversible and pseudonymous
+
+How Bitcoin Works:
+Bitcoin transactions are recorded on a public ledger called the blockchain. When you send Bitcoin, the transaction is broadcast to the network and included in a block once verified by miners. This process ensures security and prevents double-spending.`,
+                estimated_time: "15 minutes"
+              }
+            ],
             quizzes: getDefaultQuizzes(topic.name),
             practical_exercises: getDefaultExercises(topic.name)
           })),

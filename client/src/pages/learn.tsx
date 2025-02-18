@@ -69,7 +69,7 @@ export default function LearnPage() {
   const readingMaterials = (pathInfo?.reading_materials || []) as ReadingMaterial[];
   const currentReading = readingMaterials[currentReadingIndex];
   const isLastReading = currentReadingIndex === readingMaterials.length - 1;
-  const hasCompletedReading = progress?.find(p => p.topicId === parseInt(topicId))?.completedExercises >= readingMaterials.length;
+  const hasCompletedReading = (progress?.find(p => p.topicId === parseInt(topicId))?.completedExercises || 0) >= readingMaterials.length;
 
   const handleNextReading = () => {
     if (isLastReading) {
@@ -113,18 +113,28 @@ export default function LearnPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="prose prose-sm max-w-none dark:prose-invert">
-              {currentReading?.content.split('\n').map((paragraph, index) => (
-                paragraph.trim() && (
-                  paragraph.startsWith('-') ? (
-                    <li key={index} className="ml-4">
-                      {paragraph.substring(1).trim()}
-                    </li>
-                  ) : (
-                    <p key={index}>{paragraph}</p>
-                  )
-                )
-              ))}
+            <div className="prose prose-sm max-w-none dark:prose-invert space-y-4">
+              {currentReading?.content.split('\n\n').map((section, index) => {
+                if (!section.trim()) return null;
+
+                // Handle sections with bullet points
+                if (section.includes('\n-')) {
+                  const [title, ...points] = section.split('\n');
+                  return (
+                    <div key={index}>
+                      {title && <h3>{title}</h3>}
+                      <ul>
+                        {points.map((point, i) => (
+                          <li key={i}>{point.replace('-', '').trim()}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                }
+
+                // Regular paragraphs
+                return <p key={index}>{section}</p>;
+              })}
             </div>
           </CardContent>
         </Card>
