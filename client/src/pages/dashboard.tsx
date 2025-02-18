@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { LearningProgress } from "@shared/schema";
 import { LearningPathVisualizer } from "@/components/learning-path/learning-path-visualizer";
 import { useTranslation } from "react-i18next";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -33,13 +33,22 @@ export default function Dashboard() {
   ) || 0;
 
   const activeTopics = progress?.length || 0;
-  const averageConfidence = progress?.reduce(
+  const averageConfidence = (progress?.reduce(
     (sum, p) => sum + p.confidenceLevel,
     0
-  ) / (progress?.length || 1);
+  ) || 0) / (progress?.length || 1);
 
   return (
     <div className="space-y-8">
+      <Card className="border-primary/20 bg-primary/5">
+        <CardContent className="pt-6 pb-4 flex items-center gap-2 text-primary">
+          <AlertCircle className="h-5 w-5" />
+          <p>
+            This learning path dashboard is currently in development. Feel free to explore and test out the features!
+          </p>
+        </CardContent>
+      </Card>
+
       <div className="flex flex-col gap-4">
         <h1 className="text-4xl font-bold">{t('dashboard.title', 'Learning Dashboard')}</h1>
         <p className="text-muted-foreground">
