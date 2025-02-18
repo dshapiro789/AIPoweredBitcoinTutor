@@ -527,9 +527,79 @@ function getLocalizedDescription(topicName: string, lang: SupportedLanguages): s
   return translations[lang]?.[topicName] || translations.en[topicName] || topicName;
 }
 
-// Placeholder functions -  These need actual implementations
-function getDefaultReadingMaterials(topicName: string): string[] {
-  return [`Reading material for ${topicName}`];
+// Update default reading materials implementation to include actual content
+function getDefaultReadingMaterials(topicName: string): Array<{
+  title: string;
+  content: string;
+  estimated_time: string;
+}> {
+  const materials: Record<string, Array<{ title: string; content: string; estimated_time: string; }>> = {
+    "Bitcoin Basics": [
+      {
+        title: "What is Bitcoin?",
+        content: `Bitcoin is a decentralized digital currency that was created in 2009 by an unknown person or group using the name Satoshi Nakamoto. It enables peer-to-peer transactions without the need for intermediaries like banks or payment processors.
+
+Key Points:
+- Bitcoin operates on a technology called blockchain
+- Transactions are verified by network nodes through cryptography
+- Bitcoin has a limited supply of 21 million coins
+- Transactions are irreversible and pseudonymous
+
+How Bitcoin Works:
+Bitcoin transactions are recorded on a public ledger called the blockchain. When you send Bitcoin, the transaction is broadcast to the network and included in a block once verified by miners. This process ensures security and prevents double-spending.`,
+        estimated_time: "15 minutes"
+      },
+      {
+        title: "Bitcoin Wallets and Security",
+        content: `A Bitcoin wallet is where you store your Bitcoin. Unlike traditional wallets, Bitcoin wallets don't actually store the coins themselves - they store the private keys that give you access to your Bitcoin on the blockchain.
+
+Types of Bitcoin Wallets:
+1. Hardware Wallets (Most Secure)
+   - Physical devices that store your private keys offline
+   - Examples: Ledger, Trezor
+
+2. Software Wallets
+   - Desktop applications
+   - Mobile apps
+   - Web wallets (least secure)
+
+Security Best Practices:
+- Never share your private keys
+- Use strong passwords
+- Enable two-factor authentication
+- Keep backups of your wallet
+- Consider using a hardware wallet for large amounts`,
+        estimated_time: "20 minutes"
+      }
+    ],
+    "Blockchain Technology": [
+      {
+        title: "Understanding Blockchain",
+        content: `A blockchain is a distributed database that maintains a continuously growing list of records called blocks. Each block contains transaction data and is linked to the previous block, forming a chain.
+
+Key Concepts:
+- Decentralization: No single entity controls the network
+- Transparency: All transactions are public
+- Immutability: Once recorded, data cannot be altered
+- Consensus: Network participants agree on the state of the system
+
+Block Structure:
+- Previous block hash
+- Timestamp
+- Transaction data
+- Nonce (used in mining)`,
+        estimated_time: "25 minutes"
+      }
+    ]
+  };
+
+  return materials[topicName] || [{
+    title: `Introduction to ${topicName}`,
+    content: `This section will introduce you to the key concepts of ${topicName} in the Bitcoin ecosystem.
+
+Note: Full content will be added in future updates.`,
+    estimated_time: "15 minutes"
+  }];
 }
 
 function getDefaultQuizzes(topicName: string): string[] {
