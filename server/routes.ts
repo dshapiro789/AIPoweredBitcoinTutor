@@ -1,7 +1,7 @@
 import { Express } from "express";
 import { Server, createServer } from "http";
 import { storage } from "./storage";
-import { getTutorResponse, analyzeProgress, generateLearningPath } from "./openai";
+import { getTutorResponse, analyzeProgress, generateLearningPath, testGeminiConnection } from "./ai-service";
 import { insertUserSchema, insertChatSessionSchema, insertLearningProgressSchema, insertUserQuizAttemptSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
@@ -82,6 +82,21 @@ export function registerRoutes(app: Express): Server {
         suggestion: isRateLimit ?
           "The AI service is currently at capacity. The application will use pre-defined responses temporarily." :
           "An unexpected error occurred. The application will use pre-defined responses."
+      });
+    }
+  });
+
+  // Test Gemini API integration
+  app.get("/api/test-gemini", async (req, res) => {
+    try {
+      const testResult = await testGeminiConnection();
+      res.json(testResult);
+    } catch (error) {
+      console.error("Gemini test failed:", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+        suggestion: "Please verify your Gemini API key and try again."
       });
     }
   });

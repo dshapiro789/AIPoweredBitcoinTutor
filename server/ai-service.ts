@@ -1,7 +1,27 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
 import type { ChatCompletionMessageParam, ChatCompletionContentPart } from "openai/resources/chat/completions";
 
 const generativeAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+// Test function to verify Gemini API connection
+export async function testGeminiConnection(): Promise<{ success: boolean; message: string }> {
+  try {
+    const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
+    const prompt = "Write a one-sentence description of Bitcoin.";
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    return {
+      success: true,
+      message: response.text(),
+    };
+  } catch (error) {
+    console.error("Gemini API test error:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Unknown error occurred",
+    };
+  }
+}
 
 function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
   const lastMessage = messages[messages.length - 1];
