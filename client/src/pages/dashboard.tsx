@@ -44,7 +44,7 @@ export default function Dashboard() {
         <CardContent className="pt-6 pb-4 flex items-center gap-2 text-primary">
           <AlertCircle className="h-5 w-5" />
           <p>
-            This learning path dashboard is currently in development. Feel free to explore and test out the features!
+            <span className="font-semibold">Beta</span> - We're continuously improving the learning experience. Your feedback helps us make it better!
           </p>
         </CardContent>
       </Card>

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import type { BitcoinTopic } from "@shared/schema";
-import { Bitcoin, Book, ChevronRight, MessageSquare } from "lucide-react";
+import { Bitcoin, Book, ChevronRight, MessageSquare, AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
@@ -69,6 +69,16 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="max-w-4xl mx-auto space-y-8">
+        {/* Development Notice */}
+        <Card className="border-primary/20 bg-primary/5">
+          <CardContent className="pt-6 pb-4 flex items-center gap-2 text-primary">
+            <AlertCircle className="h-5 w-5" />
+            <p>
+              This platform is currently in development. Feel free to explore and test out the features!
+            </p>
+          </CardContent>
+        </Card>
+
         {/* Hero Section */}
         <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-2">
           <CardContent className="p-6 sm:p-8 space-y-6">
