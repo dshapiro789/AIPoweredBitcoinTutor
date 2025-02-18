@@ -8,6 +8,16 @@
     "subjects": "课程",
     "dashboard": "仪表板"
   },
+  "learn": {
+    "content": "学习内容",
+    "followPath": "按照您的个性化学习路径",
+    "exerciseDescription": "练习 {{number}}: 实践所学知识",
+    "startQuiz": "开始测验",
+    "back": "返回课程",
+    "progress": "进度",
+    "estimatedTime": "预计时间: {{time}}",
+    "minutes": "分钟"
+  },
   "topics": {
     "startLearning": "开始学习",
     "takeQuiz": "参加测验",
@@ -16,13 +26,6 @@
       "intermediate": "中级",
       "advanced": "高级"
     }
-  },
-  "learn": {
-    "content": "学习内容",
-    "followPath": "按照您的个性化学习路径",
-    "exerciseDescription": "练习 {{number}}: 实践所学知识",
-    "startQuiz": "开始测验",
-    "back": "返回课程"
   },
   "quiz": {
     "title": "测验",

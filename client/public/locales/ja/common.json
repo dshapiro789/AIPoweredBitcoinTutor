@@ -8,6 +8,16 @@
     "subjects": "科目",
     "dashboard": "ダッシュボード"
   },
+  "learn": {
+    "content": "学習コンテンツ",
+    "followPath": "パーソナライズされた学習パスに従う",
+    "exerciseDescription": "練習 {{number}}: 学んだことを実践する",
+    "startQuiz": "クイズを始める",
+    "back": "科目に戻る",
+    "progress": "進捗",
+    "estimatedTime": "推定時間: {{time}}",
+    "minutes": "分"
+  },
   "topics": {
     "startLearning": "学習を始める",
     "takeQuiz": "クイズに挑戦",
@@ -16,13 +26,6 @@
       "intermediate": "中級",
       "advanced": "上級"
     }
-  },
-  "learn": {
-    "content": "学習コンテンツ",
-    "followPath": "パーソナライズされた学習パスに従う",
-    "exerciseDescription": "練習 {{number}}: 学んだことを実践する",
-    "startQuiz": "クイズを始める",
-    "back": "科目に戻る"
   },
   "quiz": {
     "title": "クイズ",

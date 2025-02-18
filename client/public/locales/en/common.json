@@ -22,7 +22,10 @@
     "followPath": "Follow your personalized learning path",
     "exerciseDescription": "Exercise {{number}}: Practice what you've learned",
     "startQuiz": "Start Quiz",
-    "back": "Back to Topics"
+    "back": "Back to Topics",
+    "progress": "Progress",
+    "estimatedTime": "Estimated Time: {{time}}",
+    "minutes": "minutes"
   },
   "quiz": {
     "title": "Quiz",
