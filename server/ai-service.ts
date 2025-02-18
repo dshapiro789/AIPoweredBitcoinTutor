@@ -91,9 +91,9 @@ export async function testGeminiConnection(): Promise<{ success: boolean; messag
 
 function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
   const lastMessage = messages[messages.length - 1];
-  const lastMessageContent = typeof lastMessage?.content === 'string' 
-    ? lastMessage.content 
-    : Array.isArray(lastMessage?.content) 
+  const lastMessageContent = typeof lastMessage?.content === 'string'
+    ? lastMessage.content
+    : Array.isArray(lastMessage?.content)
       ? (lastMessage.content as ChatCompletionContentPartText[]).map(part => part.text).join(' ')
       : '';
 
@@ -141,8 +141,8 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
 
     const lastMessage = messages[messages.length - 1];
-    const messageContent = typeof lastMessage?.content === 'string' 
-      ? lastMessage.content 
+    const messageContent = typeof lastMessage?.content === 'string'
+      ? lastMessage.content
       : Array.isArray(lastMessage?.content)
         ? (lastMessage.content as ChatCompletionContentPartText[]).map(part => part.text).join(' ')
         : '';
@@ -226,7 +226,7 @@ export async function generateLearningPath(
   try {
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
 
-    const prompt = `Create a personalized Bitcoin learning path based on the user's preferences:
+    const prompt = `Create a comprehensive Bitcoin learning path based on the user's preferences:
 1. User's experience level: ${context.userPreferences.experience}
 2. Learning goal: ${context.userPreferences.goal}
 3. Available time: ${context.userPreferences.time}
@@ -238,7 +238,26 @@ Provide response in this exact JSON format:
     {
       "topic": "Topic Name",
       "description": "Topic description",
-      "prerequisites": ["Prerequisite 1", "Prerequisite 2"],
+      "reading_materials": [
+        {
+          "title": "Reading Title",
+          "content": "Detailed content explaining the topic",
+          "estimated_time": "X minutes"
+        }
+      ],
+      "quizzes": [
+        {
+          "title": "Quiz Title",
+          "questions": [
+            {
+              "question": "Question text",
+              "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
+              "correct_answer": "Correct option",
+              "explanation": "Why this is the correct answer"
+            }
+          ]
+        }
+      ],
       "practical_exercises": ["Exercise 1", "Exercise 2"]
     }
   ],
@@ -250,7 +269,7 @@ Provide response in this exact JSON format:
       contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.3,
-        maxOutputTokens: 1000,
+        maxOutputTokens: 2000,
       },
     });
 
@@ -259,31 +278,156 @@ Provide response in this exact JSON format:
 
     try {
       const path = JSON.parse(text);
-      // Ensure mandatory topics
-      const mandatoryTopics = ["Bitcoin Basics", "Wallet Security"];
+
+      // Ensure mandatory topics are included
+      const mandatoryTopics = [
+        "Bitcoin Basics",
+        "Blockchain Technology",
+        "Wallet Security",
+        "Transaction Fundamentals",
+        "Digital Security",
+        "Advanced Concepts"
+      ];
+
       if (!path.next_topics) {
         path.next_topics = [];
       }
+
       const existingTopics = path.next_topics.map((topic: any) => topic.topic);
+
+      // Add any missing mandatory topics
       mandatoryTopics.forEach(topic => {
         if (!existingTopics.includes(topic)) {
           path.next_topics.push({
             topic,
-            description: "",
-            prerequisites: [],
-            practical_exercises: []
+            description: getDefaultTopicDescription(topic),
+            reading_materials: getDefaultReadingMaterials(topic),
+            quizzes: getDefaultQuizzes(topic),
+            practical_exercises: getDefaultExercises(topic)
           });
         }
       });
+
       return path;
     } catch (e) {
       console.error("Failed to parse Gemini response as JSON:", e);
-      return defaultLearningPath;
+      return {
+        next_topics: mandatoryTopics.map(topic => ({
+          topic,
+          description: getDefaultTopicDescription(topic),
+          reading_materials: getDefaultReadingMaterials(topic),
+          quizzes: getDefaultQuizzes(topic),
+          practical_exercises: getDefaultExercises(topic)
+        })),
+        recommended_resources: [
+          "Bitcoin.org documentation",
+          "Mastering Bitcoin book",
+          "Bitcoin Developer Documentation"
+        ],
+        estimated_completion_time: "4-6 weeks"
+      };
     }
   } catch (error) {
     console.error("Gemini API error:", error);
     return defaultLearningPath;
   }
+}
+
+function getDefaultTopicDescription(topic: string): string {
+  const descriptions: Record<string, string> = {
+    "Bitcoin Basics": "Learn the fundamentals of Bitcoin, including its history, purpose, and basic concepts.",
+    "Blockchain Technology": "Understand the underlying technology that powers Bitcoin and how it maintains security and trust.",
+    "Wallet Security": "Master the essential practices for securing your Bitcoin and protecting your investments.",
+    "Transaction Fundamentals": "Learn how Bitcoin transactions work, including fees, confirmation times, and best practices.",
+    "Digital Security": "Explore comprehensive digital security measures to protect your crypto assets.",
+    "Advanced Concepts": "Dive deep into advanced Bitcoin concepts, including Layer 2 solutions and future developments."
+  };
+  return descriptions[topic] || `Learn about ${topic} and its role in the Bitcoin ecosystem.`;
+}
+
+function getDefaultReadingMaterials(topic: string): Array<{
+  title: string;
+  content: string;
+  estimated_time: string;
+}> {
+  const materials: Record<string, Array<{ title: string; content: string; estimated_time: string }>> = {
+    "Bitcoin Basics": [
+      {
+        title: "Introduction to Bitcoin",
+        content: "Bitcoin is a decentralized digital currency that operates without the need for intermediaries...",
+        estimated_time: "15 minutes"
+      },
+      {
+        title: "How Bitcoin Works",
+        content: "Bitcoin transactions are verified by network nodes through cryptography and recorded in a public distributed ledger...",
+        estimated_time: "20 minutes"
+      }
+    ],
+    // Add similar content for other topics
+  };
+  return materials[topic] || [{
+    title: `${topic} Fundamentals`,
+    content: `Learn the essential concepts of ${topic}...`,
+    estimated_time: "20 minutes"
+  }];
+}
+
+function getDefaultQuizzes(topic: string): Array<{
+  title: string;
+  questions: Array<{
+    question: string;
+    options: string[];
+    correct_answer: string;
+    explanation: string;
+  }>;
+}> {
+  const quizzes: Record<string, Array<{
+    title: string;
+    questions: Array<{
+      question: string;
+      options: string[];
+      correct_answer: string;
+      explanation: string;
+    }>;
+  }>> = {
+    "Bitcoin Basics": [
+      {
+        title: "Bitcoin Fundamentals Quiz",
+        questions: [
+          {
+            question: "What is the maximum supply of Bitcoin?",
+            options: ["21 million", "18 million", "25 million", "Unlimited"],
+            correct_answer: "21 million",
+            explanation: "Bitcoin has a fixed maximum supply of 21 million coins, which helps maintain its value through scarcity."
+          }
+        ]
+      }
+    ],
+    // Add similar content for other topics
+  };
+  return quizzes[topic] || [{
+    title: `${topic} Assessment`,
+    questions: [
+      {
+        question: `What is the main purpose of ${topic}?`,
+        options: ["Option 1", "Option 2", "Option 3", "Option 4"],
+        correct_answer: "Option 1",
+        explanation: "This is a placeholder question. The actual quiz will contain relevant questions about the topic."
+      }
+    ]
+  }];
+}
+
+function getDefaultExercises(topic: string): string[] {
+  const exercises: Record<string, string[]> = {
+    "Bitcoin Basics": [
+      "Create a paper wallet",
+      "Send a test transaction",
+      "Verify a transaction on the blockchain"
+    ],
+    // Add exercises for other topics
+  };
+  return exercises[topic] || [`Practice ${topic} concepts through hands-on exercises`];
 }
 
 export async function generatePracticalExercise(topic: string, difficulty: string) {

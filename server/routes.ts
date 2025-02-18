@@ -411,7 +411,7 @@ export function registerRoutes(app: Express): Server {
         }
       );
 
-      // Save the personalized path
+      // Save the personalized path with reading materials and quizzes
       await storage.savePersonalizedPath(userId, {
         userId,
         ...personalizedPath,
@@ -419,7 +419,7 @@ export function registerRoutes(app: Express): Server {
         createdAt: new Date()
       });
 
-      // Update user's learning progress with the new personalized path
+      // Update user's learning progress for each topic
       for (const topic of personalizedPath.next_topics) {
         const existingProgress = progress.find(p =>
           p.topicId === topics.find(t => t.name === topic.topic)?.id
@@ -433,14 +433,7 @@ export function registerRoutes(app: Express): Server {
             confidenceLevel: 0,
             lastActive: new Date(),
             quizzesPassed: 0,
-            totalPoints: 0,
-            metadata: {
-              topicPreferences: {
-                learningStyle: preferences.style,
-                timeCommitment: preferences.time,
-                practicalExercises: topic.practical_exercises
-              }
-            }
+            totalPoints: 0
           });
         }
       }
@@ -468,18 +461,17 @@ export function registerRoutes(app: Express): Server {
       const personalizedPath = await storage.getPersonalizedPath(userId);
 
       if (!personalizedPath) {
-        // Return default path if no personalization exists
+        // Return default path with reading materials and quizzes
         return res.json({
-          next_topics: [
-            {
-              topic: "Bitcoin Basics",
-              description: "Learn the fundamentals of Bitcoin",
-              prerequisites: [],
-              practical_exercises: ["Create a wallet", "Send a test transaction"]
-            }
-          ],
+          next_topics: topics.map(topic => ({
+            topic: topic.name,
+            description: topic.description,
+            reading_materials: getDefaultReadingMaterials(topic.name),
+            quizzes: getDefaultQuizzes(topic.name),
+            practical_exercises: getDefaultExercises(topic.name)
+          })),
           recommended_resources: ["Bitcoin.org documentation"],
-          estimated_completion_time: "2-3 weeks"
+          estimated_completion_time: "4-6 weeks"
         });
       }
 
@@ -533,4 +525,17 @@ export function registerRoutes(app: Express): Server {
 // Update the translation helper functions to use type-safe approach
 function getLocalizedDescription(topicName: string, lang: SupportedLanguages): string {
   return translations[lang]?.[topicName] || translations.en[topicName] || topicName;
+}
+
+// Placeholder functions -  These need actual implementations
+function getDefaultReadingMaterials(topicName: string): string[] {
+  return [`Reading material for ${topicName}`];
+}
+
+function getDefaultQuizzes(topicName: string): string[] {
+  return [`Quiz for ${topicName}`];
+}
+
+function getDefaultExercises(topicName: string): string[] {
+  return [`Exercise for ${topicName}`];
 }
