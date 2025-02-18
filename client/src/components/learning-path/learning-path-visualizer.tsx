@@ -104,7 +104,7 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
           {personalizedPath?.estimated_completion_time && (
             <p className="text-sm text-muted-foreground mt-2">
               <Clock className="w-4 h-4 inline mr-2" />
-              {t('learningPath.estimatedTime', { time: personalizedPath.estimated_completion_time })}
+              {t('learn.estimatedTime', { time: personalizedPath.estimated_completion_time + ' ' + t('learn.minutes') })}
             </p>
           )}
         </div>

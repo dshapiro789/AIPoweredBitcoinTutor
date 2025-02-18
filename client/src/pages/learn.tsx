@@ -109,7 +109,7 @@ export default function LearnPage() {
               {currentReading?.title}
             </CardTitle>
             <CardDescription>
-              {t('learn.estimatedTime')}: {currentReading?.estimated_time}
+              {t('learn.estimatedTime', { time: currentReading?.estimated_time + ' ' + t('learn.minutes') })}
             </CardDescription>
           </CardHeader>
           <CardContent>
