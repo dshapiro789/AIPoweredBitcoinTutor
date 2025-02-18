@@ -15,7 +15,7 @@
     "startQuiz": "开始测验",
     "back": "返回课程",
     "progress": "进度",
-    "estimatedTime": "{{time}} 分钟",
+    "estimatedTime": "{{time}}",
     "minutes": "分钟",
     "complete": "完成"
   },

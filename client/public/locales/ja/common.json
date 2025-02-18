@@ -15,7 +15,7 @@
     "startQuiz": "クイズを始める",
     "back": "科目に戻る",
     "progress": "進捗",
-    "estimatedTime": "{{time}} 分",
+    "estimatedTime": "{{time}}",
     "minutes": "分",
     "complete": "完了"
   },

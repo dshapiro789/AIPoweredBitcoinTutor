@@ -15,7 +15,7 @@
     "startQuiz": "Start Quiz",
     "back": "Back to Topics",
     "progress": "Progress",
-    "estimatedTime": "{{time}} minutes",
+    "estimatedTime": "{{time}}",
     "minutes": "minutes",
     "complete": "Complete"
   },
