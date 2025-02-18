@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: Date;
 }
@@ -33,7 +33,6 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
   const { t } = useTranslation();
   const [sessionStartTime] = useState(new Date());
 
-  // Update learning progress periodically
   useEffect(() => {
     const updateProgress = async () => {
       const timeSpent = (new Date().getTime() - sessionStartTime.getTime()) / 1000 / 60; // in minutes
@@ -50,22 +49,23 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
           lastActive: new Date(),
         });
 
-        // Invalidate the progress cache to refresh the dashboard
         queryClient.invalidateQueries({ queryKey: ["/api/progress"] });
       } catch (error) {
         console.error("Failed to update progress:", error);
       }
     };
 
-    // Update progress every 5 minutes
     const progressInterval = setInterval(updateProgress, 5 * 60 * 1000);
     return () => clearInterval(progressInterval);
   }, [session.userId, session.topicId, messages.length, analysis, sessionStartTime]);
 
   useEffect(() => {
-    // Initialize with session messages or welcome message
     const initialMessages: Message[] = session.messages.length > 0
-      ? session.messages.map(msg => ({ ...msg, timestamp: new Date() }))
+      ? session.messages.map(msg => ({
+          role: msg.role as 'user' | 'assistant' | 'system',
+          content: typeof msg.content === 'string' ? msg.content : '',
+          timestamp: new Date()
+        }))
       : [{
           role: 'assistant',
           content: `👋 Welcome to your Bitcoin learning journey! I'm your AI tutor, and I'm here to help you understand Bitcoin and blockchain technology.
@@ -88,7 +88,6 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
 
     setMessages(initialMessages);
 
-    // If there's an initial message, send it automatically
     if (initialMessage) {
       handleSendMessage(initialMessage);
     }
@@ -108,7 +107,6 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
   const handleSendMessage = async (messageToSend: string) => {
     if (!messageToSend.trim()) return;
 
-    // Check if the message is Bitcoin-related
     if (!isBitcoinRelated(messageToSend)) {
       toast({
         title: "Off-topic Question",
@@ -126,7 +124,7 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
       };
 
       setMessages(prev => [...prev, userMessage]);
-      setMessage(""); // Clear input only if it's not the initial message
+      setMessage(""); 
 
       const response = await apiRequest("POST", "/api/chat/message", {
         sessionId: session.id,

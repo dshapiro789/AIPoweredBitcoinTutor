@@ -1,5 +1,5 @@
-import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
-import type { ChatCompletionMessageParam, ChatCompletionContentPart } from "openai/resources/chat/completions";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, GenerativeModel, EnhancedGenerateContentResponse } from '@google/generative-ai';
+import type { ChatCompletionMessageParam, ChatCompletionContentPart, ChatCompletionContentPartText } from "openai/resources/chat/completions";
 
 const generativeAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
@@ -7,12 +7,43 @@ const generativeAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 export async function testGeminiConnection(): Promise<{ success: boolean; message: string }> {
   try {
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
+
+    // Set up safety settings
+    const safetySettings = [
+      {
+        category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+      },
+      {
+        category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+        threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+      },
+    ];
+
+    // Test generation with simple Bitcoin-related prompt
     const prompt = "Write a one-sentence description of Bitcoin.";
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 1000,
+      },
+      safetySettings,
+    });
+
     const response = await result.response;
+    const text = response.text();
+
+    // Validate that we got a meaningful response
+    if (!text || text.length < 10) {
+      throw new Error("Received empty or invalid response from Gemini");
+    }
+
     return {
       success: true,
-      message: response.text(),
+      message: text,
     };
   } catch (error) {
     console.error("Gemini API test error:", error);
@@ -21,6 +52,28 @@ export async function testGeminiConnection(): Promise<{ success: boolean; messag
       message: error instanceof Error ? error.message : "Unknown error occurred",
     };
   }
+}
+
+// Helper to convert OpenAI messages to Gemini format
+type GeminiMessage = {
+  role: "user" | "model" | "system";
+  parts: { text: string }[];
+};
+
+function convertToGeminiMessages(messages: ChatCompletionMessageParam[]): GeminiMessage[] {
+  return messages.map(msg => ({
+    role: msg.role === 'assistant' ? 'model' : 
+          msg.role === 'system' ? 'model' : 'user',
+    parts: [{
+      text: typeof msg.content === 'string' 
+        ? msg.content 
+        : Array.isArray(msg.content)
+          ? msg.content.map(part => 
+              typeof part === 'string' ? part : 'text' in part ? part.text : ''
+            ).join(' ')
+          : ''
+    }]
+  }));
 }
 
 function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
@@ -77,16 +130,7 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
 
     // Convert OpenAI message format to Gemini format
-    const formattedMessages = messages.map(msg => ({
-      role: msg.role === 'assistant' ? 'model' : msg.role,
-      parts: [typeof msg.content === 'string' 
-        ? msg.content 
-        : Array.isArray(msg.content) 
-          ? msg.content.map(part => 
-              typeof part === 'string' ? part : 'text' in part ? part.text : ''
-            ).join(' ') 
-          : '']
-    }));
+    const formattedMessages = convertToGeminiMessages(messages);
 
     const chat = model.startChat({
       history: formattedMessages.slice(0, -1),
