@@ -181,6 +181,12 @@ export async function generateLearningPath(
   estimated_completion_time: string;
 }> {
   try {
+    // Ensure we have valid user preferences
+    if (!context?.userPreferences?.experience) {
+      console.log("Missing user preferences, using default path");
+      return defaultLearningPath;
+    }
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
@@ -212,13 +218,12 @@ Tailor the path to match these preferences while maintaining a logical progressi
     if (!path.next_topics) {
       path.next_topics = [];
     }
-    const existingTopics = path.next_topics.map(topic => topic.topic);
+    const existingTopics = path.next_topics.map((topic: any) => topic.topic);
     mandatoryTopics.forEach(topic => {
       if (!existingTopics.includes(topic)) {
         path.next_topics.push({ topic, description: "", prerequisites: [], practical_exercises: [] });
       }
     });
-
 
     return path;
   } catch (error) {
