@@ -1,14 +1,51 @@
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, GenerativeModel, EnhancedGenerateContentResponse } from '@google/generative-ai';
-import type { ChatCompletionMessageParam, ChatCompletionContentPart, ChatCompletionContentPartText } from "openai/resources/chat/completions";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
+import type { ChatCompletionMessageParam, ChatCompletionContentPartText } from "openai/resources/chat/completions";
 
 const generativeAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+
+// Shared constants
+const defaultAnalysis = {
+  understanding: 0.7,
+  engagement: 0.8,
+  areas_for_improvement: ["Bitcoin Basics", "Security Best Practices"],
+  recommended_topics: [
+    "Understanding Bitcoin Wallets",
+    "Transaction Fundamentals",
+    "Security Essentials"
+  ],
+  confidence_by_topic: {
+    "Bitcoin Basics": 0.6,
+    "Wallet Security": 0.5,
+    "Transactions": 0.4
+  }
+};
+
+const defaultLearningPath = {
+  next_topics: [
+    {
+      topic: "Bitcoin Fundamentals",
+      description: "Learn the basics of Bitcoin and blockchain technology",
+      prerequisites: [],
+      practical_exercises: ["Create a wallet", "Send a test transaction"]
+    },
+    {
+      topic: "Wallet Security",
+      description: "Understanding how to secure your Bitcoin",
+      prerequisites: ["Bitcoin Fundamentals"],
+      practical_exercises: ["Setup backup procedures", "Practice recovery"]
+    }
+  ],
+  recommended_resources: [
+    "Bitcoin.org documentation",
+    "Mastering Bitcoin book"
+  ],
+  estimated_completion_time: "2-3 weeks"
+};
 
 // Test function to verify Gemini API connection
 export async function testGeminiConnection(): Promise<{ success: boolean; message: string }> {
   try {
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
-
-    // Set up safety settings
     const safetySettings = [
       {
         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -20,7 +57,6 @@ export async function testGeminiConnection(): Promise<{ success: boolean; messag
       },
     ];
 
-    // Test generation with simple Bitcoin-related prompt
     const prompt = "Write a one-sentence description of Bitcoin.";
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -36,7 +72,6 @@ export async function testGeminiConnection(): Promise<{ success: boolean; messag
     const response = await result.response;
     const text = response.text();
 
-    // Validate that we got a meaningful response
     if (!text || text.length < 10) {
       throw new Error("Received empty or invalid response from Gemini");
     }
@@ -54,36 +89,12 @@ export async function testGeminiConnection(): Promise<{ success: boolean; messag
   }
 }
 
-// Helper to convert OpenAI messages to Gemini format
-type GeminiMessage = {
-  role: "user" | "model" | "system";
-  parts: { text: string }[];
-};
-
-function convertToGeminiMessages(messages: ChatCompletionMessageParam[]): GeminiMessage[] {
-  return messages.map(msg => ({
-    role: msg.role === 'assistant' ? 'model' : 
-          msg.role === 'system' ? 'model' : 'user',
-    parts: [{
-      text: typeof msg.content === 'string' 
-        ? msg.content 
-        : Array.isArray(msg.content)
-          ? msg.content.map(part => 
-              typeof part === 'string' ? part : 'text' in part ? part.text : ''
-            ).join(' ')
-          : ''
-    }]
-  }));
-}
-
 function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
   const lastMessage = messages[messages.length - 1];
   const lastMessageContent = typeof lastMessage?.content === 'string' 
     ? lastMessage.content 
     : Array.isArray(lastMessage?.content) 
-      ? lastMessage.content.map(part => 
-          typeof part === 'string' ? part : 'text' in part ? part.text : ''
-        ).join(' ')
+      ? (lastMessage.content as ChatCompletionContentPartText[]).map(part => part.text).join(' ')
       : '';
 
   const normalizedQuestion = lastMessageContent.toLowerCase().trim();
@@ -129,18 +140,24 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
   try {
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
 
-    // Convert OpenAI message format to Gemini format
-    const formattedMessages = convertToGeminiMessages(messages);
+    const lastMessage = messages[messages.length - 1];
+    const messageContent = typeof lastMessage?.content === 'string' 
+      ? lastMessage.content 
+      : Array.isArray(lastMessage?.content)
+        ? (lastMessage.content as ChatCompletionContentPartText[]).map(part => part.text).join(' ')
+        : '';
 
-    const chat = model.startChat({
-      history: formattedMessages.slice(0, -1),
+    const prompt = `As a Bitcoin tutor, please respond to this question: ${messageContent}
+    Previous context: ${messages.slice(0, -1).map(m => m.content).join('\n')}`;
+
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
       generationConfig: {
         temperature: 0.7,
         maxOutputTokens: 1000,
       },
     });
 
-    const result = await chat.sendMessage(formattedMessages[formattedMessages.length - 1].parts[0]);
     const response = await result.response;
     return response.text();
   } catch (error) {
@@ -153,20 +170,37 @@ export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[])
   try {
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
 
-    const prompt = `Analyze the Bitcoin learning interaction and provide detailed feedback in JSON format. Consider:
-1. Overall understanding of Bitcoin concepts
-2. Engagement with the material
-3. Areas needing improvement
-4. Recommended next topics
-5. Confidence levels in different aspects (basics, security, transactions, etc.)
+    const prompt = `Analyze this Bitcoin learning conversation and provide structured feedback in this exact JSON format:
+{
+  "understanding": 0.7,
+  "engagement": 0.8,
+  "areas_for_improvement": ["Topic 1", "Topic 2"],
+  "recommended_topics": ["Topic 1", "Topic 2", "Topic 3"],
+  "confidence_by_topic": {
+    "Bitcoin Basics": 0.6,
+    "Wallet Security": 0.5,
+    "Transactions": 0.4
+  }
+}
 
-Chat history for analysis: ${JSON.stringify(chatHistory)}`;
+Conversation history: ${JSON.stringify(chatHistory.map(msg => ({
+      role: msg.role,
+      content: typeof msg.content === 'string' ? msg.content : 'Complex content'
+    })))}`;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1000,
+      },
+    });
+
     const response = await result.response;
-    
+    const text = response.text();
+
     try {
-      return JSON.parse(response.text());
+      return JSON.parse(text);
     } catch (e) {
       console.error("Failed to parse Gemini response as JSON:", e);
       return defaultAnalysis;
@@ -198,14 +232,33 @@ export async function generateLearningPath(
 3. Available time: ${context.userPreferences.time}
 4. Learning style: ${context.userPreferences.style}
 
-Provide response in JSON format including next_topics (array of topics with descriptions and prerequisites), 
-recommended_resources (array of strings), and estimated_completion_time (string).`;
+Provide response in this exact JSON format:
+{
+  "next_topics": [
+    {
+      "topic": "Topic Name",
+      "description": "Topic description",
+      "prerequisites": ["Prerequisite 1", "Prerequisite 2"],
+      "practical_exercises": ["Exercise 1", "Exercise 2"]
+    }
+  ],
+  "recommended_resources": ["Resource 1", "Resource 2"],
+  "estimated_completion_time": "X weeks"
+}`;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1000,
+      },
+    });
+
     const response = await result.response;
-    
+    const text = response.text();
+
     try {
-      const path = JSON.parse(response.text());
+      const path = JSON.parse(text);
       // Ensure mandatory topics
       const mandatoryTopics = ["Bitcoin Basics", "Wallet Security"];
       if (!path.next_topics) {
@@ -240,11 +293,19 @@ export async function generatePracticalExercise(topic: string, difficulty: strin
     const prompt = `Create a practical Bitcoin exercise for "${topic}" at ${difficulty} difficulty level. 
 Include exercise description, hints, solution, and learning objectives. Provide response in JSON format.`;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.3,
+        maxOutputTokens: 1000,
+      },
+    });
+
     const response = await result.response;
-    
+    const text = response.text();
+
     try {
-      return JSON.parse(response.text());
+      return JSON.parse(text);
     } catch (e) {
       console.error("Failed to parse Gemini response as JSON:", e);
       return {
@@ -280,41 +341,3 @@ Include exercise description, hints, solution, and learning objectives. Provide 
     };
   }
 }
-
-const defaultAnalysis = {
-  understanding: 0.7,
-  engagement: 0.8,
-  areas_for_improvement: ["Bitcoin Basics", "Security Best Practices"],
-  recommended_topics: [
-    "Understanding Bitcoin Wallets",
-    "Transaction Fundamentals",
-    "Security Essentials"
-  ],
-  confidence_by_topic: {
-    "Bitcoin Basics": 0.6,
-    "Wallet Security": 0.5,
-    "Transactions": 0.4
-  }
-};
-
-const defaultLearningPath = {
-  next_topics: [
-    {
-      topic: "Bitcoin Fundamentals",
-      description: "Learn the basics of Bitcoin and blockchain technology",
-      prerequisites: [],
-      practical_exercises: ["Create a wallet", "Send a test transaction"]
-    },
-    {
-      topic: "Wallet Security",
-      description: "Understanding how to secure your Bitcoin",
-      prerequisites: ["Bitcoin Fundamentals"],
-      practical_exercises: ["Setup backup procedures", "Practice recovery"]
-    }
-  ],
-  recommended_resources: [
-    "Bitcoin.org documentation",
-    "Mastering Bitcoin book"
-  ],
-  estimated_completion_time: "2-3 weeks"
-};
