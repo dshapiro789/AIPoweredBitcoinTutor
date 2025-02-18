@@ -1,16 +1,20 @@
+import { useState } from "react";
 import { useParams } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { BitcoinTopic } from "@shared/schema";
 import { useTranslation } from "react-i18next";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ChevronRight, BookOpen, Play } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronRight, BookOpen, Play, CheckCircle2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function LearnPage() {
   const { topicId } = useParams<{ topicId: string }>();
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [currentReadingIndex, setCurrentReadingIndex] = useState(0);
 
   const { data: topic, isLoading: topicLoading } = useQuery<BitcoinTopic>({
     queryKey: [`/api/bitcoin/topics/${topicId}`],
@@ -19,6 +23,29 @@ export default function LearnPage() {
   const { data: personalizedPath } = useQuery({
     queryKey: [`/api/learning-path/1`], // TODO: Replace with actual user ID
     enabled: !!topic,
+  });
+
+  const { data: progress } = useQuery({
+    queryKey: [`/api/progress/1`], // TODO: Replace with actual user ID
+    enabled: !!topic,
+  });
+
+  // Mark reading as complete
+  const markReadingComplete = useMutation({
+    mutationFn: async () => {
+      return apiRequest(`/api/progress/update`, {
+        method: 'POST',
+        body: {
+          userId: 1, // TODO: Replace with actual user ID
+          topicId: parseInt(topicId),
+          completedExercises: currentReadingIndex + 1,
+          lastActive: new Date()
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/progress/1`] });
+    }
   });
 
   if (topicLoading || !topic) {
@@ -32,7 +59,19 @@ export default function LearnPage() {
     );
   }
 
-  const pathInfo = personalizedPath?.next_topics.find(t => t.topic === topic.name);
+  const pathInfo = personalizedPath?.next_topics?.find(t => t.topic === topic.name);
+  const readingMaterials = pathInfo?.reading_materials || [];
+  const currentReading = readingMaterials[currentReadingIndex];
+  const isLastReading = currentReadingIndex === readingMaterials.length - 1;
+  const hasCompletedReading = progress?.find(p => p.topicId === parseInt(topicId))?.completedExercises >= readingMaterials.length;
+
+  const handleNextReading = () => {
+    if (isLastReading) {
+      markReadingComplete.mutate();
+    } else {
+      setCurrentReadingIndex(prev => prev + 1);
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
@@ -44,31 +83,33 @@ export default function LearnPage() {
           </p>
         </div>
 
+        {/* Progress Bar */}
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>{t('learn.progress')}</span>
+            <span>{currentReadingIndex + 1} / {readingMaterials.length}</span>
+          </div>
+          <Progress
+            value={(currentReadingIndex + 1) / readingMaterials.length * 100}
+            className="h-2"
+          />
+        </div>
+
         {/* Learning Content */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
               <BookOpen className="w-5 h-5 mr-2" />
-              {t('learn.content')}
+              {currentReading?.title || t('learn.content')}
             </CardTitle>
             <CardDescription>
-              {t('learn.followPath')}
+              {t('learn.estimatedTime')}: {currentReading?.estimated_time}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {pathInfo?.practical_exercises.map((exercise, index) => (
-              <div key={index} className="flex items-start space-x-4 p-4 rounded-lg border">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <Play className="w-4 h-4 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-medium">{exercise}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {t('learn.exerciseDescription', { number: index + 1 })}
-                  </p>
-                </div>
-              </div>
-            ))}
+          <CardContent className="space-y-4 prose prose-sm max-w-none">
+            <div className="whitespace-pre-wrap">
+              {currentReading?.content}
+            </div>
           </CardContent>
         </Card>
 
@@ -79,12 +120,34 @@ export default function LearnPage() {
               {t('common.back')}
             </Button>
           </Link>
-          <Link href={`/quiz/${topicId}`}>
-            <Button className="flex items-center">
-              {t('learn.startQuiz')}
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          </Link>
+          <div className="flex gap-2">
+            {hasCompletedReading ? (
+              <Link href={`/quiz/${topicId}`}>
+                <Button className="flex items-center">
+                  {t('learn.startQuiz')}
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </Link>
+            ) : (
+              <Button 
+                onClick={handleNextReading}
+                disabled={markReadingComplete.isPending}
+                className="flex items-center"
+              >
+                {isLastReading ? (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                    {t('learn.complete')}
+                  </>
+                ) : (
+                  <>
+                    {t('learn.nextSection')}
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
