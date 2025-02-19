@@ -123,16 +123,54 @@ export function registerRoutes(app: Express): Server {
     try {
       const topicId = parseInt(req.params.topicId);
       if (isNaN(topicId)) {
-        return res.status(400).json({ message: "Invalid topic ID" });
+        return res.status(400).json({ 
+          message: "Invalid topic ID",
+          error: "The topic ID must be a valid number"
+        });
       }
 
       const questions = await storage.getQuestionsByTopic(topicId);
 
+      // Return a default set of questions if none exist
       if (!questions || questions.length === 0) {
-        return res.status(404).json({
-          message: "No questions found for this topic",
-          suggestion: "Try another topic or check back later when more questions are available."
-        });
+        const defaultQuestions = [
+          {
+            id: 1,
+            topicId,
+            type: "multiple_choice",
+            difficulty: "beginner",
+            points: 10,
+            questionText: "What is Bitcoin?",
+            options: [
+              "A decentralized digital currency",
+              "A central bank digital currency",
+              "A type of credit card",
+              "A traditional banking system"
+            ],
+            correctAnswer: 0,
+            correctAnswerValue: null,
+            explanation: "Bitcoin is a decentralized digital currency that operates without a central authority.",
+            hints: ["Think about who controls traditional currencies versus Bitcoin"],
+            imageUrl: null,
+            context: null
+          },
+          {
+            id: 2,
+            topicId,
+            type: "true_false",
+            difficulty: "beginner",
+            points: 5,
+            questionText: "Bitcoin transactions are completely anonymous.",
+            options: [],
+            correctAnswer: 1,
+            correctAnswerValue: false,
+            explanation: "Bitcoin transactions are pseudonymous, not anonymous. All transactions are recorded on the public blockchain.",
+            hints: ["Consider the public nature of the blockchain"],
+            imageUrl: null,
+            context: null
+          }
+        ];
+        return res.json(defaultQuestions);
       }
 
       res.json(questions);
@@ -470,13 +508,13 @@ export function registerRoutes(app: Express): Server {
               {
                 title: "What is Bitcoin?",
                 content: `Bitcoin is a decentralized digital currency that was created in 2009 by an unknown person or group using the name Satoshi Nakamoto. It enables peer-to-peer transactions without the need for intermediaries like banks or payment processors.
-
+                
 Key Points:
 - Bitcoin operates on a technology called blockchain
 - Transactions are verified by network nodes through cryptography
 - Bitcoin has a limited supply of 21 million coins
 - Transactions are irreversible and pseudonymous
-
+                
 How Bitcoin Works:
 Bitcoin transactions are recorded on a public ledger called the blockchain. When you send Bitcoin, the transaction is broadcast to the network and included in a block once verified by miners. This process ensures security and prevents double-spending.`,
                 estimated_time: "15 minutes"
@@ -565,13 +603,13 @@ function getDefaultReadingMaterials(topicName: string): ReadingMaterial[] {
       {
         title: "What is Bitcoin?",
         content: `Bitcoin is a decentralized digital currency that was created in 2009 by an unknown person or group using the name Satoshi Nakamoto. It enables peer-to-peer transactions without the need for intermediaries like banks or payment processors.
-
+        
 Key Points:
 - Bitcoin operates on a technology called blockchain
 - Transactions are verified by network nodes through cryptography
 - Bitcoin has a limited supply of 21 million coins
 - Transactions are irreversible and pseudonymous
-
+        
 How Bitcoin Works:
 Bitcoin transactions are recorded on a public ledger called the blockchain. When you send Bitcoin, the transaction is broadcast to the network and included in a block once verified by miners. This process ensures security and prevents double-spending.`,
         estimated_time: "15 minutes"
@@ -579,17 +617,17 @@ Bitcoin transactions are recorded on a public ledger called the blockchain. When
       {
         title: "Bitcoin Wallets and Security",
         content: `A Bitcoin wallet is where you store your Bitcoin. Unlike traditional wallets, Bitcoin wallets don't actually store the coins themselves - they store the private keys that give you access to your Bitcoin on the blockchain.
-
+        
 Types of Bitcoin Wallets:
 1. Hardware Wallets (Most Secure)
    - Physical devices that store your private keys offline
    - Examples: Ledger, Trezor
-
+        
 2. Software Wallets
    - Desktop applications
    - Mobile apps
    - Web wallets (least secure)
-
+        
 Security Best Practices:
 - Never share your private keys
 - Use strong passwords
@@ -603,13 +641,13 @@ Security Best Practices:
       {
         title: "Understanding Blockchain",
         content: `A blockchain is a distributed database that maintains a continuously growing list of records called blocks. Each block contains transaction data and is linked to the previous block, forming a chain.
-
+        
 Key Concepts:
 - Decentralization: No single entity controls the network
 - Transparency: All transactions are public
 - Immutability: Once recorded, data cannot be altered
 - Consensus: Network participants agree on the state of the system
-
+        
 Block Structure:
 - Previous block hash
 - Timestamp
