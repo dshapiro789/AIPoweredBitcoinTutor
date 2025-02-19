@@ -99,11 +99,9 @@ function FillBlankQuestion({
           className="w-full sm:max-w-[300px] min-h-[44px]"
         />
       </div>
-      {question.suggestedAnswers && question.suggestedAnswers.length > 0 && (
-        <div className="text-sm text-muted-foreground mt-4">
-          {t('quiz.suggestedAnswers')}: {question.suggestedAnswers.join(', ')}
-        </div>
-      )}
+      <div className="text-sm text-muted-foreground mt-4">
+        <p>{question.context}</p>
+      </div>
     </div>
   );
 }
