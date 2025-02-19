@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { BitcoinTopic } from "@shared/schema";
 import { useTranslation } from "react-i18next";
@@ -8,18 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { ChevronRight, BookOpen, CheckCircle2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { apiRequest } from "@/lib/queryClient";
-
-interface ReadingMaterial {
-  title: string;
-  content: string;
-  estimated_time: string;
-}
+import { useToast } from "@/hooks/use-toast";
 
 export default function LearnPage() {
   const { topicId } = useParams<{ topicId: string }>();
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
   const [currentReadingIndex, setCurrentReadingIndex] = useState(0);
 
   const { data: topic, isLoading: topicLoading } = useQuery<BitcoinTopic>({
@@ -36,7 +32,7 @@ export default function LearnPage() {
     enabled: !!topic,
   });
 
-  // Fixed mutation implementation
+  // Updated mutation implementation
   const markReadingComplete = useMutation({
     mutationFn: async () => {
       const response = await fetch('/api/progress', {
@@ -60,6 +56,19 @@ export default function LearnPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/progress/1`] });
+      // Navigate to quiz page after successful completion
+      setLocation(`/quiz/${topicId}`);
+      toast({
+        title: t('learn.complete'),
+        description: t('quiz.startDescription', 'Ready to test your knowledge? Let\'s begin the quiz!'),
+      });
+    },
+    onError: () => {
+      toast({
+        variant: "destructive",
+        title: t('error.title'),
+        description: t('error.failedToLoad'),
+      });
     }
   });
 
@@ -152,37 +161,17 @@ export default function LearnPage() {
         <div className="flex justify-between items-center pt-4">
           <Link href={`/`}>
             <Button variant="outline">
-              {t('common.back')}
+              {t('learn.back')}
             </Button>
           </Link>
-          <div className="flex gap-2">
-            {hasCompletedReading ? (
-              <Link href={`/quiz/${topicId}`}>
-                <Button className="flex items-center">
-                  {t('learn.startQuiz')}
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
-            ) : (
-              <Button
-                onClick={handleNextReading}
-                disabled={markReadingComplete.isPending}
-                className="flex items-center"
-              >
-                {isLastReading ? (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    {t('learn.complete')}
-                  </>
-                ) : (
-                  <>
-                    {t('learn.nextSection')}
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
+          <Button
+            onClick={() => markReadingComplete.mutate()}
+            disabled={markReadingComplete.isPending}
+            className="flex items-center"
+          >
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            {markReadingComplete.isPending ? t('common.generating') : t('learn.complete')}
+          </Button>
         </div>
       </div>
     </div>
