@@ -39,15 +39,24 @@ export default function LearnPage() {
   // Fixed mutation implementation
   const markReadingComplete = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/progress/update', {
-        method: 'POST',
+      const response = await fetch('/api/progress', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           userId: 1, // TODO: Replace with actual user ID
           topicId: parseInt(topicId),
           completedExercises: currentReadingIndex + 1,
-          lastActive: new Date()
+          lastActive: new Date().toISOString()
         })
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to update progress');
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/progress/1`] });
