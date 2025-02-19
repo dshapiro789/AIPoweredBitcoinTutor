@@ -10,16 +10,11 @@ import { Link } from "wouter";
 
 export default function QuizPage() {
   const { topicId } = useParams<{ topicId: string }>();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
 
-  const { data: topic, isLoading: topicLoading } = useQuery<BitcoinTopic>({
-    queryKey: [`/api/bitcoin/topics/${topicId}`, i18n.language],
-    queryFn: async () => {
-      const response = await fetch(`/api/bitcoin/topics/${topicId}?lang=${i18n.language}`);
-      if (!response.ok) throw new Error('Failed to load topic');
-      return response.json();
-    }
+  const { data: topic, isLoading: topicLoading, error: topicError } = useQuery<BitcoinTopic>({
+    queryKey: [`/api/bitcoin/topics/${topicId}`],
   });
 
   const { data: progress } = useQuery({
@@ -32,7 +27,7 @@ export default function QuizPage() {
     enabled: !!topic,
   });
 
-  if (topicLoading || !topic) {
+  if (topicLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="animate-pulse space-y-4">
@@ -43,8 +38,26 @@ export default function QuizPage() {
     );
   }
 
-  const pathInfo = personalizedPath?.next_topics?.find(t => t.topic === topic.name);
-  const topicProgress = progress?.find(p => p.topicId === parseInt(topicId));
+  if (topicError || !topic) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
+          <h1 className="text-2xl sm:text-3xl font-bold text-destructive mb-2">
+            {t('error.title')}
+          </h1>
+          <p className="text-muted-foreground">
+            {t('error.failedToLoad')}
+          </p>
+          <Button onClick={() => setLocation('/')} className="mt-4">
+            {t('common.backToHome')}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const pathInfo = personalizedPath?.next_topics?.find((t: any) => t.topic === topic.name);
+  const topicProgress = progress?.find((p: any) => p.topicId === parseInt(topicId));
   const hasCompletedReading = topicProgress?.completedExercises >= (pathInfo?.reading_materials?.length || 0);
 
   if (!hasCompletedReading) {
@@ -69,21 +82,6 @@ export default function QuizPage() {
               </Link>
             </CardContent>
           </Card>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto">
-          <h1 className="text-2xl sm:text-3xl font-bold text-destructive mb-2">
-            {t('error.title')}
-          </h1>
-          <p className="text-muted-foreground">
-            {t('error.failedToLoad')}
-          </p>
         </div>
       </div>
     );
