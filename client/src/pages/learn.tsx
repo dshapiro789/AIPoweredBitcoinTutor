@@ -36,17 +36,17 @@ export default function LearnPage() {
     enabled: !!topic,
   });
 
-  // Mark reading as complete
+  // Fixed mutation implementation
   const markReadingComplete = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/progress/update`, {
+      return apiRequest('/api/progress/update', {
         method: 'POST',
-        body: {
+        body: JSON.stringify({
           userId: 1, // TODO: Replace with actual user ID
           topicId: parseInt(topicId),
           completedExercises: currentReadingIndex + 1,
           lastActive: new Date()
-        }
+        })
       });
     },
     onSuccess: () => {
