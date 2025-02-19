@@ -140,7 +140,15 @@ export default function LearnPage() {
                   const [title, ...points] = section.split('\n');
                   return (
                     <div key={index}>
-                      {title && title.trim() && <h3>{title}</h3>}
+                      {title && title.trim() && (
+                        <h3 className={
+                          title.includes("Key Points") || title.includes("How Bitcoin Works")
+                            ? "text-lg font-semibold text-primary mt-6 mb-4"
+                            : undefined
+                        }>
+                          {title}
+                        </h3>
+                      )}
                       <ul>
                         {points
                           .filter(point => point.trim()) // Filter out empty lines
