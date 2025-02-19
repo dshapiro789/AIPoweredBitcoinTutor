@@ -140,18 +140,20 @@ export default function LearnPage() {
                   const [title, ...points] = section.split('\n');
                   return (
                     <div key={index}>
-                      {title && <h3>{title}</h3>}
+                      {title && title.trim() && <h3>{title}</h3>}
                       <ul>
-                        {points.map((point, i) => (
-                          <li key={i}>{point.replace('-', '').trim()}</li>
-                        ))}
+                        {points
+                          .filter(point => point.trim()) // Filter out empty lines
+                          .map((point, i) => (
+                            <li key={i}>{point.replace('-', '').trim()}</li>
+                          ))}
                       </ul>
                     </div>
                   );
                 }
 
                 // Regular paragraphs
-                return <p key={index}>{section}</p>;
+                return section.trim() && <p key={index}>{section}</p>;
               })}
             </div>
           </CardContent>
