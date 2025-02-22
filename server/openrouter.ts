@@ -48,7 +48,12 @@ export async function getChatResponse(messages: ChatCompletionMessageParam[], su
 Current subject: ${subject}`
     };
 
-    console.log('Sending request to OpenRouter...');
+    console.log('Preparing OpenRouter request with model: deepseek-r1:free');
+    console.log('Request messages:', JSON.stringify({ 
+      systemPrompt, 
+      messages: messages.map(m => ({ role: m.role, contentLength: m.content?.length }))
+    }, null, 2));
+
     const response = await openRouter.chat.completions.create({
       model: "deepseek-r1:free",
       messages: [systemPrompt, ...messages],
@@ -56,10 +61,20 @@ Current subject: ${subject}`
       max_tokens: 1000,
     });
 
-    console.log('Received response from OpenRouter');
+    console.log('OpenRouter response received:', {
+      status: 'success',
+      choices: response.choices?.length,
+      firstChoice: response.choices[0]?.message?.content?.substring(0, 100) + '...'
+    });
+
     return response.choices[0].message.content || defaultResponse;
   } catch (error) {
-    console.error("OpenRouter API error:", error);
+    console.error("OpenRouter API error details:", {
+      name: error.name,
+      message: error.message,
+      status: error.status,
+      response: error.response?.data,
+    });
     return defaultResponse;
   }
 }
@@ -90,10 +105,15 @@ export async function analyzeLearningProgress(messages: ChatCompletionMessagePar
       response_format: { type: "json_object" }
     });
 
-    console.log('Received analysis response from OpenRouter');
+    console.log('OpenRouter analysis response received');
     return JSON.parse(response.choices[0].message.content || '{}');
   } catch (error) {
-    console.error("OpenRouter API error:", error);
+    console.error("OpenRouter API error details:", {
+      name: error.name,
+      message: error.message,
+      status: error.status,
+      response: error.response?.data,
+    });
     return {
       understanding: 0.7,
       engagement: 0.8,
