@@ -1,31 +1,12 @@
 {
   "app": {
-    "title": "Bitcoin Library",
-    "shortTitle": "BTC Library",
-    "description": "A comprehensive library of Bitcoin knowledge, from basics to advanced concepts. Learn about cryptocurrency, blockchain technology, and Bitcoin through detailed articles and guides."
+    "title": "AI-Powered Bitcoin Tutor",
+    "shortTitle": "AI Bitcoin Tutor",
+    "description": "An intelligent Bitcoin learning platform powered by AI that provides personalized tutoring and answers your questions about cryptocurrency and blockchain technology."
   },
   "nav": {
-    "library": "Library",
-    "topics": "Topics",
-    "dashboard": "Dashboard",
-    "subjects": "Topics"
-  },
-  "dashboard": {
-    "title": "Bitcoin Knowledge Library",
-    "subtitle": "Explore comprehensive guides and articles about Bitcoin and cryptocurrency",
-    "topics": {
-      "title": "Topics",
-      "readMore": "Read Article",
-      "difficulty": {
-        "beginner": "Beginner",
-        "intermediate": "Intermediate",
-        "advanced": "Advanced"
-      }
-    },
-    "totalSessions": "Total Sessions",
-    "activeTopics": "Active Topics",
-    "completedExercises": "Completed Exercises",
-    "averageConfidence": "Average Confidence"
+    "library": "Learn",
+    "topics": "Topics"
   },
   "learn": {
     "content": "Learning Content",
@@ -39,9 +20,9 @@
     "complete": "Complete"
   },
   "library": {
-    "title": "Bitcoin Knowledge Library",
-    "subtitle": "Explore comprehensive guides and articles about Bitcoin and cryptocurrency",
-    "readMore": "Read Article",
+    "title": "AI-Powered Bitcoin Tutor",
+    "subtitle": "Your personal AI tutor for learning Bitcoin and cryptocurrency concepts",
+    "readMore": "Start Learning",
     "categories": {
       "basics": "Bitcoin Basics",
       "technical": "Technical Concepts",
@@ -72,7 +53,7 @@
     "congratulations": "Congratulations!",
     "yourScore": "Your Score",
     "finalScore": "Final Score: {{score}}%",
-    "returnToDashboard": "Return to Dashboard",
+    "returnToDashboard": "Return to Topics",
     "continueLeaning": "Continue Learning",
     "showHint": "Show Hint",
     "reviewAnswers": "Review Your Answers",
@@ -121,6 +102,6 @@
     "generating": "Generating...",
     "later": "Later",
     "continue": "Continue",
-    "readMore": "Read Article"
+    "readMore": "Start Learning"
   }
 }

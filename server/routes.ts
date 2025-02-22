@@ -123,7 +123,7 @@ export function registerRoutes(app: Express): Server {
     try {
       const topicId = parseInt(req.params.topicId);
       if (isNaN(topicId)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           message: "Invalid topic ID",
           error: "The topic ID must be a valid number"
         });
@@ -304,6 +304,7 @@ export function registerRoutes(app: Express): Server {
     }
   });
 
+  // Update the chat session handling to fix type issues
   app.post("/api/chat/message", async (req, res) => {
     try {
       const { sessionId, message, subject } = req.body;
@@ -314,8 +315,14 @@ export function registerRoutes(app: Express): Server {
       }
 
       const updatedMessages: ChatCompletionMessageParam[] = [
-        ...session.messages,
-        { role: "user", content: message }
+        ...session.messages.map(msg => ({
+          role: msg.role as "user" | "assistant" | "system",
+          content: msg.content
+        })),
+        {
+          role: "user",
+          content: message
+        }
       ];
 
       // Get tutor's response
@@ -325,10 +332,13 @@ export function registerRoutes(app: Express): Server {
         content: tutorResponse
       });
 
-      // Analyze progress after interaction
-      const analysis = await analyzeProgress(updatedMessages);
+      // Convert messages back to storage format before saving
+      const storageMessages = updatedMessages.map(msg => ({
+        role: msg.role,
+        content: msg.content as string
+      }));
 
-      await storage.updateChatSession(sessionId, updatedMessages);
+      await storage.updateChatSession(sessionId, storageMessages);
       await storage.updateLearningProgress({
         userId: session.userId,
         topicId: session.topicId,
@@ -339,7 +349,7 @@ export function registerRoutes(app: Express): Server {
 
       res.json({
         message: tutorResponse,
-        analysis
+        analysis: await analyzeProgress(updatedMessages)
       });
     } catch (error) {
       console.error("Error processing message:", error);
@@ -444,7 +454,12 @@ export function registerRoutes(app: Express): Server {
       const personalizedPath = await generateLearningPath(
         preferences.experience,
         {
-          userPreferences: preferences,
+          userPreferences: {
+            experience: preferences.experience,
+            goal: preferences.goal || "",
+            time: preferences.time || "",
+            style: preferences.style || ""
+          },
           currentProgress: progress
         }
       );
@@ -504,22 +519,7 @@ export function registerRoutes(app: Express): Server {
           next_topics: topics.map(topic => ({
             topic: topic.name,
             description: topic.description,
-            reading_materials: [
-              {
-                title: "What is Bitcoin?",
-                content: `Bitcoin is a decentralized digital currency that was created in 2009 by an unknown person or group using the name Satoshi Nakamoto. It enables peer-to-peer transactions without the need for intermediaries like banks or payment processors.
-                
-Key Points:
-- Bitcoin operates on a technology called blockchain
-- Transactions are verified by network nodes through cryptography
-- Bitcoin has a limited supply of 21 million coins
-- Transactions are irreversible and pseudonymous
-                
-How Bitcoin Works:
-Bitcoin transactions are recorded on a public ledger called the blockchain. When you send Bitcoin, the transaction is broadcast to the network and included in a block once verified by miners. This process ensures security and prevents double-spending.`,
-                estimated_time: "15 minutes"
-              }
-            ],
+            reading_materials: getDefaultReadingMaterials(topic.name),
             quizzes: getDefaultQuizzes(topic.name),
             practical_exercises: getDefaultExercises(topic.name)
           })),
@@ -550,12 +550,18 @@ Bitcoin transactions are recorded on a public ledger called the blockchain. When
     }
   });
 
-  // New endpoint to get all quiz questions
+  // Replace getAllQuestions with getQuestionsByTopic
   app.get("/api/quiz/all", async (req, res) => {
     try {
-      const allQuestions = await storage.getAllQuestions();
+      const topics = await storage.getBitcoinTopics();
+      const allQuestions = [];
 
-      if (!allQuestions || allQuestions.length === 0) {
+      for (const topic of topics) {
+        const questions = await storage.getQuestionsByTopic(topic.id);
+        allQuestions.push(...questions);
+      }
+
+      if (allQuestions.length === 0) {
         return res.status(404).json({
           message: "No questions found",
           suggestion: "Please check back later when questions are available."
