@@ -5,7 +5,7 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 const openRouter = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY || "",
-  defaultHeaders: {
+  headers: {
     "HTTP-Referer": process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000",
     "X-Title": "Bitcoin Learning Platform",
     "Content-Type": "application/json"
@@ -20,7 +20,7 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
       baseURL: "https://openrouter.ai/api/v1",
       hasApiKey: !!process.env.OPENROUTER_API_KEY,
       apiKeyLength: process.env.OPENROUTER_API_KEY?.length,
-      headers: openRouter.defaultHeaders
+      referer: process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000"
     });
 
     // Use the most basic model for testing
@@ -33,10 +33,8 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
 
     // Log successful response details
     console.log('OpenRouter test succeeded:', {
-      model: response.model,
-      hasChoices: !!response.choices?.length,
-      firstChoice: response.choices[0]?.message?.content,
-      provider: response.provider,
+      choices: response.choices?.length,
+      firstMessageContent: response.choices[0]?.message?.content,
       usage: response.usage
     });
 
@@ -52,7 +50,6 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
       status: error?.response?.status,
       statusText: error?.response?.statusText,
       data: error?.response?.data,
-      headers: error?.response?.headers,
       stack: error?.stack
     });
 
@@ -112,8 +109,8 @@ export async function getChatResponse(messages: ChatCompletionMessageParam[], su
     });
 
     console.log('OpenRouter chat response:', {
-      model: response.model,
-      provider: response.provider,
+      choices: response.choices?.length,
+      messageContent: response.choices[0]?.message?.content,
       usage: response.usage
     });
 
@@ -123,7 +120,8 @@ export async function getChatResponse(messages: ChatCompletionMessageParam[], su
       type: error?.constructor?.name,
       message: error?.message,
       status: error?.response?.status,
-      data: error?.response?.data
+      data: error?.response?.data,
+      stack: error?.stack
     });
     return getFallbackResponse();
   }
@@ -171,7 +169,8 @@ export async function analyzeLearningProgress(messages: ChatCompletionMessagePar
       type: error?.constructor?.name,
       message: error?.message,
       status: error?.response?.status,
-      data: error?.response?.data
+      data: error?.response?.data,
+      stack: error?.stack
     });
 
     // Return default analysis on error
