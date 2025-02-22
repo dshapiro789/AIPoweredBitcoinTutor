@@ -52,9 +52,7 @@ export default function LearnPage() {
       "Bitcoin Basics": [
         {
           title: "The Birth of Bitcoin",
-          content: `Bitcoin emerged during one of the most significant financial crises in modern history. Understanding its creation is crucial to appreciating its importance:
-
-Historical Context:
+          content: `Historical Context:
 - 2008 Financial Crisis: Global banking system near collapse
 - Widespread distrust in traditional financial institutions
 - Need for alternative to centralized monetary control
