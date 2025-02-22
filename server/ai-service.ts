@@ -391,130 +391,239 @@ Bitcoin's Unique Properties:
         estimated_time: "20 minutes"
       }
     ],
-    "Blockchain Technology": [
-      {
-        title: "Introduction to Blockchain",
-        content: `Understanding the revolutionary technology behind Bitcoin:
-
-Key Points:
-- Distributed ledger technology
-- Immutable record keeping
-- Consensus mechanisms
-- Network security
-
-How Blockchain Works:
-- Block structure and contents
-- Cryptographic linking
-- Mining and validation
-- Network synchronization`,
-        estimated_time: "25 minutes"
-      },
-      {
-        title: "Consensus and Mining",
-        content: `Deep dive into how the Bitcoin network reaches agreement:
-
-Key Points:
-- Proof of Work (PoW)
-- Mining difficulty adjustment
-- Block rewards and halving
-- Network security model
-
-Mining Process:
-- Hardware requirements
-- Energy consumption
-- Pool mining vs solo mining
-- Block validation rules`,
-        estimated_time: "30 minutes"
-      }
-    ],
     "Wallet Security": [
       {
-        title: "Securing Your Bitcoin",
-        content: `Essential practices for protecting your Bitcoin holdings:
+        title: "Understanding Bitcoin Wallets",
+        content: `Learn the fundamentals of Bitcoin wallets and how to secure your assets:
 
 Key Points:
+- Types of wallets (hot vs cold storage)
 - Private key management
-- Backup strategies
-- Common security risks
-- Best practices
+- Seed phrases and backups
+- Common security threats
 
-Security Measures:
-- Strong passwords
+Best Practices:
+- Choosing the right wallet type
+- Proper backup procedures
 - Two-factor authentication
-- Hardware wallet usage
 - Regular security audits`,
         estimated_time: "20 minutes"
       },
       {
-        title: "Advanced Security Features",
-        content: `Understanding advanced wallet security options:
+        title: "Advanced Wallet Security",
+        content: `Master advanced security features for protecting your Bitcoin:
 
 Key Points:
-- Multisignature wallets
-- Time-locked transactions
+- Hardware wallet implementation
+- Multi-signature setups
 - Watch-only wallets
-- Recovery procedures
+- Air-gapped transactions
 
-Implementation Steps:
-- Setting up multisig
-- Creating backup plans
-- Testing recovery processes
-- Regular security updates`,
+Security Measures:
+- Physical security considerations
+- Inheritance planning
+- Emergency recovery procedures
+- Security model trade-offs`,
         estimated_time: "25 minutes"
       }
     ],
     "Transaction Fundamentals": [
       {
-        title: "Bitcoin Transactions Explained",
-        content: `Understanding how Bitcoin transactions work:
+        title: "Understanding Bitcoin Transactions",
+        content: `Master the basics of Bitcoin transactions and how they work:
 
 Key Points:
-- UTXO model
-- Transaction fees
-- Confirmation times
-- Mempool dynamics
+- UTXO model explained
+- Transaction inputs and outputs
+- Mining fees and confirmation
+- Transaction mempool
 
 Transaction Components:
-- Inputs and outputs
-- Script verification
-- Fee calculation
-- Change addresses`,
+- Address formats and types
+- Script verification process
+- Fee calculation methods
+- Change management`,
         estimated_time: "20 minutes"
       },
       {
         title: "Advanced Transaction Features",
-        content: `Exploring advanced transaction capabilities:
+        content: `Explore advanced transaction capabilities in Bitcoin:
 
 Key Points:
-- Replace-by-fee (RBF)
-- Child-pays-for-parent (CPFP)
-- Transaction batching
-- Fee estimation strategies
+- Replace-By-Fee (RBF)
+- Child-Pays-For-Parent (CPFP)
+- Time-locked transactions
+- Multi-signature transactions
 
 Implementation:
-- Creating complex transactions
-- Fee optimization
-- Transaction privacy
-- Verification methods`,
+- Fee optimization strategies
+- Transaction batching
+- Lightning Network payments
+- Cross-chain atomic swaps`,
+        estimated_time: "25 minutes"
+      }
+    ],
+    "Mining Operations": [
+      {
+        title: "Bitcoin Mining Fundamentals",
+        content: `Understand the basics of Bitcoin mining and its role in the network:
+
+Key Points:
+- Proof of Work (PoW) explained
+- Mining hardware evolution
+- Pool mining vs solo mining
+- Energy considerations
+
+Mining Process:
+- Block creation and validation
+- Hash rate and difficulty
+- Reward mechanisms
+- Network security role`,
+        estimated_time: "25 minutes"
+      },
+      {
+        title: "Professional Mining Operations",
+        content: `Learn about professional Bitcoin mining setups and strategies:
+
+Key Points:
+- Mining farm setup
+- Cooling and ventilation
+- Power management
+- Cost optimization
+
+Operation Aspects:
+- Hardware selection criteria
+- Maintenance schedules
+- Profit calculations
+- Environmental considerations`,
+        estimated_time: "30 minutes"
+      }
+    ],
+    "Cold Storage": [
+      {
+        title: "Cold Storage Fundamentals",
+        content: `Learn about secure offline storage solutions for Bitcoin:
+
+Key Points:
+- Cold storage vs hot wallets
+- Hardware wallet types
+- Paper wallet generation
+- Air-gapped computers
+
+Implementation:
+- Safe key generation
+- Offline transaction signing
+- Backup strategies
+- Physical security measures`,
+        estimated_time: "20 minutes"
+      },
+      {
+        title: "Advanced Cold Storage",
+        content: `Master advanced cold storage techniques and security:
+
+Key Points:
+- Multi-signature setups
+- Geographically distributed backups
+- Recovery procedures
+- Inheritance planning
+
+Security Measures:
+- Metal seed storage
+- Fire and water protection
+- Access control systems
+- Regular verification procedures`,
+        estimated_time: "25 minutes"
+      }
+    ],
+    "Advanced Concepts": [
+      {
+        title: "Layer 2 Solutions",
+        content: `Explore Bitcoin's scaling solutions and advanced protocols:
+
+Key Points:
+- Lightning Network explained
+- Sidechains and drivechains
+- State channels
+- Schnorr signatures
+
+Technology Deep Dive:
+- Payment channel networks
+- Atomic swaps
+- Time-locked contracts
+- Cross-chain interoperability`,
+        estimated_time: "30 minutes"
+      },
+      {
+        title: "Future Developments",
+        content: `Understanding upcoming Bitcoin technologies and improvements:
+
+Key Points:
+- Taproot and Tapscript
+- MAST (Merkelized Abstract Syntax Trees)
+- Confidential Transactions
+- Smart contract capabilities
+
+Implementation Impact:
+- Privacy enhancements
+- Scaling improvements
+- Script efficiency
+- New use cases`,
+        estimated_time: "25 minutes"
+      }
+    ],
+    "Digital Security": [
+      {
+        title: "Cryptocurrency Security Essentials",
+        content: `Master the fundamentals of digital security for Bitcoin:
+
+Key Points:
+- Operating system security
+- Network security
+- Mobile device protection
+- Social engineering defense
+
+Security Practices:
+- Secure communication
+- Password management
+- Device encryption
+- Safe browsing habits`,
+        estimated_time: "20 minutes"
+      },
+      {
+        title: "Advanced Digital Security",
+        content: `Learn advanced security measures for protecting your Bitcoin:
+
+Key Points:
+- Virtual machines
+- Tor network usage
+- PGP encryption
+- Hardware security modules
+
+Implementation:
+- Air-gapped computing
+- Secure boot processes
+- Network isolation
+- Security auditing`,
         estimated_time: "25 minutes"
       }
     ]
   };
+
   return materials[topic] || [{
-    title: `${topic} Fundamentals`,
-    content: `Learn the essential concepts of ${topic} and its role in the Bitcoin ecosystem.
+    title: `${topic} Overview`,
+    content: `This topic covers essential concepts specific to ${topic}.
 
 Key Points:
 - Core principles and concepts
-- Practical applications
 - Best practices
-- Integration with Bitcoin
+- Common challenges
+- Implementation strategies
 
-Getting Started:
-- Understanding basic concepts
-- Implementing key features
-- Following security guidelines
-- Practical exercises`,
+Learning Focus:
+- Understanding fundamentals
+- Practical applications
+- Security considerations
+- Advanced techniques`,
     estimated_time: "20 minutes"
   }];
 }
