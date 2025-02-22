@@ -286,7 +286,9 @@ Provide response in this exact JSON format:
         "Wallet Security",
         "Transaction Fundamentals",
         "Digital Security",
-        "Advanced Concepts"
+        "Advanced Concepts",
+        "Cold Storage",
+        "Mining Operations"
       ];
 
       if (!path.next_topics) {
@@ -335,12 +337,14 @@ Provide response in this exact JSON format:
 
 function getDefaultTopicDescription(topic: string): string {
   const descriptions: Record<string, string> = {
-    "Bitcoin Basics": "Learn the fundamentals of Bitcoin, including its history, purpose, and basic concepts.",
-    "Blockchain Technology": "Understand the underlying technology that powers Bitcoin and how it maintains security and trust.",
-    "Wallet Security": "Master the essential practices for securing your Bitcoin and protecting your investments.",
-    "Transaction Fundamentals": "Learn how Bitcoin transactions work, including fees, confirmation times, and best practices.",
-    "Digital Security": "Explore comprehensive digital security measures to protect your crypto assets.",
-    "Advanced Concepts": "Dive deep into advanced Bitcoin concepts, including Layer 2 solutions and future developments."
+    "Bitcoin Basics": "Learn the fundamentals of Bitcoin, including its history, purpose, and basic concepts of cryptocurrency.",
+    "Blockchain Technology": "Understand the underlying technology that powers Bitcoin, including distributed ledgers, consensus mechanisms, and mining.",
+    "Wallet Security": "Master essential practices for securing your Bitcoin wallet, including private key management and hardware wallet usage.",
+    "Transaction Fundamentals": "Learn how Bitcoin transactions work, including UTXOs, transaction fees, and confirmation times.",
+    "Digital Security": "Explore comprehensive digital security measures specific to cryptocurrency, including multisig and best practices.",
+    "Advanced Concepts": "Dive deep into advanced Bitcoin concepts, including Layer 2 solutions, Lightning Network, and future developments.",
+    "Cold Storage": "Learn about secure offline storage solutions for your Bitcoin, including paper wallets and hardware wallets.",
+    "Mining Operations": "Understand Bitcoin mining, including hardware requirements, mining pools, and energy considerations."
   };
   return descriptions[topic] || `Learn about ${topic} and its role in the Bitcoin ecosystem.`;
 }
@@ -353,21 +357,164 @@ function getDefaultReadingMaterials(topic: string): Array<{
   const materials: Record<string, Array<{ title: string; content: string; estimated_time: string }>> = {
     "Bitcoin Basics": [
       {
-        title: "Introduction to Bitcoin",
-        content: "Bitcoin is a decentralized digital currency that operates without the need for intermediaries...",
+        title: "What is Bitcoin?",
+        content: `Bitcoin is a revolutionary digital currency that operates without central control. Let's explore its key features:
+
+Key Points:
+- First decentralized cryptocurrency
+- Created by Satoshi Nakamoto in 2009
+- Limited supply of 21 million coins
+- Operates on a peer-to-peer network
+
+How Bitcoin Works:
+- Transactions are verified by network nodes
+- Uses cryptography for security
+- Recorded on a public ledger called the blockchain
+- No need for intermediaries like banks`,
         estimated_time: "15 minutes"
       },
       {
-        title: "How Bitcoin Works",
-        content: "Bitcoin transactions are verified by network nodes through cryptography and recorded in a public distributed ledger...",
+        title: "Understanding Bitcoin Value",
+        content: `Learn what gives Bitcoin its value and how it compares to traditional currencies:
+
+Key Points:
+- Supply and demand economics
+- Decentralization and censorship resistance
+- Store of value properties
+- Global accessibility
+
+Bitcoin's Unique Properties:
+- Fixed supply schedule
+- Divisibility to 8 decimal places
+- Borderless transactions
+- Programmable money features`,
         estimated_time: "20 minutes"
       }
     ],
-    // Add similar content for other topics
+    "Blockchain Technology": [
+      {
+        title: "Introduction to Blockchain",
+        content: `Understanding the revolutionary technology behind Bitcoin:
+
+Key Points:
+- Distributed ledger technology
+- Immutable record keeping
+- Consensus mechanisms
+- Network security
+
+How Blockchain Works:
+- Block structure and contents
+- Cryptographic linking
+- Mining and validation
+- Network synchronization`,
+        estimated_time: "25 minutes"
+      },
+      {
+        title: "Consensus and Mining",
+        content: `Deep dive into how the Bitcoin network reaches agreement:
+
+Key Points:
+- Proof of Work (PoW)
+- Mining difficulty adjustment
+- Block rewards and halving
+- Network security model
+
+Mining Process:
+- Hardware requirements
+- Energy consumption
+- Pool mining vs solo mining
+- Block validation rules`,
+        estimated_time: "30 minutes"
+      }
+    ],
+    "Wallet Security": [
+      {
+        title: "Securing Your Bitcoin",
+        content: `Essential practices for protecting your Bitcoin holdings:
+
+Key Points:
+- Private key management
+- Backup strategies
+- Common security risks
+- Best practices
+
+Security Measures:
+- Strong passwords
+- Two-factor authentication
+- Hardware wallet usage
+- Regular security audits`,
+        estimated_time: "20 minutes"
+      },
+      {
+        title: "Advanced Security Features",
+        content: `Understanding advanced wallet security options:
+
+Key Points:
+- Multisignature wallets
+- Time-locked transactions
+- Watch-only wallets
+- Recovery procedures
+
+Implementation Steps:
+- Setting up multisig
+- Creating backup plans
+- Testing recovery processes
+- Regular security updates`,
+        estimated_time: "25 minutes"
+      }
+    ],
+    "Transaction Fundamentals": [
+      {
+        title: "Bitcoin Transactions Explained",
+        content: `Understanding how Bitcoin transactions work:
+
+Key Points:
+- UTXO model
+- Transaction fees
+- Confirmation times
+- Mempool dynamics
+
+Transaction Components:
+- Inputs and outputs
+- Script verification
+- Fee calculation
+- Change addresses`,
+        estimated_time: "20 minutes"
+      },
+      {
+        title: "Advanced Transaction Features",
+        content: `Exploring advanced transaction capabilities:
+
+Key Points:
+- Replace-by-fee (RBF)
+- Child-pays-for-parent (CPFP)
+- Transaction batching
+- Fee estimation strategies
+
+Implementation:
+- Creating complex transactions
+- Fee optimization
+- Transaction privacy
+- Verification methods`,
+        estimated_time: "25 minutes"
+      }
+    ]
   };
   return materials[topic] || [{
     title: `${topic} Fundamentals`,
-    content: `Learn the essential concepts of ${topic}...`,
+    content: `Learn the essential concepts of ${topic} and its role in the Bitcoin ecosystem.
+
+Key Points:
+- Core principles and concepts
+- Practical applications
+- Best practices
+- Integration with Bitcoin
+
+Getting Started:
+- Understanding basic concepts
+- Implementing key features
+- Following security guidelines
+- Practical exercises`,
     estimated_time: "20 minutes"
   }];
 }
