@@ -44,10 +44,10 @@ export default function Dashboard() {
         {topics?.map((topic) => (
           <Card key={topic.id} className="transition-colors hover:border-primary">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <Book className="h-5 w-5" />
-                {topic.name}
-              </CardTitle>
+                <CardTitle>{topic.name}</CardTitle>
+              </div>
               <CardDescription>
                 {topic.description}
               </CardDescription>
