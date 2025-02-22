@@ -70,10 +70,10 @@ Current subject: ${subject}`
     return response.choices[0].message.content || defaultResponse;
   } catch (error) {
     console.error("OpenRouter API error details:", {
-      name: error.name,
-      message: error.message,
-      status: error.status,
-      response: error.response?.data,
+      name: (error as Error).name,
+      message: (error as Error).message,
+      status: (error as any).status,
+      response: (error as any).response?.data,
     });
     return defaultResponse;
   }
@@ -109,10 +109,10 @@ export async function analyzeLearningProgress(messages: ChatCompletionMessagePar
     return JSON.parse(response.choices[0].message.content || '{}');
   } catch (error) {
     console.error("OpenRouter API error details:", {
-      name: error.name,
-      message: error.message,
-      status: error.status,
-      response: error.response?.data,
+      name: (error as Error).name,
+      message: (error as Error).message,
+      status: (error as any).status,
+      response: (error as any).response?.data,
     });
     return {
       understanding: 0.7,
