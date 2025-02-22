@@ -52,209 +52,419 @@ export default function LearnPage() {
       "Bitcoin Basics": [
         {
           title: "The Birth of Bitcoin",
-          content: `Bitcoin was created in 2008 during the global financial crisis as a response to traditional financial system failures:
-
-Key Historical Events:
-- October 31, 2008: Satoshi Nakamoto publishes the Bitcoin whitepaper
-- January 3, 2009: The Genesis block is mined, containing a Times headline about bank bailouts
-- January 12, 2009: First Bitcoin transaction between Satoshi and Hal Finney
-- May 22, 2010: First real-world Bitcoin transaction (Bitcoin Pizza Day)
-
-Satoshi Nakamoto's Vision:
-- Create a peer-to-peer electronic cash system
-- Eliminate the need for trusted third parties
-- Prevent double-spending without centralized authority
-- Enable borderless, permissionless transactions`
-        },
-        {
-          title: "Bitcoin's Monetary Policy",
-          content: `Bitcoin's revolutionary monetary policy stands in stark contrast to traditional fiat systems:
-
-Key Economic Principles:
-- Fixed Supply Cap: Only 21 million bitcoins will ever exist
-- Predictable Issuance: New coins are created through mining at a predetermined rate
-- Halving Events: Mining rewards are cut in half approximately every 4 years
-- Deflationary Nature: Increasing scarcity over time
-
-Comparison to Fiat Currency:
-- No central authority can create more Bitcoin beyond the protocol rules
-- Immune to monetary debasement through printing
-- Transparent and predictable supply schedule
-- Not subject to political manipulation`
-        },
-        {
-          title: "Bitcoin as Inflation Hedge",
-          content: `Understanding Bitcoin's role in protecting against inflation and monetary instability:
-
-Protection Against:
-- Currency Debasement: Bitcoin's fixed supply prevents artificial inflation
-- Government Overreach: Decentralized nature prevents monetary manipulation
-- Bank Failures: Self-custody eliminates counterparty risk
-- Capital Controls: Borderless transactions enable financial freedom
+          content: `Bitcoin emerged during one of the most significant financial crises in modern history. Understanding its creation is crucial to appreciating its importance:
 
 Historical Context:
-- 2008 Financial Crisis: Traditional banking system bailouts
-- COVID-19 Response: Unprecedented money printing
-- Hyperinflation Examples: Venezuela, Zimbabwe, Lebanon
-- Modern Monetary Theory Risks: Unlimited government spending`
+- 2008 Financial Crisis: Global banking system near collapse
+- Widespread distrust in traditional financial institutions
+- Need for alternative to centralized monetary control
+- Growing concerns about privacy and financial sovereignty
+
+Key Events in Bitcoin's Creation:
+- October 31, 2008: Satoshi Nakamoto publishes "Bitcoin: A Peer-to-Peer Electronic Cash System"
+- January 3, 2009: Genesis block mined with Times headline about bank bailouts
+- January 12, 2009: First transaction between Satoshi and Hal Finney
+- May 22, 2010: First real-world transaction (Bitcoin Pizza Day - 10,000 BTC for two pizzas)
+- 2011: Satoshi Nakamoto disappears, leaving Bitcoin truly decentralized
+
+Satoshi Nakamoto's Vision:
+- Create a truly peer-to-peer electronic cash system
+- Eliminate dependency on financial intermediaries
+- Solve the double-spending problem without central authority
+- Enable borderless, permissionless financial transactions
+- Establish a new paradigm of sound money`
         },
         {
-          title: "Technical Foundations",
-          content: `The revolutionary technology that powers Bitcoin:
+          title: "Bitcoin's Revolutionary Monetary Policy",
+          content: `Bitcoin's monetary policy represents a fundamental shift from traditional fiat currency systems:
+
+Core Economic Principles:
+- Fixed Supply Cap: Maximum of 21 million bitcoins
+- Predictable Issuance: Mathematically controlled release schedule
+- Halving Events: Block rewards reduce by 50% every 210,000 blocks (≈4 years)
+- Deflationary Design: Increasing scarcity drives long-term value preservation
+
+Comparison with Fiat Currency:
+- Fiat Money:
+  • Unlimited supply potential
+  • Subject to political influence
+  • Opaque monetary policy
+  • Historical tendency toward debasement
+
+- Bitcoin:
+  • Mathematically limited supply
+  • Immune to political manipulation
+  • Transparent monetary policy
+  • Programmatically enforced scarcity
+
+Economic Impact:
+- Store of Value: Digital gold for the information age
+- Global Reserve Asset: Alternative to government-issued currencies
+- Financial Inclusion: Banking the unbanked globally
+- Monetary Revolution: First truly scarce digital asset`
+        },
+        {
+          title: "Bitcoin as Protection Against Monetary Instability",
+          content: `Bitcoin serves as a powerful hedge against various forms of monetary instability:
+
+Protection Mechanisms:
+- Currency Debasement Defense:
+  • Fixed supply prevents artificial inflation
+  • Immune to government printing
+  • Value proposition increases with fiat devaluation
+  • Natural shield against monetary expansion
+
+- Political & Economic Safeguards:
+  • Resistance to confiscation
+  • Protection from capital controls
+  • Hedge against bank failures
+  • Insurance against monetary policy mistakes
+
+Historical Examples:
+- Venezuela (2018-Present):
+  • Hyperinflation exceeded 1,000,000%
+  • Bitcoin provided escape from worthless bolivar
+  • Enabled continued commerce despite currency collapse
+
+- Lebanon (2019-Present):
+  • Banking system collapse
+  • Capital controls imposed
+  • Bitcoin enabled wealth preservation
+  • Facilitated international transactions
+
+- Turkey (2021-Present):
+  • Severe currency devaluation
+  • High inflation rates
+  • Bitcoin adoption increased
+  • Served as alternative store of value
+
+Modern Monetary Risks:
+- Unprecedented Global Debt Levels
+- Negative Interest Rate Policies
+- Modern Monetary Theory Experiments
+- Currency Wars and Devaluation Races`
+        },
+        {
+          title: "Technical Architecture and Innovation",
+          content: `Bitcoin's technical foundation represents a breakthrough in computer science and cryptography:
 
 Core Components:
-- Blockchain: Distributed ledger of all transactions
-- Proof of Work: Consensus mechanism for security
-- Public Key Cryptography: Enables secure ownership
-- Peer-to-Peer Network: Decentralized transaction broadcasting
+- Blockchain Technology:
+  • Distributed ledger architecture
+  • Cryptographic linking of blocks
+  • Immutable transaction history
+  • Transparent public record
 
-Security Features:
-- Immutable Transaction History
-- Cryptographic Verification
-- Network Consensus Rules
-- Open-Source Protocol
+- Consensus Mechanism:
+  • Proof of Work (PoW) mining
+  • Network synchronization
+  • Double-spend prevention
+  • Decentralized agreement
 
-Bitcoin's Evolution:
-- Layer 2 Solutions (Lightning Network)
-- Smart Contract Capabilities
+- Cryptographic Security:
+  • Public key cryptography
+  • Digital signatures
+  • Hash functions
+  • Merkle trees
+
+Innovation and Evolution:
+- Layer 1 Improvements:
+  • SegWit for transaction efficiency
+  • Taproot for privacy and smart contracts
+  • Schnorr signatures for scalability
+  • MAST for complex scripts
+
+- Layer 2 Solutions:
+  • Lightning Network for instant payments
+  • Sidechains for extended functionality
+  • State channels for scalability
+  • Cross-chain atomic swaps
+
+Future Developments:
 - Privacy Enhancements
-- Scaling Improvements`
+- Smart Contract Capabilities
+- Scaling Solutions
+- Network Resilience Improvements`
         }
       ],
       "Wallet Security": [
         {
-          title: "Types of Bitcoin Wallets",
-          content: `Bitcoin wallets come in several forms, each with its own security implications:
+          title: "Comprehensive Guide to Bitcoin Wallets",
+          content: `Understanding the different types of Bitcoin wallets and their security implications is crucial for protecting your assets:
 
-Key Concepts:
-- Hot Wallets: Connected to the internet, convenient but less secure
-- Cold Storage: Offline wallets for maximum security
-- Hardware Wallets: Physical devices that secure private keys
-- Paper Wallets: Physical documents containing keys
+Wallet Categories:
+- Hot Wallets (Online):
+  • Software wallets on computers
+  • Mobile wallet applications
+  • Web-based wallet services
+  • Exchange-provided wallets
+
+- Cold Storage (Offline):
+  • Hardware wallets (Ledger, Trezor)
+  • Paper wallets
+  • Air-gapped computers
+  • Steel backup solutions
 
 Security Considerations:
-- Private Key Management
-- Backup Procedures
-- Two-Factor Authentication
-- Physical Security Measures`
+- Private Key Management:
+  • Seed phrase generation
+  • Backup procedures
+  • Access control
+  • Key rotation practices
+
+- Physical Security:
+  • Safe storage locations
+  • Multiple copies
+  • Fire and water protection
+  • Tamper-evident seals
+
+Common Threats:
+- Malware and viruses
+- Phishing attacks
+- Social engineering
+- Physical theft
+- Hardware failures`
         },
         {
-          title: "Best Practices for Wallet Security",
-          content: `Essential security measures for protecting your Bitcoin:
+          title: "Advanced Wallet Security Implementation",
+          content: `Implementing robust security measures for your Bitcoin wallet:
 
-Key Practices:
-- Regular Backups: Store seed phrases securely
-- Multiple Signatures: Require multiple keys for transactions
-- Hardware Security: Use dedicated security devices
-- Access Controls: Implement strong authentication
+Essential Security Protocols:
+- Multi-Signature Setup:
+  • 2-of-3 multisig configuration
+  • Key holder distribution
+  • Recovery procedures
+  • Quorum requirements
 
-Advanced Security:
-- Multi-location Backups
-- Emergency Recovery Plans
-- Regular Security Audits
-- Update Management`
+- Backup Strategies:
+  • Geographic distribution
+  • Multiple formats
+  • Regular verification
+  • Recovery testing
+
+- Access Control:
+  • Two-factor authentication
+  • Time-locks
+  • Spending limits
+  • Whitelisted addresses
+
+Emergency Procedures:
+- Inheritance Planning:
+  • Dead man's switch
+  • Key distribution
+  • Legal documentation
+  • Beneficiary access
+
+- Compromise Response:
+  • Emergency fund movement
+  • Key revocation
+  • New wallet creation
+  • Access revocation
+
+Best Practices:
+- Regular security audits
+- Software updates
+- Test transactions
+- Security model review`
         }
       ],
       "Transaction Fundamentals": [
         {
           title: "Understanding Bitcoin Transactions",
-          content: `Bitcoin transactions are the foundation of the network:
+          content: `A deep dive into how Bitcoin transactions work and their fundamental components:
 
-Key Components:
-- Inputs: Previously received Bitcoin
-- Outputs: Addresses receiving Bitcoin
-- Transaction Fees: Priority payments to miners
-- Digital Signatures: Proof of ownership
+Transaction Structure:
+- Inputs (Previous Transactions):
+  • Reference to previous outputs
+  • Unlocking scripts
+  • Signature verification
+  • Amount validation
+
+- Outputs (New Recipients):
+  • Destination addresses
+  • Amount specifications
+  • Locking scripts
+  • Change management
 
 Transaction Process:
-- Creation and Signing
-- Network Broadcast
-- Miner Verification
-- Block Confirmation`
+- Creation Phase:
+  • Input selection
+  • Output specification
+  • Fee calculation
+  • Script construction
+
+- Verification:
+  • Signature validation
+  • Script execution
+  • Double-spend check
+  • Network propagation
+
+Network Aspects:
+- Mempool management
+- Block inclusion
+- Confirmation process
+- Transaction finality`
         },
         {
-          title: "Advanced Transaction Concepts",
-          content: `Deep dive into complex transaction features:
+          title: "Advanced Transaction Features and Strategies",
+          content: `Understanding and utilizing Bitcoin's advanced transaction capabilities:
 
-Advanced Features:
-- Replace-By-Fee (RBF)
-- Child-Pays-For-Parent (CPFP)
-- Time-Locked Transactions
-- Multi-signature Transactions
+Transaction Types:
+- Standard Transactions:
+  • P2PKH (Pay to Public Key Hash)
+  • P2SH (Pay to Script Hash)
+  • P2WPKH (Native SegWit)
+  • P2TR (Taproot)
 
-Best Practices:
-- Fee Estimation
-- Confirmation Monitoring
-- Change Management
-- Transaction Privacy`
-        }
-      ],
-      "Cold Storage": [
-        {
-          title: "Introduction to Cold Storage",
-          content: `Cold storage is the safest way to store Bitcoin:
+- Advanced Features:
+  • Replace-By-Fee (RBF):
+    - Fee bumping strategy
+    - Transaction replacement
+    - Confirmation priority
+    - Merchant considerations
 
-Core Concepts:
-- Air-gapped Systems
-- Hardware Wallets
-- Paper Wallets
-- Multi-signature Setups
+  • Child-Pays-For-Parent (CPFP):
+    - Fee acceleration
+    - Stuck transaction resolution
+    - Mining incentives
+    - Wallet implementation
 
-Implementation:
-- Key Generation
-- Backup Creation
-- Verification Process
-- Recovery Testing`
-        },
-        {
-          title: "Advanced Cold Storage Techniques",
-          content: `Professional-grade Bitcoin security:
+Privacy Considerations:
+- Chain Analysis Prevention:
+  • Coin selection strategies
+  • Address reuse avoidance
+  • Transaction batching
+  • Amount obscuring
 
-Security Measures:
-- Geographic Distribution
-- Physical Security
-- Inheritance Planning
-- Regular Verification
-
-Best Practices:
-- Multiple Backups
-- Environmental Protection
-- Access Controls
-- Periodic Testing`
+- Advanced Techniques:
+  • CoinJoin participation
+  • PayJoin integration
+  • Lightning Network usage
+  • Submarine swaps`
         }
       ],
       "UTXO Management": [
         {
-          title: "Understanding UTXOs",
-          content: `Unspent Transaction Outputs (UTXOs) are fundamental to Bitcoin:
+          title: "UTXO Model Deep Dive",
+          content: `Understanding the Unspent Transaction Output (UTXO) model and its implications:
 
-Basic Concepts:
-- UTXO Set
-- Transaction Inputs
-- Output Creation
-- Change Management
+UTXO Fundamentals:
+- Basic Concepts:
+  • UTXO creation and destruction
+  • State transitions
+  • Transaction atomicity
+  • Balance calculation
 
-UTXO Lifecycle:
-- Creation
-- Spending
-- Confirmation
-- Chain State`
+- UTXO Set:
+  • Global state representation
+  • Mempool integration
+  • Chain reorganizations
+  • Validation requirements
+
+Implementation Details:
+- Chain State:
+  • UTXO database
+  • State updates
+  • Pruning considerations
+  • Memory pool management
+
+- Script Verification:
+  • Input validation
+  • Output creation
+  • Script execution
+  • Signature checks`
         },
         {
-          title: "Advanced UTXO Strategies",
-          content: `Optimize your Bitcoin transactions:
+          title: "Advanced UTXO Management Strategies",
+          content: `Optimizing UTXO handling for efficient Bitcoin usage:
 
-Management Techniques:
-- Coin Selection
-- Fee Optimization
-- Privacy Enhancement
-- Dust Management
+Optimization Techniques:
+- Coin Selection:
+  • Branch and bound algorithm
+  • Fee optimization
+  • Change output minimization
+  • UTXO consolidation
 
-Best Practices:
-- UTXO Consolidation
-- Input/Output Planning
-- Transaction Batching
-- Change Handling`
+- Privacy Enhancement:
+  • Input mixing
+  • Output splitting
+  • Change address management
+  • Coin control
+
+Economic Considerations:
+- Fee Management:
+  • UTXO cost calculation
+  • Dust threshold handling
+  • Consolidation timing
+  • Batching strategies
+
+- Advanced Concepts:
+  • Package relay
+  • Ancestor/descendant limits
+  • Mempool interaction
+  • Mining prioritization`
+        }
+      ],
+      "Cold Storage": [
+        {
+          title: "Cold Storage Systems and Implementation",
+          content: `Comprehensive guide to implementing secure cold storage solutions:
+
+Cold Storage Architecture:
+- System Components:
+  • Air-gapped computers
+  • Hardware security modules
+  • Paper wallet generators
+  • Steel backup solutions
+
+- Security Layers:
+  • Physical security
+  • Digital protection
+  • Access controls
+  • Redundancy systems
+
+Implementation Methods:
+- Key Generation:
+  • Entropy sources
+  • Deterministic generation
+  • Verification procedures
+  • Backup creation
+
+- Storage Solutions:
+  • Hardware wallets
+  • Paper backups
+  • Metal plates
+  • Distributed copies`
+        },
+        {
+          title: "Professional Cold Storage Operations",
+          content: `Enterprise-grade cold storage security measures and procedures:
+
+Security Infrastructure:
+- Physical Security:
+  • Vault systems
+  • Access controls
+  • Environmental protection
+  • Surveillance systems
+
+- Operational Security:
+  • Multi-signature schemes
+  • Geographic distribution
+  • Backup verification
+  • Regular audits
+
+Emergency Procedures:
+- Disaster Recovery:
+  • Fire protection
+  • Flood mitigation
+  • Theft prevention
+  • Hardware failure
+
+- Access Management:
+  • Role-based controls
+  • Time-lock mechanisms
+  • Duress protocols
+  • Inheritance planning`
         }
       ]
     };
