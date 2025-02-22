@@ -50,7 +50,7 @@ Current subject: ${subject}`
 
     console.log('Sending request to OpenRouter...');
     const response = await openRouter.chat.completions.create({
-      model: "deepseek/deepseek-chat-1.8b-base",
+      model: "deepseek-r1:free",
       messages: [systemPrompt, ...messages],
       temperature: 0.7,
       max_tokens: 1000,
@@ -81,7 +81,7 @@ export async function analyzeLearningProgress(messages: ChatCompletionMessagePar
 
     console.log('Sending analysis request to OpenRouter...');
     const response = await openRouter.chat.completions.create({
-      model: "deepseek/deepseek-chat-1.8b-base",
+      model: "deepseek-r1:free",
       messages: [
         { role: "system", content: prompt },
         { role: "user", content: JSON.stringify(messages) }
