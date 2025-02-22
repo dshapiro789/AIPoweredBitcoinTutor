@@ -2,6 +2,12 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { log } from "./vite";
 import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+
+// ES modules dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Initialize Express app
 const app = express();
@@ -10,13 +16,14 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Security middleware
+// Configure MIME types for ES modules
 app.use((_req, res, next) => {
-  // Set CSP headers
+  // Set CSP headers and MIME types
   res.setHeader(
     'Content-Security-Policy',
     "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
   );
+  res.setHeader('X-Content-Type-Options', 'nosniff');
   next();
 });
 
@@ -38,20 +45,30 @@ app.use((req, res, next) => {
   try {
     const server = registerRoutes(app);
 
-    // Serve static files from client/dist in production or client/public in development
-    const staticPath = process.env.NODE_ENV === 'production' 
-      ? path.join(__dirname, '../dist/public')
-      : path.join(__dirname, '../client/public');
+    // In development mode, let Vite handle all static files
+    if (process.env.NODE_ENV !== 'production') {
+      const { setupVite } = await import('./vite.js');
+      await setupVite(app, server);
+    } else {
+      // In production, serve compiled static files
+      const staticPath = path.join(__dirname, '../dist/public');
 
-    app.use(express.static(staticPath));
+      app.use(express.static(staticPath, {
+        setHeaders: (res, filePath) => {
+          if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+          }
+        }
+      }));
 
-    // Handle client-side routing by serving index.html for all non-API routes
-    app.get('*', (req, res, next) => {
-      if (req.path.startsWith('/api')) {
-        return next();
-      }
-      res.sendFile(path.join(__dirname, '../client/index.html'));
-    });
+      // Handle client-side routing in production
+      app.get('*', (req, res, next) => {
+        if (req.path.startsWith('/api')) {
+          return next();
+        }
+        res.sendFile(path.join(staticPath, 'index.html'));
+      });
+    }
 
     // Global error handler
     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
