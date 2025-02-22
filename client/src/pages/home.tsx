@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import ChatInterface from "@/components/chat-interface";
+import DonationQR from "@/components/donation-qr";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -85,6 +86,11 @@ export default function Home() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Donation QR Section */}
+        <div className="my-8">
+          <DonationQR />
+        </div>
 
         {/* Chat Interface */}
         <div className="mt-8">
