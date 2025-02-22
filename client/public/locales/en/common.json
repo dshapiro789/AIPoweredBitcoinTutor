@@ -6,7 +6,25 @@
   },
   "nav": {
     "library": "Library",
-    "topics": "Topics"
+    "topics": "Topics",
+    "dashboard": "Dashboard"
+  },
+  "dashboard": {
+    "title": "Bitcoin Knowledge Library",
+    "subtitle": "Explore comprehensive guides and articles about Bitcoin and cryptocurrency",
+    "topics": {
+      "title": "Topics",
+      "readMore": "Read Article",
+      "difficulty": {
+        "beginner": "Beginner",
+        "intermediate": "Intermediate",
+        "advanced": "Advanced"
+      }
+    },
+    "totalSessions": "Total Sessions",
+    "activeTopics": "Active Topics",
+    "completedExercises": "Completed Exercises",
+    "averageConfidence": "Average Confidence"
   },
   "learn": {
     "content": "Learning Content",
@@ -68,14 +86,6 @@
     "progress": "Progress",
     "locked": "Keep learning to unlock this achievement"
   },
-  "dashboard": {
-    "title": "Learning Dashboard",
-    "subtitle": "Explore Bitcoin topics and track your learning progress",
-    "totalSessions": "Total Sessions",
-    "activeTopics": "Active Topics",
-    "completedExercises": "Completed Exercises",
-    "averageConfidence": "Average Confidence"
-  },
   "learningPath": {
     "title": "Learning Topics",
     "description": "Choose any topic to start learning at your own pace",
@@ -109,6 +119,7 @@
     "complete": "Complete",
     "generating": "Generating...",
     "later": "Later",
-    "continue": "Continue"
+    "continue": "Continue",
+    "readMore": "Read Article"
   }
 }

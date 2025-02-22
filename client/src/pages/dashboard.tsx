@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { BitcoinTopic } from "@shared/schema";
 import { useTranslation } from "react-i18next";
-import { Loader2, AlertCircle, Book } from "lucide-react";
+import { Loader2, Book } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Dashboard() {
@@ -33,9 +33,9 @@ export default function Dashboard() {
     <div className="container mx-auto px-4 py-8 space-y-8">
       {/* Library Header */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-4xl font-bold">{t('library.title')}</h1>
+        <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
         <p className="text-muted-foreground">
-          {t('library.subtitle')}
+          {t('dashboard.subtitle')}
         </p>
       </div>
 
@@ -53,14 +53,14 @@ export default function Dashboard() {
               </CardDescription>
               <div className="mt-2">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                  {t(`topics.difficulty.${topic.difficulty.toLowerCase()}`)}
+                  {t(`dashboard.topics.difficulty.${topic.difficulty.toLowerCase()}`)}
                 </span>
               </div>
             </CardHeader>
             <CardContent>
               <Link href={`/learn/${topic.id}`}>
                 <button className="w-full px-4 py-2 text-sm font-medium text-center bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors">
-                  {t('library.readMore')}
+                  {t('dashboard.topics.readMore')}
                 </button>
               </Link>
             </CardContent>
