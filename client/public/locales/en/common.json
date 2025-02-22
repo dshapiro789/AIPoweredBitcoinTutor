@@ -7,7 +7,8 @@
   "nav": {
     "library": "Library",
     "topics": "Topics",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "subjects": "Topics"
   },
   "dashboard": {
     "title": "Bitcoin Knowledge Library",
