@@ -12,7 +12,7 @@ export default function Nav() {
         <div className="flex items-center justify-between">
           <Link href="/">
             <Button variant="ghost" className="text-xl font-bold">
-              {t('app.shortTitle')}
+              AI Bitcoin Tutor
             </Button>
           </Link>
           <div className="flex items-center gap-4">
