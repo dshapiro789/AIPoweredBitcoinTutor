@@ -6,9 +6,10 @@ import { useTranslation } from "react-i18next";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ChevronRight, BookOpen, CheckCircle2 } from "lucide-react";
+import { ChevronRight, BookOpen, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function LearnPage() {
   const { topicId } = useParams<{ topicId: string }>();
@@ -18,21 +19,31 @@ export default function LearnPage() {
   const { toast } = useToast();
   const [currentReadingIndex, setCurrentReadingIndex] = useState(0);
 
-  const { data: topic, isLoading: topicLoading } = useQuery<BitcoinTopic>({
+  const { data: topic, isLoading: topicLoading, error: topicError } = useQuery<BitcoinTopic>({
     queryKey: [`/api/bitcoin/topics/${topicId}`],
+    retry: 2,
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: t('error.loadingFailed'),
+        description: error instanceof Error ? error.message : t('error.unknown'),
+      });
+    }
   });
 
-  const { data: personalizedPath } = useQuery({
+  const { data: personalizedPath, isLoading: pathLoading } = useQuery({
     queryKey: [`/api/learning-path/1`], // TODO: Replace with actual user ID
     enabled: !!topic,
+    retry: 2,
   });
 
-  const { data: progress } = useQuery({
+  const { data: progress, isLoading: progressLoading } = useQuery({
     queryKey: [`/api/progress/1`], // TODO: Replace with actual user ID
     enabled: !!topic,
+    retry: 2,
   });
 
-  // Updated mutation implementation
+  // Updated mutation implementation with better error handling
   const markReadingComplete = useMutation({
     mutationFn: async () => {
       const response = await fetch('/api/progress', {
@@ -49,35 +60,61 @@ export default function LearnPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update progress');
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || 'Failed to update progress');
       }
 
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/progress/1`] });
-      // Navigate to quiz page after successful completion
       setLocation(`/quiz/${topicId}`);
       toast({
         title: t('learn.complete'),
-        description: t('quiz.startDescription', 'Ready to test your knowledge? Let\'s begin the quiz!'),
+        description: t('quiz.startDescription'),
       });
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         variant: "destructive",
         title: t('error.title'),
-        description: t('error.failedToLoad'),
+        description: error instanceof Error ? error.message : t('error.unknown'),
       });
     }
   });
 
-  if (topicLoading || !topic) {
+  // Loading state with skeleton UI
+  if (topicLoading || pathLoading || progressLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-muted rounded w-1/4"></div>
-          <div className="h-4 bg-muted rounded w-1/2"></div>
+        <div className="max-w-3xl mx-auto">
+          <div className="animate-pulse space-y-4">
+            <div className="h-8 bg-muted rounded w-1/4"></div>
+            <div className="h-4 bg-muted rounded w-1/2"></div>
+            <div className="space-y-3">
+              <div className="h-4 bg-muted rounded"></div>
+              <div className="h-4 bg-muted rounded w-5/6"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (topicError || !topic) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive" className="max-w-3xl mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            {t('error.failedToLoad')}
+          </AlertDescription>
+        </Alert>
+        <div className="mt-4 text-center">
+          <Button variant="outline" onClick={() => window.location.reload()}>
+            {t('error.tryAgain')}
+          </Button>
         </div>
       </div>
     );
@@ -149,11 +186,14 @@ export default function LearnPage() {
                           {title}
                         </h3>
                       )}
-                      <ul>
+                      <ul className="space-y-2">
                         {points
-                          .filter(point => point.trim()) // Filter out empty lines
+                          .filter(point => point.trim())
                           .map((point, i) => (
-                            <li key={i}>{point.replace('-', '').trim()}</li>
+                            <li key={i} className="flex items-start gap-2">
+                              <span className="select-none">•</span>
+                              <span>{point.replace('-', '').trim()}</span>
+                            </li>
                           ))}
                       </ul>
                     </div>
@@ -161,7 +201,11 @@ export default function LearnPage() {
                 }
 
                 // Regular paragraphs
-                return section.trim() && <p key={index}>{section}</p>;
+                return section.trim() && (
+                  <p key={index} className="leading-relaxed">
+                    {section}
+                  </p>
+                );
               })}
             </div>
           </CardContent>
@@ -169,7 +213,7 @@ export default function LearnPage() {
 
         {/* Navigation */}
         <div className="flex justify-between items-center pt-4">
-          <Link href={`/`}>
+          <Link href="/">
             <Button variant="outline">
               {t('learn.back')}
             </Button>
@@ -177,9 +221,13 @@ export default function LearnPage() {
           <Button
             onClick={() => markReadingComplete.mutate()}
             disabled={markReadingComplete.isPending}
-            className="flex items-center"
+            className="flex items-center gap-2"
           >
-            <CheckCircle2 className="w-4 h-4 mr-2" />
+            {markReadingComplete.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle2 className="h-4 w-4" />
+            )}
             {markReadingComplete.isPending ? t('common.generating') : t('learn.complete')}
           </Button>
         </div>

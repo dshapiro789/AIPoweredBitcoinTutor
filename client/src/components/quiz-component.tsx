@@ -30,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {Alert, AlertDescription} from "@/components/ui/alert"
 
 interface QuizComponentProps {
   topicId: number;
@@ -163,8 +164,20 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
 
-  const { data: questions, isLoading } = useQuery<Question[]>({
+  const { 
+    data: questions, 
+    isLoading,
+    error: questionsError
+  } = useQuery<Question[]>({
     queryKey: [`/api/quiz/${topicId}`],
+    retry: 2,
+    onError: (error) => {
+      toast({
+        variant: "destructive",
+        title: t('quiz.loadError'),
+        description: error instanceof Error ? error.message : t('error.unknown'),
+      });
+    }
   });
 
   useEffect(() => {
@@ -175,7 +188,8 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
     mutationFn: async (attempt: InsertUserQuizAttempt) => {
       const response = await apiRequest("POST", "/api/quiz/attempt", attempt);
       if (!response.ok) {
-        throw new Error("Failed to submit quiz attempt");
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || t('quiz.submitError'));
       }
       return response.json();
     },
@@ -185,29 +199,38 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
       setIsCompleted(true);
       setFinalScore(data.attempt.score);
 
-      // If score is passing (e.g., >= 70%), update learning progress
       if (data.attempt.score >= 70) {
-        const progressResponse = await apiRequest("POST", `/api/progress/update`, {
-          userId,
-          topicId,
-          completedExercises: 1,
-          quizzesPassed: 1,
-          confidenceLevel: Math.round(data.attempt.score / 20), // Convert score to 1-5 scale
-          totalPoints: data.attempt.score
-        });
+        try {
+          const progressResponse = await apiRequest("POST", `/api/progress/update`, {
+            userId,
+            topicId,
+            completedExercises: 1,
+            quizzesPassed: 1,
+            confidenceLevel: Math.round(data.attempt.score / 20),
+            totalPoints: data.attempt.score
+          });
 
-        if (progressResponse.ok) {
-          // Invalidate progress queries to refresh the learning path
-          queryClient.invalidateQueries({ queryKey: [`/api/progress/${userId}`] });
-          queryClient.invalidateQueries({ queryKey: [`/api/learning-path/${userId}`] });
+          if (progressResponse.ok) {
+            queryClient.invalidateQueries({ queryKey: [`/api/progress/${userId}`] });
+            queryClient.invalidateQueries({ queryKey: [`/api/learning-path/${userId}`] });
+          } else {
+            throw new Error(t('quiz.progressUpdateError'));
+          }
+        } catch (error) {
+          toast({
+            variant: "destructive",
+            title: t('error.title'),
+            description: error instanceof Error ? error.message : t('error.unknown'),
+          });
         }
       }
 
+      // Handle achievements
       if (data.newAchievements?.length > 0) {
         data.newAchievements.forEach((achievement: UserAchievement & { achievement: Achievement }) => {
           if (achievement?.achievement) {
             toast({
-              title: t('achievements.new', 'New Achievement Unlocked!'),
+              title: t('achievements.new'),
               description: (
                 <div className="flex items-center gap-3">
                   <AchievementBadge achievement={achievement.achievement} unlocked showAnimation />
@@ -233,127 +256,39 @@ export default function QuizComponent({ topicId, userId }: QuizComponentProps) {
     },
     onError: (error: Error) => {
       toast({
+        variant: "destructive",
         title: t('quiz.submitFailed'),
         description: error.message,
-        variant: "destructive",
       });
     },
   });
 
-  if (isLoading || !questions) {
+  if (isLoading) {
     return (
       <Card>
         <CardContent className="pt-6">
-          <div className="flex items-center justify-center h-48">
+          <div className="flex flex-col items-center justify-center h-48 space-y-4">
             <Loader2 className="h-8 w-8 animate-spin" />
+            <p className="text-sm text-muted-foreground">{t('quiz.loading')}</p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  if (isCompleted) {
+  if (questionsError || !questions) {
     return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardHeader className="text-center">
-          <Trophy className="w-16 h-16 mx-auto text-primary mb-4" />
-          <CardTitle className="text-2xl mb-2">
-            {t('quiz.congratulations')}
-          </CardTitle>
-          <CardDescription className="text-lg">
-            {t('quiz.yourScore')}: {finalScore}%
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold mb-4">{t('quiz.reviewAnswers')}</h3>
-            {questionResults.map(({ question, selectedAnswer, isCorrect }, index) => (
-              <div
-                key={question.id}
-                className={cn(
-                  "p-4 rounded-lg",
-                  isCorrect ? "bg-green-50 dark:bg-green-950/20" : "bg-red-50 dark:bg-red-950/20"
-                )}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={cn(
-                    "rounded-full p-1.5",
-                    isCorrect ? "bg-green-500/20 text-green-600" : "bg-red-500/20 text-red-600"
-                  )}>
-                    {isCorrect ? "✓" : "✗"}
-                  </div>
-                  <div className="flex-1 space-y-2">
-                    <p className="font-medium">
-                      {index + 1}. {question.questionText}
-                    </p>
-                    <div className="space-y-1 text-sm">
-                      <p className="text-muted-foreground">
-                        {t('quiz.yourAnswer')}: {
-                          question.type === 'true_false'
-                            ? String(selectedAnswer)
-                            : question.type === 'multiple_choice'
-                              ? question.options[selectedAnswer]
-                              : selectedAnswer
-                        }
-                      </p>
-                      {!isCorrect && (
-                        <p className="text-muted-foreground">
-                          {t('quiz.correctAnswer')}: {
-                            question.type === 'true_false'
-                              ? String(question.correctAnswerValue)
-                              : question.type === 'multiple_choice'
-                                ? question.options[question.correctAnswer]
-                                : String(question.correctAnswerValue)
-                          }
-                        </p>
-                      )}
-                      {!isCorrect && (
-                        <p className="text-sm mt-2">{question.explanation}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col gap-4 items-center pt-4">
-            {finalScore === 100 && (
-              <AlertDialog>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>{t('quiz.lessonCompleted')}</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t('quiz.moveToNextLesson')}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setLocation('/dashboard')}>
-                      {t('common.later')}
-                    </AlertDialogCancel>
-                    <AlertDialogAction onClick={() => {
-                      // Navigate to the next topic
-                      const nextTopicId = topicId + 1;
-                      setLocation(`/chat/${nextTopicId}`);
-                    }}>
-                      {t('common.continue')}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            )}
-            <Button
-              onClick={() => setLocation('/dashboard')}
-              className="w-full max-w-sm"
-              variant="outline"
-            >
-              {t('quiz.returnToDashboard')}
-            </Button>
-            <Button
-              onClick={() => setLocation('/')}
-              className="w-full max-w-sm"
-            >
-              {t('quiz.continueLeaning')} <ArrowRight className="ml-2 h-4 w-4" />
+      <Card>
+        <CardContent className="pt-6">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              {t('quiz.loadError')}
+            </AlertDescription>
+          </Alert>
+          <div className="mt-4 text-center">
+            <Button variant="outline" onClick={() => window.location.reload()}>
+              {t('error.tryAgain')}
             </Button>
           </div>
         </CardContent>
