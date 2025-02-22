@@ -6,7 +6,8 @@ const openRouter = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY,
   defaultHeaders: {
-    "HTTP-Referer": "https://github.com/replit", // Required for OpenRouter
+    "HTTP-Referer": process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000",
+    "X-Title": "Bitcoin Learning Platform",
   },
 });
 
@@ -47,13 +48,15 @@ export async function getChatResponse(messages: ChatCompletionMessageParam[], su
 Current subject: ${subject}`
     };
 
+    console.log('Sending request to OpenRouter...');
     const response = await openRouter.chat.completions.create({
-      model: "deepseek-ai/deepseek-chat-1-8b", // Free model from OpenRouter
+      model: "deepseek/deepseek-chat-1.8b-base",
       messages: [systemPrompt, ...messages],
       temperature: 0.7,
       max_tokens: 1000,
     });
 
+    console.log('Received response from OpenRouter');
     return response.choices[0].message.content || defaultResponse;
   } catch (error) {
     console.error("OpenRouter API error:", error);
@@ -76,8 +79,9 @@ export async function analyzeLearningProgress(messages: ChatCompletionMessagePar
   }
 }`;
 
+    console.log('Sending analysis request to OpenRouter...');
     const response = await openRouter.chat.completions.create({
-      model: "deepseek-ai/deepseek-chat-1-8b",
+      model: "deepseek/deepseek-chat-1.8b-base",
       messages: [
         { role: "system", content: prompt },
         { role: "user", content: JSON.stringify(messages) }
@@ -86,6 +90,7 @@ export async function analyzeLearningProgress(messages: ChatCompletionMessagePar
       response_format: { type: "json_object" }
     });
 
+    console.log('Received analysis response from OpenRouter');
     return JSON.parse(response.choices[0].message.content || '{}');
   } catch (error) {
     console.error("OpenRouter API error:", error);
