@@ -1,7 +1,58 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 import type { ChatCompletionMessageParam, ChatCompletionContentPartText } from "openai/resources/chat/completions";
 
-const generativeAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+// Add type definitions
+type TopicReadingMaterial = {
+  title: string;
+  content: string;
+  estimated_time: string;
+};
+
+type TopicQuiz = {
+  title: string;
+  questions: Array<{
+    question: string;
+    options: string[];
+    correct_answer: string;
+    explanation: string;
+  }>;
+};
+
+type LearningPathTopic = {
+  topic: string;
+  description: string;
+  reading_materials: TopicReadingMaterial[];
+  quizzes: TopicQuiz[];
+  practical_exercises: string[];
+};
+
+// Define mandatory topics array at the top level
+const mandatoryTopics: string[] = [
+  "Bitcoin Basics",
+  "Blockchain Technology",
+  "Wallet Security",
+  "Transaction Fundamentals",
+  "Digital Security",
+  "Advanced Concepts",
+  "Cold Storage",
+  "Mining Operations"
+];
+
+// Initialize Gemini with proper error handling
+function initializeGemini() {
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    throw new Error('GOOGLE_API_KEY is not set in environment variables');
+  }
+  return new GoogleGenerativeAI(apiKey);
+}
+
+let generativeAI: GoogleGenerativeAI;
+try {
+  generativeAI = initializeGemini();
+} catch (error) {
+  console.error('Failed to initialize Gemini API:', error);
+}
 
 // Shared constants
 const defaultAnalysis = {
@@ -45,6 +96,10 @@ const defaultLearningPath = {
 // Test function to verify Gemini API connection
 export async function testGeminiConnection(): Promise<{ success: boolean; message: string }> {
   try {
+    if (!generativeAI) {
+      throw new Error('Gemini AI not properly initialized');
+    }
+
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
     const safetySettings = [
       {
@@ -138,6 +193,9 @@ Your question was: "${lastMessageContent}"`
 
 export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {
   try {
+    if (!generativeAI) {
+      throw new Error('Gemini AI not properly initialized');
+    }
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
 
     const lastMessage = messages[messages.length - 1];
@@ -148,7 +206,7 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
         : '';
 
     const prompt = `As a Bitcoin tutor, please respond to this question: ${messageContent}
-    Previous context: ${messages.slice(0, -1).map(m => m.content).join('\n')}`;
+Previous context: ${messages.slice(0, -1).map(m => m.content).join('\n')}`;
 
     const result = await model.generateContent({
       contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -168,6 +226,9 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
 
 export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[]) {
   try {
+    if (!generativeAI) {
+      throw new Error('Gemini AI not properly initialized');
+    }
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Analyze this Bitcoin learning conversation and provide structured feedback in this exact JSON format:
@@ -224,6 +285,9 @@ export async function generateLearningPath(
   }
 ) {
   try {
+    if (!generativeAI) {
+      throw new Error('Gemini AI not properly initialized');
+    }
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Create a comprehensive Bitcoin learning path based on the user's preferences:
@@ -279,23 +343,12 @@ Provide response in this exact JSON format:
     try {
       const path = JSON.parse(text);
 
-      // Ensure mandatory topics are included
-      const mandatoryTopics = [
-        "Bitcoin Basics",
-        "Blockchain Technology",
-        "Wallet Security",
-        "Transaction Fundamentals",
-        "Digital Security",
-        "Advanced Concepts",
-        "Cold Storage",
-        "Mining Operations"
-      ];
-
+      // Ensure the next_topics array exists
       if (!path.next_topics) {
         path.next_topics = [];
       }
 
-      const existingTopics = path.next_topics.map((topic: any) => topic.topic);
+      const existingTopics = path.next_topics.map((topic: LearningPathTopic) => topic.topic);
 
       // Add any missing mandatory topics
       mandatoryTopics.forEach(topic => {
@@ -349,12 +402,8 @@ function getDefaultTopicDescription(topic: string): string {
   return descriptions[topic] || `Learn about ${topic} and its role in the Bitcoin ecosystem.`;
 }
 
-function getDefaultReadingMaterials(topic: string): Array<{
-  title: string;
-  content: string;
-  estimated_time: string;
-}> {
-  const materials: Record<string, Array<{ title: string; content: string; estimated_time: string }>> = {
+function getDefaultReadingMaterials(topic: string): Array<TopicReadingMaterial> {
+  const materials: Record<string, Array<TopicReadingMaterial>> = {
     "Bitcoin Basics": [
       {
         title: "What is Bitcoin?",
@@ -628,24 +677,8 @@ Learning Focus:
   }];
 }
 
-function getDefaultQuizzes(topic: string): Array<{
-  title: string;
-  questions: Array<{
-    question: string;
-    options: string[];
-    correct_answer: string;
-    explanation: string;
-  }>;
-}> {
-  const quizzes: Record<string, Array<{
-    title: string;
-    questions: Array<{
-      question: string;
-      options: string[];
-      correct_answer: string;
-      explanation: string;
-    }>;
-  }>> = {
+function getDefaultQuizzes(topic: string): Array<TopicQuiz> {
+  const quizzes: Record<string, Array<TopicQuiz>> = {
     "Bitcoin Basics": [
       {
         title: "Bitcoin Fundamentals Quiz",
@@ -688,6 +721,9 @@ function getDefaultExercises(topic: string): string[] {
 
 export async function generatePracticalExercise(topic: string, difficulty: string) {
   try {
+    if (!generativeAI) {
+      throw new Error('Gemini AI not properly initialized');
+    }
     const model = generativeAI.getGenerativeModel({ model: "gemini-pro" });
 
     const prompt = `Create a practical Bitcoin exercise for "${topic}" at ${difficulty} difficulty level. 
