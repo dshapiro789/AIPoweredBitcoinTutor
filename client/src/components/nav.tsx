@@ -1,7 +1,6 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "react-i18next";
-import { LanguageSelector } from "./language-selector";
 
 export default function Nav() {
   const { t } = useTranslation();
@@ -15,9 +14,6 @@ export default function Nav() {
               {t('app.shortTitle')}
             </Button>
           </Link>
-          <div className="flex items-center gap-4">
-            <LanguageSelector />
-          </div>
         </div>
       </div>
     </nav>
