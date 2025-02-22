@@ -45,7 +45,8 @@
     "returnToDashboard": "Return to Dashboard",
     "continueLeaning": "Continue Learning",
     "showHint": "Show Hint",
-    "reviewAnswers": "Review Your Answers"
+    "reviewAnswers": "Review Your Answers",
+    "startDescription": "Ready to test your knowledge? Let's begin the quiz!"
   },
   "achievements": {
     "title": "Achievements",
@@ -58,40 +59,46 @@
   },
   "dashboard": {
     "title": "Learning Dashboard",
-    "subtitle": "Track your progress and continue your Bitcoin learning journey",
+    "subtitle": "Explore Bitcoin topics and track your learning progress",
     "totalSessions": "Total Sessions",
-    "activeTopics": "Active Topics"
+    "activeTopics": "Active Topics",
+    "completedExercises": "Completed Exercises",
+    "averageConfidence": "Average Confidence"
   },
   "learningPath": {
-    "title": "Your Learning Path",
-    "description": "Track your progress and unlock new topics as you learn",
+    "title": "Learning Topics",
+    "description": "Choose any topic to start learning at your own pace",
     "score": "Score",
     "confidence": "Confidence Level",
-    "recommended": "Ready to start",
-    "locked": "Complete previous topics to unlock",
+    "startAnytime": "Start this topic anytime",
     "start": "Start Topic",
     "review": "Review Topic",
     "wizard": {
-      "title": "Personalize Your Learning Path",
-      "description": "Let's create a learning path tailored to your needs and goals",
-      "start": "Start Personalization",
-      "complete": "Complete Setup"
+      "title": "Personalize Your Learning Experience",
+      "description": "Let us understand your goals to provide better recommendations",
+      "start": "Customize Experience",
+      "complete": "Save Preferences"
     },
-    "wizardComplete": "Learning Path Created",
-    "pathGenerated": "Your personalized learning path has been generated successfully!",
+    "wizardComplete": "Preferences Saved",
+    "pathGenerated": "Your learning preferences have been saved successfully!",
     "estimatedTime": "Estimated completion time: {{time}}",
-    "prerequisites": "Prerequisites",
-    "practicalExercises": "Practical Exercises"
+    "practicalExercises": "Practice Questions",
+    "moreQuestions": "And {{count}} more questions..."
   },
   "error": {
     "title": "Error",
     "failedToLoad": "Failed to load data. Please try again.",
-    "failedToGeneratePath": "Failed to generate learning path. Please try again."
+    "failedToGeneratePath": "Failed to save preferences. Please try again.",
+    "unknown": "An unexpected error occurred",
+    "tryAgain": "Try Again",
+    "loadingFailed": "Failed to load content"
   },
   "common": {
     "back": "Back",
     "next": "Next",
     "complete": "Complete",
-    "generating": "Generating..."
+    "generating": "Generating...",
+    "later": "Later",
+    "continue": "Continue"
   }
 }

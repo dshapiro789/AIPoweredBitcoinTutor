@@ -37,7 +37,6 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
     enabled: !!topics?.length,
   });
 
-  // Organize quiz questions by topic ID
   const quizQuestionsByTopic = allQuizQuestions?.reduce((acc, question) => {
     if (!acc[question.topicId]) {
       acc[question.topicId] = [];
@@ -70,7 +69,6 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
 
   const handleWizardComplete = () => {
     setShowWizard(false);
-    // Refresh all related data
     queryClient.invalidateQueries({ queryKey: [`/api/progress/${userId}`] });
     queryClient.invalidateQueries({ queryKey: ["/api/bitcoin/topics"] });
     queryClient.invalidateQueries({ queryKey: [`/api/learning-path/${userId}`] });
@@ -85,14 +83,11 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
     );
   }
 
-  // Sort topics based on personalized path if available
+  // Sort topics based on difficulty level instead of prerequisites
   const sortedTopics = [...topics].sort((a, b) => {
-    if (!personalizedPath?.next_topics) return 0;
-    const aIndex = personalizedPath.next_topics.findIndex(t => t.topic === a.name);
-    const bIndex = personalizedPath.next_topics.findIndex(t => t.topic === b.name);
-    if (aIndex === -1) return 1;
-    if (bIndex === -1) return -1;
-    return aIndex - bIndex;
+    const difficultyOrder = { beginner: 0, intermediate: 1, advanced: 2 };
+    return difficultyOrder[a.difficulty.toLowerCase() as keyof typeof difficultyOrder] - 
+           difficultyOrder[b.difficulty.toLowerCase() as keyof typeof difficultyOrder];
   });
 
   return (
@@ -122,11 +117,6 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
         <div className="space-y-6">
           {sortedTopics.map((topic) => {
             const { completed, score, confidence } = getTopicProgress(topic.id);
-            const currentIndex = sortedTopics.findIndex(t => t.id === topic.id);
-            const nextTopic = !completed && (
-              currentIndex === 0 ||
-              getTopicProgress(sortedTopics[currentIndex - 1]?.id).completed
-            );
             const pathInfo = personalizedPath?.next_topics?.find(t => t.topic === topic.name);
             const topicQuestions = quizQuestionsByTopic[topic.id] || [];
 
@@ -135,23 +125,17 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                 key={topic.id}
                 className={cn(
                   "relative pl-8 pb-6",
-                  currentIndex !== sortedTopics.length - 1 && "border-l-2 border-muted ml-4"
+                  "border-l-2 border-muted ml-4"
                 )}
               >
-                <div
-                  className={cn(
-                    "absolute -left-2 top-0",
-                    completed && "text-primary",
-                    nextTopic && "animate-pulse text-primary",
-                    !completed && !nextTopic && "text-muted-foreground"
-                  )}
-                >
+                <div className={cn(
+                  "absolute -left-2 top-0",
+                  completed ? "text-primary" : "text-muted-foreground"
+                )}>
                   {completed ? (
                     <div className="bg-primary rounded-full">
                       <CheckCircle2 className="w-8 h-8 text-primary-foreground" />
                     </div>
-                  ) : nextTopic ? (
-                    <Circle className="w-8 h-8" />
                   ) : (
                     <Circle className="w-8 h-8" />
                   )}
@@ -159,8 +143,7 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
 
                 <Card className={cn(
                   "transition-colors",
-                  completed && "border-primary",
-                  nextTopic && "border-primary/50"
+                  completed && "border-primary"
                 )}>
                   <CardHeader>
                     <div className="flex justify-between items-start">
@@ -169,17 +152,16 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                         <CardDescription>
                           {pathInfo?.description || topic.description}
                         </CardDescription>
-                        {pathInfo?.prerequisites?.length > 0 && (
-                          <div className="mt-2 text-sm text-muted-foreground">
-                            <span className="font-medium">Prerequisites: </span>
-                            {pathInfo.prerequisites.join(", ")}
-                          </div>
-                        )}
+                        <div className="mt-2 space-x-2">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                            {t(`topics.difficulty.${topic.difficulty.toLowerCase()}`)}
+                          </span>
+                        </div>
                         {topicQuestions.length > 0 && (
                           <div className="mt-2 space-y-1">
                             <p className="text-sm font-medium flex items-center">
                               <Book className="w-4 h-4 mr-1" />
-                              Practice Questions:
+                              {t('learningPath.practicalExercises')}:
                             </p>
                             <ul className="text-sm text-muted-foreground list-disc pl-5">
                               {topicQuestions.slice(0, 3).map((question, i) => (
@@ -187,7 +169,7 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                               ))}
                               {topicQuestions.length > 3 && (
                                 <li className="text-sm text-muted-foreground">
-                                  And {topicQuestions.length - 3} more questions...
+                                  {t('learningPath.moreQuestions', { count: topicQuestions.length - 3 })}
                                 </li>
                               )}
                             </ul>
@@ -214,14 +196,11 @@ export function LearningPathVisualizer({ userId }: LearningPathVisualizerProps) 
                     ) : (
                       <div className="flex justify-between items-center">
                         <p className="text-sm text-muted-foreground">
-                          {nextTopic ? t('learningPath.recommended') : t('learningPath.locked')}
+                          {t('learningPath.startAnytime')}
                         </p>
-                        <Link href={nextTopic ? `/learn/${topic.id}` : '#'}>
-                          <Button
-                            variant={nextTopic ? "default" : "outline"}
-                            disabled={!nextTopic}
-                          >
-                            {completed ? t('learningPath.review') : t('learningPath.start')}
+                        <Link href={`/learn/${topic.id}`}>
+                          <Button variant="default">
+                            {t('learningPath.start')}
                             <ChevronRight className="w-4 h-4 ml-2" />
                           </Button>
                         </Link>

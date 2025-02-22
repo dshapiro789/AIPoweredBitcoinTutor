@@ -3,7 +3,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { LearningProgress } from "@shared/schema";
 import { LearningPathVisualizer } from "@/components/learning-path/learning-path-visualizer";
 import { useTranslation } from "react-i18next";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, BookOpen, Award, Brain } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 export default function Dashboard() {
   const { t } = useTranslation();
@@ -21,8 +22,10 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="text-center text-destructive">
-        <p>{t('error.failedToLoad')}</p>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto text-center">
+          <p className="text-destructive">{t('error.failedToLoad')}</p>
+        </div>
       </div>
     );
   }
@@ -39,52 +42,68 @@ export default function Dashboard() {
   ) || 0) / (progress?.length || 1);
 
   return (
-    <div className="space-y-8">
-      <Card className="border-primary/20 bg-primary/5">
-        <CardContent className="pt-6 pb-4 flex items-center gap-2 text-primary">
-          <AlertCircle className="h-5 w-5" />
-          <p>
-            <span className="font-semibold">Beta</span> - We're continuously improving the learning experience. Your feedback helps us make it better!
-          </p>
-        </CardContent>
-      </Card>
-
+    <div className="container mx-auto px-4 py-8 space-y-8">
+      {/* Welcome Section */}
       <div className="flex flex-col gap-4">
-        <h1 className="text-4xl font-bold">{t('dashboard.title', 'Learning Dashboard')}</h1>
+        <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
         <p className="text-muted-foreground">
-          {t('dashboard.subtitle', 'Track your progress and continue your Bitcoin learning journey')}
+          {t('dashboard.subtitle')}
         </p>
       </div>
 
-      <LearningPathVisualizer userId={1} />
-
-      <div className="grid gap-6 md:grid-cols-3">
+      {/* Stats Grid */}
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-3">
         <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.completedExercises', 'Completed Exercises')}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t('dashboard.completedExercises')}
+            </CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{completedExercises}</p>
+            <div className="text-2xl font-bold">{completedExercises}</div>
+            <Progress 
+              value={(completedExercises / (activeTopics * 5)) * 100} 
+              className="h-2 mt-4" 
+            />
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.activeTopics', 'Active Topics')}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t('dashboard.activeTopics')}
+            </CardTitle>
+            <Award className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{activeTopics}</p>
+            <div className="text-2xl font-bold">{activeTopics}</div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {t('dashboard.topicsStarted')}
+            </p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>{t('dashboard.averageConfidence', 'Average Confidence')}</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              {t('dashboard.averageConfidence')}
+            </CardTitle>
+            <Brain className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{averageConfidence.toFixed(1)}/5</p>
+            <div className="text-2xl font-bold">{averageConfidence.toFixed(1)}/5</div>
+            <Progress 
+              value={averageConfidence * 20} 
+              className="h-2 mt-4" 
+            />
           </CardContent>
         </Card>
+      </div>
+
+      {/* Learning Path Visualizer */}
+      <div className="mt-8">
+        <LearningPathVisualizer userId={1} />
       </div>
     </div>
   );
