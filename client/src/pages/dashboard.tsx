@@ -11,6 +11,17 @@ export default function Dashboard() {
     queryKey: ["/api/bitcoin/topics"],
   });
 
+  const getTopicDescription = (topicName: string) => {
+    const descriptions: Record<string, string> = {
+      "Bitcoin Basics": "Learn the fundamental concepts, history, and importance of cryptocurrency",
+      "Wallet Security": "Master the essential practices for securing your digital assets",
+      "Transaction Fundamentals": "Understand how cryptocurrency transactions work and best practices",
+      "UTXO Management": "Explore advanced transaction handling and optimization strategies",
+      "Cold Storage": "Discover secure methods for long-term cryptocurrency storage"
+    };
+    return descriptions[topicName] || "Explore this fundamental aspect of cryptocurrency technology";
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -49,7 +60,7 @@ export default function Dashboard() {
                 <CardTitle>{topic.name}</CardTitle>
               </div>
               <CardDescription>
-                Learn about this fundamental aspect of Bitcoin and explore its role in the cryptocurrency ecosystem.
+                {getTopicDescription(topic.name)}
               </CardDescription>
               <div className="mt-2">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
