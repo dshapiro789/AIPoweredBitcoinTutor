@@ -16,9 +16,6 @@ export default function Nav() {
             </Button>
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost">{t('nav.subjects')}</Button>
-            </Link>
             <LanguageSelector />
           </div>
         </div>
