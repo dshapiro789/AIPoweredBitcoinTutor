@@ -87,18 +87,18 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {/* Donation QR Section */}
-        <div className="my-8">
-          <DonationQR />
-        </div>
-
         {/* Chat Interface */}
-        <div className="mt-8">
+        <div className="space-y-4">
           <ChatInterface 
             session={defaultSession}
             subject="Bitcoin Basics"
             initialMessage={null} 
           />
+
+          {/* Donation QR - More subtle positioning */}
+          <div className="mt-8 opacity-90 hover:opacity-100 transition-opacity">
+            <DonationQR />
+          </div>
         </div>
       </div>
     </div>
