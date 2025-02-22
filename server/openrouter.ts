@@ -5,20 +5,27 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 const openRouter = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY || "",
-  defaultQuery: { temperature: 0.7 },
   defaultHeaders: {
     "HTTP-Referer": process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000",
     "X-Title": "Bitcoin Learning Platform"
-  },
+  }
 });
 
 // Test connectivity to OpenRouter API
 export async function testOpenRouterConnection(): Promise<{ success: boolean; message: string }> {
   try {
-    console.log('Testing OpenRouter connectivity...');
+    console.log('Testing OpenRouter connectivity with config:', {
+      baseURL: "https://openrouter.ai/api/v1",
+      hasApiKey: !!process.env.OPENROUTER_API_KEY,
+      headers: {
+        "HTTP-Referer": process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000",
+        "X-Title": "Bitcoin Learning Platform"
+      }
+    });
+
     const response = await openRouter.chat.completions.create({
-      model: "deepseek-r1:free",
-      messages: [{ role: "user", content: "Test connection" }],
+      model: "mistralai/mistral-7b-instruct:free", // Using a free model for testing
+      messages: [{ role: "user", content: "Simple test message" }],
       max_tokens: 5
     });
 
@@ -33,14 +40,14 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
       message: "Successfully connected to OpenRouter API"
     };
   } catch (error: any) {
-    const errorDetails = {
+    console.error('OpenRouter connection test failed:', {
       type: error?.constructor?.name,
       message: error?.message,
       status: error?.response?.status,
-      data: error?.response?.data
-    };
-
-    console.error('OpenRouter connection test failed:', errorDetails);
+      statusText: error?.response?.statusText,
+      data: error?.response?.data,
+      headers: error?.response?.headers
+    });
 
     // Check for specific error conditions
     if (!process.env.OPENROUTER_API_KEY) {
@@ -69,9 +76,42 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
   }
 }
 
-// Default response for fallback
-const defaultResponse = `I apologize, but I'm currently experiencing some technical difficulties. 
-Let me provide you with some general guidance about Bitcoin:
+// Get chat response with detailed error handling
+export async function getChatResponse(messages: ChatCompletionMessageParam[], subject: string) {
+  try {
+    console.log('OpenRouter Request:', {
+      hasApiKey: !!process.env.OPENROUTER_API_KEY,
+      messageCount: messages.length,
+      subject
+    });
+
+    const response = await openRouter.chat.completions.create({
+      model: "mistralai/mistral-7b-instruct:free", // Using free tier model
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert Bitcoin tutor. Current subject: ${subject}`
+        },
+        ...messages
+      ],
+      temperature: 0.7,
+      max_tokens: 1000
+    });
+
+    return response.choices[0]?.message?.content || defaultFallbackResponse;
+  } catch (error: any) {
+    console.error('OpenRouter Chat Error:', {
+      type: error?.constructor?.name,
+      message: error?.message,
+      status: error?.response?.status,
+      data: error?.response?.data
+    });
+    return defaultFallbackResponse;
+  }
+}
+
+// Default fallback response when API fails
+const defaultFallbackResponse = `I apologize, but I'm currently experiencing technical difficulties connecting to the AI service. Let me provide you with some general guidance about Bitcoin:
 
 1. For beginners, I recommend starting with:
    - What Bitcoin is and how it works
@@ -85,63 +125,15 @@ Let me provide you with some general guidance about Bitcoin:
 
 Please try your question again in a few moments when the service is restored.`;
 
-export async function getChatResponse(messages: ChatCompletionMessageParam[], subject: string) {
-  const systemPrompt = {
-    role: "system",
-    content: `You are an expert Bitcoin tutor. Current subject: ${subject}`
-  };
-
-  try {
-    // Log request details
-    console.log('OpenRouter Request:', {
-      model: 'deepseek-r1:free',
-      temperature: 0.7,
-      max_tokens: 1000,
-      messageCount: messages.length + 1,
-      systemPrompt: systemPrompt.content
-    });
-
-    const response = await openRouter.chat.completions.create({
-      model: "deepseek-r1:free",
-      messages: [systemPrompt, ...messages],
-      stream: false,
-      temperature: 0.7,
-      max_tokens: 1000
-    });
-
-    // Log response details
-    console.log('OpenRouter Response:', {
-      status: 'success',
-      choices: response.choices?.length,
-      firstMessagePreview: response.choices[0]?.message?.content?.substring(0, 100)
-    });
-
-    return response.choices[0]?.message?.content || defaultResponse;
-  } catch (error: any) {
-    // Detailed error logging
-    console.error('OpenRouter Error:', {
-      type: error?.constructor?.name,
-      message: error?.message,
-      status: error?.status,
-      response: {
-        status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        data: error?.response?.data,
-        headers: error?.response?.headers
-      }
-    });
-    return defaultResponse;
-  }
-}
-
+// Learning progress analysis with error handling
 export async function analyzeLearningProgress(messages: ChatCompletionMessageParam[]) {
   try {
     const response = await openRouter.chat.completions.create({
-      model: "deepseek-r1:free",
+      model: "mistralai/mistral-7b-instruct:free", // Using free tier model
       messages: [
         {
           role: "system",
-          content: `Analyze this chat history and provide feedback in JSON format`
+          content: "Analyze this chat history and provide feedback in JSON format"
         },
         {
           role: "user",
@@ -161,6 +153,7 @@ export async function analyzeLearningProgress(messages: ChatCompletionMessagePar
       response: error?.response?.data
     });
 
+    // Return default analysis on error
     return {
       understanding: 0.7,
       engagement: 0.8,
