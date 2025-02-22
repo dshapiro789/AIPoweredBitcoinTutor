@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import type { BitcoinTopic } from "@shared/schema";
-import { Bitcoin, Book, ChevronRight, MessageSquare, AlertCircle } from "lucide-react";
+import type { BitcoinTopic, ChatSession } from "@shared/schema";
+import { Bitcoin, MessageSquare, AlertCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import ChatInterface from "@/components/chat-interface";
 
 export default function Home() {
   const { t, i18n } = useTranslation();
@@ -20,40 +21,24 @@ export default function Home() {
     },
   });
 
-  const handleStartLearning = () => {
-    // If we have topics, start with the first one, otherwise use a default
-    const firstTopicId = topics?.[0]?.id || 1;
-    const initialMessage = "Hi! I'd like to learn about Bitcoin basics.";
-    setLocation(`/chat/${firstTopicId}?message=${encodeURIComponent(initialMessage)}`);
-  };
-
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-2 mb-8">
-            <CardContent className="p-6 sm:p-8">
-              <div className="animate-pulse space-y-4">
-                <div className="h-8 bg-muted rounded w-1/3"></div>
-                <div className="h-4 bg-muted rounded w-2/3"></div>
-              </div>
-            </CardContent>
-          </Card>
           <div className="animate-pulse space-y-4">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-20 bg-muted rounded-lg" />
-            ))}
+            <div className="h-8 bg-muted rounded w-1/3"></div>
+            <div className="h-4 bg-muted rounded w-2/3"></div>
           </div>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || !topics?.length) {
     return (
       <div className="container mx-auto px-4 py-6">
         <div className="max-w-4xl mx-auto text-center">
-          <p className="text-destructive mb-4">Failed to load topics. Please try again later.</p>
+          <p className="text-destructive mb-4">Unable to load Bitcoin topics. Please try again later.</p>
           <Button 
             onClick={() => window.location.reload()} 
             variant="outline"
@@ -65,6 +50,20 @@ export default function Home() {
       </div>
     );
   }
+
+  // Create a default session for the home page chat with proper typing
+  const defaultSession: ChatSession = {
+    id: 1, // Using a number instead of string
+    userId: 1,
+    topicId: topics[0].id,
+    messages: [
+      {
+        role: 'assistant',
+        content: 'Hi! I\'m your AI Bitcoin tutor. What would you like to learn about today?'
+      }
+    ],
+    isActive: true
+  };
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -90,64 +89,20 @@ export default function Home() {
             </div>
 
             <p className="text-base sm:text-lg text-muted-foreground">
-              {t('app.description')}
+              Welcome to your personal AI Bitcoin Tutor! Ask any questions about Bitcoin, blockchain technology, 
+              and cryptocurrency. I'm here to help you learn and understand these complex topics in a simple, 
+              interactive way.
             </p>
-
-            <Button 
-              size="lg" 
-              className="w-full sm:w-auto"
-              onClick={handleStartLearning}
-            >
-              <MessageSquare className="w-5 h-5 mr-2" />
-              {t('topics.startLearning')}
-            </Button>
           </CardContent>
         </Card>
 
-        {/* Learning Path Section */}
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Book className="w-5 h-5 text-primary" />
-            <h2 className="text-xl sm:text-2xl font-semibold">{t('nav.subjects')}</h2>
-          </div>
-
-          <div className="space-y-4">
-            {(topics || []).map((topic) => (
-              <Card 
-                key={topic.id} 
-                className="transition-colors hover:bg-muted/50"
-                onClick={() => setLocation(`/chat/${topic.id}`)}
-                role="button"
-                tabIndex={0}
-              >
-                <CardContent className="p-4 sm:p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <h3 className="text-lg font-medium">{topic.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {topic.description}
-                      </p>
-                      {topic.category && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          <span 
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
-                          >
-                            {topic.category}
-                          </span>
-                          <span 
-                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary"
-                          >
-                            {t(`topics.difficulty.${topic.difficulty.toLowerCase()}`)}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        {/* Chat Interface */}
+        <div className="mt-8">
+          <ChatInterface 
+            session={defaultSession}
+            subject="Bitcoin Basics"
+            initialMessage={null} 
+          />
         </div>
       </div>
     </div>
