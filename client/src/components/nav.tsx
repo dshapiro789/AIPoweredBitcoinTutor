@@ -19,9 +19,6 @@ export default function Nav() {
             <Link href="/">
               <Button variant="ghost">{t('nav.subjects')}</Button>
             </Link>
-            <Link href="/dashboard">
-              <Button variant="ghost">{t('nav.dashboard')}</Button>
-            </Link>
             <LanguageSelector />
           </div>
         </div>
