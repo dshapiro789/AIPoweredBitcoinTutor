@@ -37,7 +37,7 @@ export default function LearnPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto text-center">
           <p className="text-destructive">{t('error.failedToLoad')}</p>
-          <Link href="/">
+          <Link href="/dashboard">
             <Button variant="outline" className="mt-4">
               {t('common.back')}
             </Button>
@@ -486,7 +486,7 @@ Emergency Procedures:
             <h1 className="text-3xl font-bold mb-2">{topic.name}</h1>
             <p className="text-muted-foreground">{topic.description}</p>
           </div>
-          <Link href="/">
+          <Link href="/dashboard">
             <Button variant="outline" className="flex items-center gap-2">
               <ChevronLeft className="w-4 h-4" />
               {t('common.back')}
