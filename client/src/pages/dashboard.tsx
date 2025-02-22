@@ -11,15 +11,21 @@ export default function Dashboard() {
     queryKey: ["/api/bitcoin/topics"],
   });
 
-  const getTopicDescription = (topicName: string) => {
-    const descriptions: Record<string, string> = {
-      "Bitcoin Basics": "Learn the fundamental concepts, history, and importance of cryptocurrency",
-      "Wallet Security": "Master the essential practices for securing your digital assets",
-      "Transaction Fundamentals": "Understand how cryptocurrency transactions work and best practices",
-      "UTXO Management": "Explore advanced transaction handling and optimization strategies",
-      "Cold Storage": "Discover secure methods for long-term cryptocurrency storage"
-    };
-    return descriptions[topicName] || "Explore this fundamental aspect of cryptocurrency technology";
+  const getTopicContent = (topic: string) => {
+    switch (topic) {
+      case "Bitcoin Basics":
+        return "Learn fundamental concepts, history, and the revolutionary impact of cryptocurrency";
+      case "Wallet Security":
+        return "Essential practices and guidelines for protecting your digital assets";
+      case "Transaction Fundamentals":
+        return "Understanding how digital currency moves and best practices for transfers";
+      case "UTXO Management":
+        return "Advanced techniques for managing transaction outputs and optimization";
+      case "Cold Storage":
+        return "Secure methods and strategies for long-term asset protection";
+      default:
+        return "Explore key concepts and practical applications in cryptocurrency";
+    }
   };
 
   if (isLoading) {
@@ -42,7 +48,7 @@ export default function Dashboard() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-      {/* Library Header */}
+      {/* Header */}
       <div className="flex flex-col gap-4">
         <h1 className="text-4xl font-bold">{t('dashboard.title')}</h1>
         <p className="text-muted-foreground">
@@ -55,18 +61,18 @@ export default function Dashboard() {
         {topics?.map((topic) => (
           <Card key={topic.id} className="transition-colors hover:border-primary">
             <CardHeader>
-              <div className="flex items-center gap-2">
-                <Book className="h-5 w-5" />
-                <CardTitle>{topic.name}</CardTitle>
-              </div>
-              <CardDescription>
-                {getTopicDescription(topic.name)}
-              </CardDescription>
-              <div className="mt-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Book className="h-5 w-5 text-primary" />
+                  <CardTitle>{topic.name}</CardTitle>
+                </div>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                   {t(`dashboard.topics.difficulty.${topic.difficulty.toLowerCase()}`)}
                 </span>
               </div>
+              <CardDescription className="mt-2">
+                {getTopicContent(topic.name)}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Link href={`/learn/${topic.id}`}>
