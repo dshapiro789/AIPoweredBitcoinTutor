@@ -7,7 +7,8 @@ const openRouter = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY || "",
   defaultHeaders: {
     "HTTP-Referer": process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000",
-    "X-Title": "Bitcoin Learning Platform"
+    "X-Title": "Bitcoin Learning Platform",
+    "Content-Type": "application/json"
   }
 });
 
@@ -19,24 +20,24 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
       baseURL: "https://openrouter.ai/api/v1",
       hasApiKey: !!process.env.OPENROUTER_API_KEY,
       apiKeyLength: process.env.OPENROUTER_API_KEY?.length,
-      headers: {
-        "HTTP-Referer": process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000",
-        "X-Title": "Bitcoin Learning Platform"
-      }
+      headers: openRouter.defaultHeaders
     });
 
     // Use the most basic model for testing
     const response = await openRouter.chat.completions.create({
       model: "mistralai/mistral-7b-instruct:free",
       messages: [{ role: "user", content: "Simple test message" }],
-      max_tokens: 5
+      max_tokens: 5,
+      temperature: 0.7
     });
 
     // Log successful response details
     console.log('OpenRouter test succeeded:', {
       model: response.model,
       hasChoices: !!response.choices?.length,
-      firstChoice: response.choices[0]?.message?.content
+      firstChoice: response.choices[0]?.message?.content,
+      provider: response.provider,
+      usage: response.usage
     });
 
     return { 
@@ -98,7 +99,7 @@ export async function getChatResponse(messages: ChatCompletionMessageParam[], su
     });
 
     const response = await openRouter.chat.completions.create({
-      model: "mistralai/mistral-7b-instruct:free", // Using free tier model
+      model: "mistralai/mistral-7b-instruct:free",
       messages: [
         {
           role: "system",
@@ -108,6 +109,12 @@ export async function getChatResponse(messages: ChatCompletionMessageParam[], su
       ],
       temperature: 0.7,
       max_tokens: 1000
+    });
+
+    console.log('OpenRouter chat response:', {
+      model: response.model,
+      provider: response.provider,
+      usage: response.usage
     });
 
     return response.choices[0]?.message?.content || getFallbackResponse();
