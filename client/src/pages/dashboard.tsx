@@ -49,7 +49,7 @@ export default function Dashboard() {
                 <CardTitle>{topic.name}</CardTitle>
               </div>
               <CardDescription>
-                Learn about this fundamental aspect of Bitcoin and its role in the cryptocurrency ecosystem.
+                Learn about this fundamental aspect of Bitcoin and explore its role in the cryptocurrency ecosystem.
               </CardDescription>
               <div className="mt-2">
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
