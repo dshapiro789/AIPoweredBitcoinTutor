@@ -8,6 +8,17 @@
     "subjects": "Temas",
     "dashboard": "Tablero"
   },
+  "learn": {
+    "content": "Contenido de Aprendizaje",
+    "followPath": "Sigue tu ruta de aprendizaje personalizada",
+    "exerciseDescription": "Ejercicio {{number}}: Practica lo que has aprendido",
+    "startQuiz": "Comenzar Examen",
+    "back": "Volver a Temas",
+    "progress": "Progreso",
+    "estimatedTime": "{{time}}",
+    "minutes": "minutos",
+    "complete": "Completado"
+  },
   "topics": {
     "startLearning": "Empezar",
     "takeQuiz": "Hacer Examen",
@@ -17,20 +28,24 @@
       "advanced": "Avanzado"
     }
   },
-  "learn": {
-    "content": "Contenido de Aprendizaje",
-    "followPath": "Sigue tu ruta de aprendizaje personalizada",
-    "exerciseDescription": "Ejercicio {{number}}: Practica lo que has aprendido",
-    "startQuiz": "Comenzar Examen",
-    "back": "Volver a Temas"
-  },
   "quiz": {
     "title": "Examen",
     "nextQuestion": "Siguiente Pregunta",
     "submitQuiz": "Enviar Examen",
     "loading": "Cargando examen...",
     "score": "Puntaje",
-    "of": "de"
+    "of": "de",
+    "question": "Pregunta",
+    "answered": "Respondidas",
+    "completed": "¡Examen Completado!",
+    "congratulations": "¡Felicitaciones!",
+    "yourScore": "Tu Puntaje",
+    "finalScore": "Puntaje Final: {{score}}%",
+    "returnToDashboard": "Volver a Temas",
+    "continueLeaning": "Continuar Aprendiendo",
+    "showHint": "Mostrar Pista",
+    "reviewAnswers": "Revisar tus Respuestas",
+    "startDescription": "¿Listo para poner a prueba tus conocimientos? ¡Comencemos el examen!"
   },
   "achievements": {
     "title": "Logros",
@@ -40,5 +55,20 @@
     "points": "puntos",
     "progress": "Progreso",
     "locked": "Sigue aprendiendo para desbloquear este logro"
+  },
+  "chat": {
+    "placeholder": "Escribe tu pregunta sobre Bitcoin aquí...",
+    "start": "Inicia una conversación",
+    "thinking": "Pensando...",
+    "error": "Error al enviar mensaje"
+  },
+  "common": {
+    "back": "Atrás",
+    "next": "Siguiente",
+    "complete": "Completar",
+    "generating": "Generando...",
+    "later": "Después",
+    "continue": "Continuar",
+    "readMore": "Empezar a Aprender"
   }
 }

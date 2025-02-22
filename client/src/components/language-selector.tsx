@@ -11,10 +11,7 @@ import { queryClient } from "@/lib/queryClient";
 
 const languages = {
   en: { name: 'English', flag: '🇺🇸' },
-  es: { name: 'Español (España)', flag: '🇪🇸' },
   'es-419': { name: 'Español (Latinoamérica)', flag: '🌎' },
-  zh: { name: '中文', flag: '🇨🇳' },
-  ja: { name: '日本語', flag: '🇯🇵' },
 };
 
 export function LanguageSelector() {
@@ -30,9 +27,12 @@ export function LanguageSelector() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon">
+        <Button variant="ghost" size="icon" className="relative">
           <Globe className="h-4 w-4" />
           <span className="sr-only">Select Language</span>
+          <span className="absolute -bottom-1 -right-1 text-xs">
+            {i18n.language === 'es-419' ? '🌎' : '🇺🇸'}
+          </span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
