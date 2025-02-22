@@ -7,35 +7,36 @@ const openRouter = new OpenAI({
   apiKey: process.env.OPENROUTER_API_KEY || "",
   headers: {
     "HTTP-Referer": process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000",
-    "X-Title": "Bitcoin Learning Platform",
-    "Content-Type": "application/json"
+    "X-Title": "Bitcoin Learning Platform"
   }
 });
 
 // Test connectivity to OpenRouter API
 export async function testOpenRouterConnection(): Promise<{ success: boolean; message: string }> {
   try {
-    // Log complete configuration for debugging
-    console.log('Testing OpenRouter connectivity with config:', {
+    console.log('Starting OpenRouter connection test with config:', {
       baseURL: "https://openrouter.ai/api/v1",
       hasApiKey: !!process.env.OPENROUTER_API_KEY,
       apiKeyLength: process.env.OPENROUTER_API_KEY?.length,
+      replSlug: process.env.REPL_SLUG,
       referer: process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000"
     });
 
-    // Use the most basic model for testing
+    const startTime = Date.now();
     const response = await openRouter.chat.completions.create({
       model: "mistralai/mistral-7b-instruct:free",
       messages: [{ role: "user", content: "Simple test message" }],
       max_tokens: 5,
       temperature: 0.7
     });
+    const endTime = Date.now();
 
-    // Log successful response details
     console.log('OpenRouter test succeeded:', {
+      duration: `${endTime - startTime}ms`,
       choices: response.choices?.length,
       firstMessageContent: response.choices[0]?.message?.content,
-      usage: response.usage
+      usage: response.usage,
+      id: response.id
     });
 
     return { 
@@ -43,17 +44,21 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
       message: "Successfully connected to OpenRouter API"
     };
   } catch (error: any) {
-    // Enhanced error logging
     console.error('OpenRouter connection test failed:', {
       type: error?.constructor?.name,
       message: error?.message,
       status: error?.response?.status,
       statusText: error?.response?.statusText,
       data: error?.response?.data,
-      stack: error?.stack
+      stack: error?.stack,
+      // Additional diagnostics
+      env: {
+        hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
+        replSlug: process.env.REPL_SLUG,
+        nodeEnv: process.env.NODE_ENV
+      }
     });
 
-    // More specific error messages
     if (!process.env.OPENROUTER_API_KEY) {
       return { 
         success: false, 
@@ -86,13 +91,15 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
   }
 }
 
-// Get chat response with enhanced error handling
+// Get chat response with enhanced error handling and logging
 export async function getChatResponse(messages: ChatCompletionMessageParam[], subject: string) {
+  const startTime = Date.now();
   try {
-    console.log('Sending chat request to OpenRouter:', {
+    console.log('Preparing OpenRouter chat request:', {
       hasApiKey: !!process.env.OPENROUTER_API_KEY,
       messageCount: messages.length,
-      subject
+      subject,
+      firstMessagePreview: messages[0]?.content?.toString().substring(0, 50)
     });
 
     const response = await openRouter.chat.completions.create({
@@ -108,26 +115,35 @@ export async function getChatResponse(messages: ChatCompletionMessageParam[], su
       max_tokens: 1000
     });
 
-    console.log('OpenRouter chat response:', {
+    const endTime = Date.now();
+    console.log('OpenRouter chat response succeeded:', {
+      duration: `${endTime - startTime}ms`,
       choices: response.choices?.length,
-      messageContent: response.choices[0]?.message?.content,
-      usage: response.usage
+      messageContent: response.choices[0]?.message?.content?.substring(0, 50) + '...',
+      usage: response.usage,
+      id: response.id
     });
 
     return response.choices[0]?.message?.content || getFallbackResponse();
   } catch (error: any) {
+    const endTime = Date.now();
     console.error('OpenRouter chat request failed:', {
+      duration: `${endTime - startTime}ms`,
       type: error?.constructor?.name,
       message: error?.message,
       status: error?.response?.status,
       data: error?.response?.data,
-      stack: error?.stack
+      stack: error?.stack,
+      requestConfig: {
+        messageCount: messages.length,
+        subject,
+        model: "mistralai/mistral-7b-instruct:free"
+      }
     });
     return getFallbackResponse();
   }
 }
 
-// Separate fallback response function
 function getFallbackResponse(): string {
   return `I apologize, but I'm currently experiencing technical difficulties connecting to the AI service. Let me provide you with some general guidance about Bitcoin:
 
@@ -144,9 +160,15 @@ function getFallbackResponse(): string {
 Please try your question again in a few moments when the service is restored.`;
 }
 
-// Learning progress analysis with enhanced error handling
+// Learning progress analysis with enhanced error handling and logging
 export async function analyzeLearningProgress(messages: ChatCompletionMessageParam[]) {
+  const startTime = Date.now();
   try {
+    console.log('Starting learning progress analysis:', {
+      messageCount: messages.length,
+      firstMessagePreview: messages[0]?.content?.toString().substring(0, 50)
+    });
+
     const response = await openRouter.chat.completions.create({
       model: "mistralai/mistral-7b-instruct:free",
       messages: [
@@ -163,9 +185,18 @@ export async function analyzeLearningProgress(messages: ChatCompletionMessagePar
       response_format: { type: "json_object" }
     });
 
+    const endTime = Date.now();
+    console.log('Learning progress analysis succeeded:', {
+      duration: `${endTime - startTime}ms`,
+      responseLength: response.choices[0]?.message?.content?.length,
+      usage: response.usage
+    });
+
     return JSON.parse(response.choices[0]?.message?.content || '{}');
   } catch (error: any) {
-    console.error('OpenRouter analysis request failed:', {
+    const endTime = Date.now();
+    console.error('Learning progress analysis failed:', {
+      duration: `${endTime - startTime}ms`,
       type: error?.constructor?.name,
       message: error?.message,
       status: error?.response?.status,
