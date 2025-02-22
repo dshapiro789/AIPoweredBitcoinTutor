@@ -1,12 +1,12 @@
 {
   "app": {
-    "title": "The AI-Powered Bitcoin Tutor",
-    "shortTitle": "AI BTC Tutor",
-    "description": "Start your Bitcoin journey with our AI-powered tutor. From basics to advanced concepts, learn how to securely store, manage, and transact with Bitcoin through interactive lessons tailored to your level."
+    "title": "Bitcoin Library",
+    "shortTitle": "BTC Library",
+    "description": "A comprehensive library of Bitcoin knowledge, from basics to advanced concepts. Learn about cryptocurrency, blockchain technology, and Bitcoin through detailed articles and guides."
   },
   "nav": {
-    "subjects": "Subjects",
-    "dashboard": "Dashboard"
+    "library": "Library",
+    "topics": "Topics"
   },
   "learn": {
     "content": "Learning Content",
@@ -18,6 +18,17 @@
     "estimatedTime": "{{time}}",
     "minutes": "minutes",
     "complete": "Complete"
+  },
+  "library": {
+    "title": "Bitcoin Knowledge Library",
+    "subtitle": "Explore comprehensive guides and articles about Bitcoin and cryptocurrency",
+    "readMore": "Read Article",
+    "categories": {
+      "basics": "Bitcoin Basics",
+      "technical": "Technical Concepts",
+      "security": "Security",
+      "advanced": "Advanced Topics"
+    }
   },
   "topics": {
     "startLearning": "Start Learning",
@@ -87,8 +98,7 @@
   },
   "error": {
     "title": "Error",
-    "failedToLoad": "Failed to load data. Please try again.",
-    "failedToGeneratePath": "Failed to save preferences. Please try again.",
+    "failedToLoad": "Failed to load content. Please try again.",
     "unknown": "An unexpected error occurred",
     "tryAgain": "Try Again",
     "loadingFailed": "Failed to load content"
