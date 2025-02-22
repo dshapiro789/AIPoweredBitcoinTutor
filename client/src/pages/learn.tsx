@@ -49,6 +49,78 @@ export default function LearnPage() {
 
   const getTopicContent = (topicName: string) => {
     const content: Record<string, { title: string; content: string }[]> = {
+      "Bitcoin Basics": [
+        {
+          title: "The Birth of Bitcoin",
+          content: `Bitcoin was created in 2008 during the global financial crisis as a response to traditional financial system failures:
+
+Key Historical Events:
+- October 31, 2008: Satoshi Nakamoto publishes the Bitcoin whitepaper
+- January 3, 2009: The Genesis block is mined, containing a Times headline about bank bailouts
+- January 12, 2009: First Bitcoin transaction between Satoshi and Hal Finney
+- May 22, 2010: First real-world Bitcoin transaction (Bitcoin Pizza Day)
+
+Satoshi Nakamoto's Vision:
+- Create a peer-to-peer electronic cash system
+- Eliminate the need for trusted third parties
+- Prevent double-spending without centralized authority
+- Enable borderless, permissionless transactions`
+        },
+        {
+          title: "Bitcoin's Monetary Policy",
+          content: `Bitcoin's revolutionary monetary policy stands in stark contrast to traditional fiat systems:
+
+Key Economic Principles:
+- Fixed Supply Cap: Only 21 million bitcoins will ever exist
+- Predictable Issuance: New coins are created through mining at a predetermined rate
+- Halving Events: Mining rewards are cut in half approximately every 4 years
+- Deflationary Nature: Increasing scarcity over time
+
+Comparison to Fiat Currency:
+- No central authority can create more Bitcoin beyond the protocol rules
+- Immune to monetary debasement through printing
+- Transparent and predictable supply schedule
+- Not subject to political manipulation`
+        },
+        {
+          title: "Bitcoin as Inflation Hedge",
+          content: `Understanding Bitcoin's role in protecting against inflation and monetary instability:
+
+Protection Against:
+- Currency Debasement: Bitcoin's fixed supply prevents artificial inflation
+- Government Overreach: Decentralized nature prevents monetary manipulation
+- Bank Failures: Self-custody eliminates counterparty risk
+- Capital Controls: Borderless transactions enable financial freedom
+
+Historical Context:
+- 2008 Financial Crisis: Traditional banking system bailouts
+- COVID-19 Response: Unprecedented money printing
+- Hyperinflation Examples: Venezuela, Zimbabwe, Lebanon
+- Modern Monetary Theory Risks: Unlimited government spending`
+        },
+        {
+          title: "Technical Foundations",
+          content: `The revolutionary technology that powers Bitcoin:
+
+Core Components:
+- Blockchain: Distributed ledger of all transactions
+- Proof of Work: Consensus mechanism for security
+- Public Key Cryptography: Enables secure ownership
+- Peer-to-Peer Network: Decentralized transaction broadcasting
+
+Security Features:
+- Immutable Transaction History
+- Cryptographic Verification
+- Network Consensus Rules
+- Open-Source Protocol
+
+Bitcoin's Evolution:
+- Layer 2 Solutions (Lightning Network)
+- Smart Contract Capabilities
+- Privacy Enhancements
+- Scaling Improvements`
+        }
+      ],
       "Wallet Security": [
         {
           title: "Types of Bitcoin Wallets",
