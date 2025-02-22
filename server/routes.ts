@@ -5,6 +5,7 @@ import { getTutorResponse, analyzeProgress, generateLearningPath, testGeminiConn
 import { insertUserSchema, insertChatSessionSchema, insertLearningProgressSchema, insertUserQuizAttemptSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import { testOpenRouterConnection } from "./openrouter";  // Add this import
 
 // Update type interfaces for translations
 type SupportedLanguages = 'en' | 'es' | 'es-419' | 'zh' | 'ja';
@@ -97,6 +98,21 @@ export function registerRoutes(app: Express): Server {
         success: false,
         error: error instanceof Error ? error.message : "Unknown error",
         suggestion: "Please verify your Gemini API key and try again."
+      });
+    }
+  });
+
+  // Add OpenRouter test endpoint
+  app.get("/api/test-openrouter", async (req, res) => {
+    try {
+      const testResult = await testOpenRouterConnection();
+      res.json(testResult);
+    } catch (error) {
+      console.error("OpenRouter test failed:", error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error",
+        suggestion: "Please verify your OpenRouter API key and try again."
       });
     }
   });
@@ -609,13 +625,13 @@ function getDefaultReadingMaterials(topicName: string): ReadingMaterial[] {
       {
         title: "What is Bitcoin?",
         content: `Bitcoin is a decentralized digital currency that was created in 2009 by an unknown person or group using the name Satoshi Nakamoto. It enables peer-to-peer transactions without the need for intermediaries like banks or payment processors.
-        
+
 Key Points:
 - Bitcoin operates on a technology called blockchain
 - Transactions are verified by network nodes through cryptography
 - Bitcoin has a limited supply of 21 million coins
 - Transactions are irreversible and pseudonymous
-        
+
 How Bitcoin Works:
 Bitcoin transactions are recorded on a public ledger called the blockchain. When you send Bitcoin, the transaction is broadcast to the network and included in a block once verified by miners. This process ensures security and prevents double-spending.`,
         estimated_time: "15 minutes"
@@ -623,17 +639,17 @@ Bitcoin transactions are recorded on a public ledger called the blockchain. When
       {
         title: "Bitcoin Wallets and Security",
         content: `A Bitcoin wallet is where you store your Bitcoin. Unlike traditional wallets, Bitcoin wallets don't actually store the coins themselves - they store the private keys that give you access to your Bitcoin on the blockchain.
-        
+
 Types of Bitcoin Wallets:
 1. Hardware Wallets (Most Secure)
    - Physical devices that store your private keys offline
    - Examples: Ledger, Trezor
-        
+
 2. Software Wallets
    - Desktop applications
    - Mobile apps
    - Web wallets (least secure)
-        
+
 Security Best Practices:
 - Never share your private keys
 - Use strong passwords
@@ -647,13 +663,13 @@ Security Best Practices:
       {
         title: "Understanding Blockchain",
         content: `A blockchain is a distributed database that maintains a continuously growing list of records called blocks. Each block contains transaction data and is linked to the previous block, forming a chain.
-        
+
 Key Concepts:
 - Decentralization: No single entity controls the network
 - Transparency: All transactions are public
 - Immutability: Once recorded, data cannot be altered
 - Consensus: Network participants agree on the state of the system
-        
+
 Block Structure:
 - Previous block hash
 - Timestamp

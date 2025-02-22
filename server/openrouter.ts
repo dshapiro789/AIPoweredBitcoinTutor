@@ -12,7 +12,64 @@ const openRouter = new OpenAI({
   },
 });
 
-// Default response in case of API errors
+// Test connectivity to OpenRouter API
+export async function testOpenRouterConnection(): Promise<{ success: boolean; message: string }> {
+  try {
+    console.log('Testing OpenRouter connectivity...');
+    const response = await openRouter.chat.completions.create({
+      model: "deepseek-r1:free",
+      messages: [{ role: "user", content: "Test connection" }],
+      max_tokens: 5
+    });
+
+    console.log('OpenRouter test response:', {
+      success: true,
+      hasChoices: !!response.choices?.length,
+      model: response.model
+    });
+
+    return { 
+      success: true, 
+      message: "Successfully connected to OpenRouter API"
+    };
+  } catch (error: any) {
+    const errorDetails = {
+      type: error?.constructor?.name,
+      message: error?.message,
+      status: error?.response?.status,
+      data: error?.response?.data
+    };
+
+    console.error('OpenRouter connection test failed:', errorDetails);
+
+    // Check for specific error conditions
+    if (!process.env.OPENROUTER_API_KEY) {
+      return { 
+        success: false, 
+        message: "OpenRouter API key is missing" 
+      };
+    }
+    if (error?.response?.status === 401) {
+      return { 
+        success: false, 
+        message: "Invalid OpenRouter API key" 
+      };
+    }
+    if (error?.response?.status === 429) {
+      return { 
+        success: false, 
+        message: "Rate limit exceeded" 
+      };
+    }
+
+    return { 
+      success: false, 
+      message: `Connection failed: ${error?.message || 'Unknown error'}` 
+    };
+  }
+}
+
+// Default response for fallback
 const defaultResponse = `I apologize, but I'm currently experiencing some technical difficulties. 
 Let me provide you with some general guidance about Bitcoin:
 
@@ -79,8 +136,6 @@ export async function getChatResponse(messages: ChatCompletionMessageParam[], su
 
 export async function analyzeLearningProgress(messages: ChatCompletionMessageParam[]) {
   try {
-    console.log('Sending analysis request to OpenRouter...');
-
     const response = await openRouter.chat.completions.create({
       model: "deepseek-r1:free",
       messages: [
