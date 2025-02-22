@@ -23,6 +23,10 @@ i18n
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng',
     },
+    react: {
+      useSuspense: true,
+      bindI18n: 'languageChanged loaded',
+    },
   });
 
 export default i18n;

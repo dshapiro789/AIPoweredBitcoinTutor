@@ -18,10 +18,16 @@ export function LanguageSelector() {
   const { i18n } = useTranslation();
 
   const handleLanguageChange = async (code: string) => {
-    await i18n.changeLanguage(code);
-    localStorage.setItem('i18nextLng', code);
-    // Invalidate all queries to refetch with new language
-    await queryClient.invalidateQueries();
+    try {
+      await i18n.changeLanguage(code);
+      localStorage.setItem('i18nextLng', code);
+      // Force a re-render of all components by invalidating queries
+      await queryClient.invalidateQueries();
+      // Force reload translations
+      await i18n.reloadResources();
+    } catch (error) {
+      console.error('Failed to change language:', error);
+    }
   };
 
   return (
