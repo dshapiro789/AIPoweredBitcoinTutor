@@ -14,25 +14,29 @@ const openRouter = new OpenAI({
 // Test connectivity to OpenRouter API
 export async function testOpenRouterConnection(): Promise<{ success: boolean; message: string }> {
   try {
+    // Log complete configuration for debugging
     console.log('Testing OpenRouter connectivity with config:', {
       baseURL: "https://openrouter.ai/api/v1",
       hasApiKey: !!process.env.OPENROUTER_API_KEY,
+      apiKeyLength: process.env.OPENROUTER_API_KEY?.length,
       headers: {
         "HTTP-Referer": process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000",
         "X-Title": "Bitcoin Learning Platform"
       }
     });
 
+    // Use the most basic model for testing
     const response = await openRouter.chat.completions.create({
-      model: "mistralai/mistral-7b-instruct:free", // Using a free model for testing
+      model: "mistralai/mistral-7b-instruct:free",
       messages: [{ role: "user", content: "Simple test message" }],
       max_tokens: 5
     });
 
-    console.log('OpenRouter test response:', {
-      success: true,
+    // Log successful response details
+    console.log('OpenRouter test succeeded:', {
+      model: response.model,
       hasChoices: !!response.choices?.length,
-      model: response.model
+      firstChoice: response.choices[0]?.message?.content
     });
 
     return { 
@@ -40,16 +44,18 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
       message: "Successfully connected to OpenRouter API"
     };
   } catch (error: any) {
+    // Enhanced error logging
     console.error('OpenRouter connection test failed:', {
       type: error?.constructor?.name,
       message: error?.message,
       status: error?.response?.status,
       statusText: error?.response?.statusText,
       data: error?.response?.data,
-      headers: error?.response?.headers
+      headers: error?.response?.headers,
+      stack: error?.stack
     });
 
-    // Check for specific error conditions
+    // More specific error messages
     if (!process.env.OPENROUTER_API_KEY) {
       return { 
         success: false, 
@@ -59,13 +65,19 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
     if (error?.response?.status === 401) {
       return { 
         success: false, 
-        message: "Invalid OpenRouter API key" 
+        message: "Invalid OpenRouter API key or authentication failed" 
       };
     }
     if (error?.response?.status === 429) {
       return { 
         success: false, 
-        message: "Rate limit exceeded" 
+        message: "Rate limit exceeded - please try again in a few minutes" 
+      };
+    }
+    if (error?.message?.includes('ECONNREFUSED')) {
+      return {
+        success: false,
+        message: "Could not connect to OpenRouter API - possible network issue"
       };
     }
 
@@ -76,10 +88,10 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
   }
 }
 
-// Get chat response with detailed error handling
+// Get chat response with enhanced error handling
 export async function getChatResponse(messages: ChatCompletionMessageParam[], subject: string) {
   try {
-    console.log('OpenRouter Request:', {
+    console.log('Sending chat request to OpenRouter:', {
       hasApiKey: !!process.env.OPENROUTER_API_KEY,
       messageCount: messages.length,
       subject
@@ -98,20 +110,21 @@ export async function getChatResponse(messages: ChatCompletionMessageParam[], su
       max_tokens: 1000
     });
 
-    return response.choices[0]?.message?.content || defaultFallbackResponse;
+    return response.choices[0]?.message?.content || getFallbackResponse();
   } catch (error: any) {
-    console.error('OpenRouter Chat Error:', {
+    console.error('OpenRouter chat request failed:', {
       type: error?.constructor?.name,
       message: error?.message,
       status: error?.response?.status,
       data: error?.response?.data
     });
-    return defaultFallbackResponse;
+    return getFallbackResponse();
   }
 }
 
-// Default fallback response when API fails
-const defaultFallbackResponse = `I apologize, but I'm currently experiencing technical difficulties connecting to the AI service. Let me provide you with some general guidance about Bitcoin:
+// Separate fallback response function
+function getFallbackResponse(): string {
+  return `I apologize, but I'm currently experiencing technical difficulties connecting to the AI service. Let me provide you with some general guidance about Bitcoin:
 
 1. For beginners, I recommend starting with:
    - What Bitcoin is and how it works
@@ -124,12 +137,13 @@ const defaultFallbackResponse = `I apologize, but I'm currently experiencing tec
    - Transaction fee optimization
 
 Please try your question again in a few moments when the service is restored.`;
+}
 
-// Learning progress analysis with error handling
+// Learning progress analysis with enhanced error handling
 export async function analyzeLearningProgress(messages: ChatCompletionMessageParam[]) {
   try {
     const response = await openRouter.chat.completions.create({
-      model: "mistralai/mistral-7b-instruct:free", // Using free tier model
+      model: "mistralai/mistral-7b-instruct:free",
       messages: [
         {
           role: "system",
@@ -146,11 +160,11 @@ export async function analyzeLearningProgress(messages: ChatCompletionMessagePar
 
     return JSON.parse(response.choices[0]?.message?.content || '{}');
   } catch (error: any) {
-    console.error('OpenRouter Analysis Error:', {
+    console.error('OpenRouter analysis request failed:', {
       type: error?.constructor?.name,
       message: error?.message,
-      status: error?.status,
-      response: error?.response?.data
+      status: error?.response?.status,
+      data: error?.response?.data
     });
 
     // Return default analysis on error
