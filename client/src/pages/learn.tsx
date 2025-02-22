@@ -1,90 +1,21 @@
-import { useState } from "react";
-import { useParams, useLocation } from "wouter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams } from "wouter";
+import { useQuery } from "@tanstack/react-query";
 import type { BitcoinTopic } from "@shared/schema";
 import { useTranslation } from "react-i18next";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { ChevronRight, BookOpen, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { Progress } from "@/components/ui/progress";
-import { useToast } from "@/hooks/use-toast";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ChevronLeft, Book } from "lucide-react";
 
 export default function LearnPage() {
   const { topicId } = useParams<{ topicId: string }>();
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
-  const { toast } = useToast();
-  const [currentReadingIndex, setCurrentReadingIndex] = useState(0);
 
-  const { data: topic, isLoading: topicLoading, error: topicError } = useQuery<BitcoinTopic>({
+  const { data: topic, isLoading, error } = useQuery<BitcoinTopic>({
     queryKey: [`/api/bitcoin/topics/${topicId}`],
-    retry: 2,
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: t('error.loadingFailed'),
-        description: error instanceof Error ? error.message : t('error.unknown'),
-      });
-    }
   });
 
-  const { data: personalizedPath, isLoading: pathLoading } = useQuery({
-    queryKey: [`/api/learning-path/1`], // TODO: Replace with actual user ID
-    enabled: !!topic,
-    retry: 2,
-  });
-
-  const { data: progress, isLoading: progressLoading } = useQuery({
-    queryKey: [`/api/progress/1`], // TODO: Replace with actual user ID
-    enabled: !!topic,
-    retry: 2,
-  });
-
-  // Updated mutation implementation with better error handling
-  const markReadingComplete = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/progress', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: 1, // TODO: Replace with actual user ID
-          topicId: parseInt(topicId),
-          completedExercises: currentReadingIndex + 1,
-          lastActive: new Date().toISOString()
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.message || 'Failed to update progress');
-      }
-
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/progress/1`] });
-      setLocation(`/quiz/${topicId}`);
-      toast({
-        title: t('learn.complete'),
-        description: t('quiz.startDescription'),
-      });
-    },
-    onError: (error) => {
-      toast({
-        variant: "destructive",
-        title: t('error.title'),
-        description: error instanceof Error ? error.message : t('error.unknown'),
-      });
-    }
-  });
-
-  // Loading state with skeleton UI
-  if (topicLoading || pathLoading || progressLoading) {
+  if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto">
@@ -101,135 +32,228 @@ export default function LearnPage() {
     );
   }
 
-  // Error state
-  if (topicError || !topic) {
+  if (error || !topic) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <Alert variant="destructive" className="max-w-3xl mx-auto">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            {t('error.failedToLoad')}
-          </AlertDescription>
-        </Alert>
-        <div className="mt-4 text-center">
-          <Button variant="outline" onClick={() => window.location.reload()}>
-            {t('error.tryAgain')}
-          </Button>
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-destructive">{t('error.failedToLoad')}</p>
+          <Link href="/">
+            <Button variant="outline" className="mt-4">
+              {t('common.back')}
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
 
-  const pathInfo = personalizedPath?.next_topics?.find(t => t.topic === topic.name);
-  const readingMaterials = (pathInfo?.reading_materials || []) as ReadingMaterial[];
-  const currentReading = readingMaterials[currentReadingIndex];
-  const isLastReading = currentReadingIndex === readingMaterials.length - 1;
-  const hasCompletedReading = (progress?.find(p => p.topicId === parseInt(topicId))?.completedExercises || 0) >= readingMaterials.length;
+  const getTopicContent = (topicName: string) => {
+    const content: Record<string, { title: string; content: string }[]> = {
+      "Wallet Security": [
+        {
+          title: "Types of Bitcoin Wallets",
+          content: `Bitcoin wallets come in several forms, each with its own security implications:
 
-  const handleNextReading = () => {
-    if (isLastReading) {
-      markReadingComplete.mutate();
-    } else {
-      setCurrentReadingIndex(prev => prev + 1);
-    }
+Key Concepts:
+- Hot Wallets: Connected to the internet, convenient but less secure
+- Cold Storage: Offline wallets for maximum security
+- Hardware Wallets: Physical devices that secure private keys
+- Paper Wallets: Physical documents containing keys
+
+Security Considerations:
+- Private Key Management
+- Backup Procedures
+- Two-Factor Authentication
+- Physical Security Measures`
+        },
+        {
+          title: "Best Practices for Wallet Security",
+          content: `Essential security measures for protecting your Bitcoin:
+
+Key Practices:
+- Regular Backups: Store seed phrases securely
+- Multiple Signatures: Require multiple keys for transactions
+- Hardware Security: Use dedicated security devices
+- Access Controls: Implement strong authentication
+
+Advanced Security:
+- Multi-location Backups
+- Emergency Recovery Plans
+- Regular Security Audits
+- Update Management`
+        }
+      ],
+      "Transaction Fundamentals": [
+        {
+          title: "Understanding Bitcoin Transactions",
+          content: `Bitcoin transactions are the foundation of the network:
+
+Key Components:
+- Inputs: Previously received Bitcoin
+- Outputs: Addresses receiving Bitcoin
+- Transaction Fees: Priority payments to miners
+- Digital Signatures: Proof of ownership
+
+Transaction Process:
+- Creation and Signing
+- Network Broadcast
+- Miner Verification
+- Block Confirmation`
+        },
+        {
+          title: "Advanced Transaction Concepts",
+          content: `Deep dive into complex transaction features:
+
+Advanced Features:
+- Replace-By-Fee (RBF)
+- Child-Pays-For-Parent (CPFP)
+- Time-Locked Transactions
+- Multi-signature Transactions
+
+Best Practices:
+- Fee Estimation
+- Confirmation Monitoring
+- Change Management
+- Transaction Privacy`
+        }
+      ],
+      "Cold Storage": [
+        {
+          title: "Introduction to Cold Storage",
+          content: `Cold storage is the safest way to store Bitcoin:
+
+Core Concepts:
+- Air-gapped Systems
+- Hardware Wallets
+- Paper Wallets
+- Multi-signature Setups
+
+Implementation:
+- Key Generation
+- Backup Creation
+- Verification Process
+- Recovery Testing`
+        },
+        {
+          title: "Advanced Cold Storage Techniques",
+          content: `Professional-grade Bitcoin security:
+
+Security Measures:
+- Geographic Distribution
+- Physical Security
+- Inheritance Planning
+- Regular Verification
+
+Best Practices:
+- Multiple Backups
+- Environmental Protection
+- Access Controls
+- Periodic Testing`
+        }
+      ],
+      "UTXO Management": [
+        {
+          title: "Understanding UTXOs",
+          content: `Unspent Transaction Outputs (UTXOs) are fundamental to Bitcoin:
+
+Basic Concepts:
+- UTXO Set
+- Transaction Inputs
+- Output Creation
+- Change Management
+
+UTXO Lifecycle:
+- Creation
+- Spending
+- Confirmation
+- Chain State`
+        },
+        {
+          title: "Advanced UTXO Strategies",
+          content: `Optimize your Bitcoin transactions:
+
+Management Techniques:
+- Coin Selection
+- Fee Optimization
+- Privacy Enhancement
+- Dust Management
+
+Best Practices:
+- UTXO Consolidation
+- Input/Output Planning
+- Transaction Batching
+- Change Handling`
+        }
+      ]
+    };
+
+    return content[topicName] || [{
+      title: topicName,
+      content: topic.description
+    }];
   };
 
+  const articles = getTopicContent(topic.name);
+
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">{topic.name}</h1>
-          <p className="text-muted-foreground">
-            {pathInfo?.description || topic.description}
-          </p>
-        </div>
-
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex justify-between text-sm">
-            <span>{t('learn.progress')}</span>
-            <span>{currentReadingIndex + 1} / {readingMaterials.length}</span>
+    <div className="container mx-auto px-4 py-8 space-y-8">
+      <div className="max-w-3xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">{topic.name}</h1>
+            <p className="text-muted-foreground">{topic.description}</p>
           </div>
-          <Progress
-            value={(currentReadingIndex + 1) / readingMaterials.length * 100}
-            className="h-2"
-          />
-        </div>
-
-        {/* Learning Content */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <BookOpen className="w-5 h-5 mr-2" />
-              {currentReading?.title}
-            </CardTitle>
-            <CardDescription>
-              {t('learn.estimatedTime', { time: currentReading?.estimated_time })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="prose prose-sm max-w-none dark:prose-invert space-y-4">
-              {currentReading?.content.split('\n\n').map((section, index) => {
-                if (!section.trim()) return null;
-
-                // Handle sections with bullet points
-                if (section.includes('\n-')) {
-                  const [title, ...points] = section.split('\n');
-                  return (
-                    <div key={index}>
-                      {title && title.trim() && (
-                        <h3 className={
-                          title.includes("Key Points") || title.includes("How Bitcoin Works")
-                            ? "text-lg font-semibold text-primary mt-6 mb-4"
-                            : undefined
-                        }>
-                          {title}
-                        </h3>
-                      )}
-                      <ul className="space-y-2">
-                        {points
-                          .filter(point => point.trim())
-                          .map((point, i) => (
-                            <li key={i} className="flex items-start gap-2">
-                              <span className="select-none">•</span>
-                              <span>{point.replace('-', '').trim()}</span>
-                            </li>
-                          ))}
-                      </ul>
-                    </div>
-                  );
-                }
-
-                // Regular paragraphs
-                return section.trim() && (
-                  <p key={index} className="leading-relaxed">
-                    {section}
-                  </p>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center pt-4">
           <Link href="/">
-            <Button variant="outline">
-              {t('learn.back')}
+            <Button variant="outline" className="flex items-center gap-2">
+              <ChevronLeft className="w-4 h-4" />
+              {t('common.back')}
             </Button>
           </Link>
-          <Button
-            onClick={() => markReadingComplete.mutate()}
-            disabled={markReadingComplete.isPending}
-            className="flex items-center gap-2"
-          >
-            {markReadingComplete.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <CheckCircle2 className="h-4 w-4" />
-            )}
-            {markReadingComplete.isPending ? t('common.generating') : t('learn.complete')}
-          </Button>
+        </div>
+
+        {/* Articles */}
+        <div className="space-y-6">
+          {articles.map((article, index) => (
+            <Card key={index}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Book className="w-5 h-5" />
+                  {article.title}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  {article.content.split('\n\n').map((section, i) => {
+                    if (!section.trim()) return null;
+
+                    if (section.includes('\n-')) {
+                      const [title, ...points] = section.split('\n');
+                      return (
+                        <div key={i} className="mb-4">
+                          {title && <h3 className="text-lg font-semibold mb-2">{title}</h3>}
+                          <ul className="space-y-1">
+                            {points.map((point, j) => (
+                              <li key={j} className="flex items-start gap-2">
+                                <span className="select-none">•</span>
+                                <span>{point.replace('-', '').trim()}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <p key={i} className="mb-4">
+                        {section}
+                      </p>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </div>
