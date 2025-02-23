@@ -1,5 +1,5 @@
 import { type ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { getTutorResponse as getOpenAIResponse, analyzeProgress as analyzeOpenAIProgress } from "./openai";
+import { getTutorResponse as getGeminiResponse, analyzeProgress as analyzeGeminiProgress, testGeminiConnection } from "./gemini";
 
 // Add type definitions
 type TopicReadingMaterial = {
@@ -58,7 +58,7 @@ const defaultAnalysis = {
 // Export the tutor response function
 export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {
   try {
-    return await getOpenAIResponse(messages, subject);
+    return await getGeminiResponse(messages, subject);
   } catch (error) {
     console.error('AI service error:', error);
     return getFallbackResponse(messages);
@@ -68,7 +68,7 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
 // Export the progress analysis function
 export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[]) {
   try {
-    return await analyzeOpenAIProgress(chatHistory);
+    return await analyzeGeminiProgress(chatHistory);
   } catch (error) {
     console.error('Progress analysis error:', error);
     return defaultAnalysis;
@@ -256,7 +256,7 @@ export async function generateLearningPath(currentLevel: string, context: any) {
 export async function testGeminiConnection() {
   return {
     success: true,
-    message: "Using OpenAI GPT-4o model"
+    message: "Using Gemini model"
   };
 }
 
