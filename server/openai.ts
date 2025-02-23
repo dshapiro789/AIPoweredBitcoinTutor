@@ -1,162 +1,117 @@
 import OpenAI from "openai";
-import { type ChatCompletionMessageParam, ChatCompletionContentPart, ChatCompletionContentPartText } from "openai/resources/chat/completions";
+import { type ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
-  const lastMessage = messages[messages.length - 1];
-  const lastMessageContent = typeof lastMessage?.content === 'string' 
-    ? lastMessage.content 
-    : Array.isArray(lastMessage?.content) 
-      ? (lastMessage.content as ChatCompletionContentPartText[]).map(part => part.text).join(' ')
-      : '';
+// Test OpenAI API connection
+export async function testOpenAIConnection(): Promise<{ success: boolean; message: string }> {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: "Test connection" }],
+      max_tokens: 5
+    });
 
-  const normalizedQuestion = lastMessageContent.toLowerCase().trim();
+    return {
+      success: true,
+      message: "Successfully connected to OpenAI API"
+    };
+  } catch (error: any) {
+    console.error("OpenAI connection test failed:", {
+      error: error?.message,
+      type: error?.type,
+      status: error?.status
+    });
 
-  const fallbackResponses: Record<string, string> = {
-    "what is bitcoin?": `Bitcoin is a decentralized digital currency that operates without the need for intermediaries like banks. Key points:
-
-1. Digital Currency: It exists purely in digital form
-2. Decentralized: No central authority controls it
-3. Secure: Uses advanced cryptography
-4. Transparent: All transactions are public
-5. Limited Supply: Only 21 million bitcoins will ever exist
-
-Would you like to learn more about any of these aspects?`,
-    "default": `I apologize, but I'm currently experiencing some technical difficulties with the AI service. 
-Let me provide you with some general guidance about Bitcoin:
-
-1. For beginners, I recommend starting with:
-   - What Bitcoin is and how it works
-   - Setting up a wallet safely
-   - Basic transaction concepts
-
-2. For intermediate users:
-   - UTXO management
-   - Advanced security practices
-   - Transaction fee optimization
-
-Please try your question again in a few moments when the service is restored.
-
-Your question was: "${lastMessageContent}"`
-  };
-
-  // Check if we have a specific response for this question
-  for (const [key, value] of Object.entries(fallbackResponses)) {
-    if (normalizedQuestion.includes(key.toLowerCase())) {
-      return value;
+    if (!process.env.OPENAI_API_KEY) {
+      return {
+        success: false,
+        message: "OpenAI API key is missing"
+      };
     }
-  }
 
-  return fallbackResponses.default;
+    return {
+      success: false,
+      message: `Failed to connect to OpenAI: ${error?.message || 'Unknown error'}`
+    };
+  }
 }
 
 export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {
-  try {
-    const systemPrompt: ChatCompletionMessageParam = {
-      role: "system",
-      content: `You are an expert Bitcoin tutor with deep knowledge of cryptocurrency, blockchain technology, and Bitcoin specifically. Your goal is to:
-
-1. Teach Bitcoin concepts with real-world applications:
-   - Explain how Bitcoin transactions work with practical examples
-   - Guide through wallet security best practices
-   - Demonstrate UTXO management with real scenarios
-   - Explain concepts using analogies from traditional finance when helpful
-
-2. Adapt teaching style based on user understanding:
-   - Start with fundamentals for beginners
-   - Progress to more complex topics as understanding grows
-   - Use the Socratic method to guide learning
-   - Provide hands-on exercises when appropriate
-
-3. Focus on security and best practices:
-   - Emphasize importance of private key management
-   - Explain common security pitfalls and how to avoid them
-   - Teach proper backup procedures
-   - Cover safe transaction practices
-
-4. Provide practical guidance:
-   - Include step-by-step instructions for common tasks
-   - Explain fee estimation and transaction priority
-   - Guide through wallet setup and management
-   - Demonstrate how to verify transactions
-
-Remember to:
-- Use clear, non-technical language for beginners
-- Provide more technical details when user shows advanced understanding
-- Include specific Bitcoin examples in explanations
-- Verify understanding before moving to more complex topics`
-    };
-
-    const fullMessages = [
-      systemPrompt,
-      ...messages,
-    ];
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: fullMessages,
-      temperature: 0.7,
-      max_tokens: 1000,
-    });
-
-    return response.choices[0].message.content || '';
-  } catch (error) {
-    console.error("OpenAI API error:", error);
-    return getFallbackTutorResponse(messages);
-  }
-}
-
-const defaultAnalysis = {
-  understanding: 0.7,
-  engagement: 0.8,
-  areas_for_improvement: ["Bitcoin Basics", "Security Best Practices"],
-  recommended_topics: [
-    "Understanding Bitcoin Wallets",
-    "Transaction Fundamentals",
-    "Security Essentials"
-  ],
-  confidence_by_topic: {
-    "Bitcoin Basics": 0.6,
-    "Wallet Security": 0.5,
-    "Transactions": 0.4
-  }
-};
-
-export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[]): Promise<{
-  understanding: number;
-  engagement: number;
-  areas_for_improvement: string[];
-  recommended_topics: string[];
-  confidence_by_topic: Record<string, number>;
-}> {
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `Analyze the Bitcoin learning interaction and provide detailed feedback in JSON format. Consider:
-1. Overall understanding of Bitcoin concepts
-2. Engagement with the material
-3. Areas needing improvement
-4. Recommended next topics
-5. Confidence levels in different aspects (basics, security, transactions, etc.)`
+          content: `You are an expert Bitcoin tutor. Your goal is to provide accurate, concise information about ${subject}. Focus on practical understanding and real-world applications.`
+        },
+        ...messages.slice(-3) // Only use last 3 messages for context to improve response time
+      ],
+      temperature: 0.7,
+      max_tokens: 500, // Reduced for faster responses
+    });
+
+    return response.choices[0].message.content || getFallbackTutorResponse(messages);
+  } catch (error) {
+    console.error("OpenAI API error:", error);
+    return getFallbackTutorResponse(messages);
+  }
+}
+
+export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[]) {
+  try {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content: "Analyze this chat history and provide feedback in JSON format"
         },
         {
           role: "user",
-          content: JSON.stringify(chatHistory)
+          content: JSON.stringify(chatHistory.slice(-5)) // Only analyze recent messages
         }
       ],
+      temperature: 0.3,
       response_format: { type: "json_object" }
     });
 
     return JSON.parse(response.choices[0].message.content || '{}');
   } catch (error) {
     console.error("OpenAI API error:", error);
-    return defaultAnalysis;
+    return {
+      understanding: 0.7,
+      engagement: 0.8,
+      areas_for_improvement: ["Bitcoin Basics", "Security Best Practices"],
+      recommended_topics: ["Understanding Bitcoin Wallets", "Transaction Fundamentals"],
+      confidence_by_topic: {
+        "Bitcoin Basics": 0.6,
+        "Wallet Security": 0.5,
+        "Transactions": 0.4
+      }
+    };
   }
+}
+
+function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
+  const lastMessage = messages[messages.length - 1];
+  const lastMessageContent = typeof lastMessage?.content === 'string' 
+    ? lastMessage.content 
+    : Array.isArray(lastMessage?.content) 
+      ? (lastMessage.content as any[]).map(part => part.text).join(' ')
+      : '';
+
+  return `I apologize for the delay. Let me provide a response about Bitcoin: ${lastMessageContent}
+
+Key Bitcoin topics to explore:
+1. Fundamentals and how it works
+2. Wallet security and best practices
+3. Transaction basics and fees
+4. Advanced concepts and future developments
+
+Please try your question again in a moment when the service is fully responsive.`;
 }
 
 export async function generateLearningPath(
@@ -298,4 +253,19 @@ const defaultLearningPath = {
     "Mastering Bitcoin book"
   ],
   estimated_completion_time: "2-3 weeks"
+};
+const defaultAnalysis = {
+  understanding: 0.7,
+  engagement: 0.8,
+  areas_for_improvement: ["Bitcoin Basics", "Security Best Practices"],
+  recommended_topics: [
+    "Understanding Bitcoin Wallets",
+    "Transaction Fundamentals",
+    "Security Essentials"
+  ],
+  confidence_by_topic: {
+    "Bitcoin Basics": 0.6,
+    "Wallet Security": 0.5,
+    "Transactions": 0.4
+  }
 };

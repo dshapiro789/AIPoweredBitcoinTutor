@@ -1,6 +1,7 @@
 import { type ChatCompletionMessageParam } from "openai/resources/chat/completions";
-import { getTutorResponse as getGeminiResponse, analyzeProgress as analyzeGeminiProgress, testGeminiConnection } from "./gemini";
-import { getChatResponse as getOpenRouterResponse, analyzeLearningProgress as analyzeOpenRouterProgress, testOpenRouterConnection } from "./openrouter";
+import { getTutorResponse as getGeminiResponse, analyzeProgress as analyzeGeminiProgress } from "./gemini";
+import { getChatResponse as getOpenRouterResponse, analyzeLearningProgress as analyzeOpenRouterProgress } from "./openrouter";
+import { getTutorResponse as getOpenAIResponse, analyzeProgress as analyzeOpenAIProgress, testOpenAIConnection } from "./openai";
 
 // Add type definitions
 type TopicReadingMaterial = {
@@ -60,8 +61,20 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
     lastMessagePreview: messages[messages.length - 1]?.content?.toString().substring(0, 50)
   });
 
-  // Try both providers concurrently with a race condition
   try {
+    // Try OpenAI first as it's typically fastest
+    try {
+      console.log('AI service: Attempting OpenAI response');
+      const response = await getOpenAIResponse(messages, subject);
+      if (response) {
+        console.log('AI service: Successfully got OpenAI response');
+        return response;
+      }
+    } catch (openaiError) {
+      console.error('OpenAI API error:', openaiError);
+    }
+
+    // If OpenAI fails, try both Gemini and OpenRouter concurrently
     const [geminiPromise, openRouterPromise] = [
       getGeminiResponse(messages, subject).catch(error => {
         console.error('Gemini API error:', error);
@@ -73,7 +86,7 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
       })
     ];
 
-    // Wait for the first successful response
+    // Wait for the first successful response from either provider
     const responses = await Promise.all([geminiPromise, openRouterPromise]);
     const firstValidResponse = responses.find(response => response !== null);
 
@@ -81,8 +94,8 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
       return firstValidResponse;
     }
 
-    // If both providers fail, use local fallback
-    console.log('AI service: Both providers failed, using local fallback');
+    // If all providers fail, use local fallback
+    console.log('AI service: All providers failed, using local fallback');
     return getFallbackResponse(messages);
   } catch (error) {
     console.error('AI service: Unexpected error:', error);
@@ -96,26 +109,36 @@ export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[])
     historyLength: chatHistory.length
   });
 
-  // Try Gemini first
+  // Try OpenAI first
   try {
-    const analysis = await analyzeGeminiProgress(chatHistory);
-    console.log('AI service: Successfully analyzed progress with Gemini');
+    const analysis = await analyzeOpenAIProgress(chatHistory);
+    console.log('AI service: Successfully analyzed progress with OpenAI');
     return analysis;
-  } catch (geminiError) {
-    console.error('Gemini progress analysis error:', geminiError);
+  } catch (openaiError) {
+    console.error('OpenAI progress analysis error:', openaiError);
 
-    // Try OpenRouter as fallback
+    // Try Gemini next
     try {
-      console.log('AI service: Attempting OpenRouter analysis');
-      const analysis = await analyzeOpenRouterProgress(chatHistory);
-      console.log('AI service: Successfully analyzed progress with OpenRouter');
+      console.log('AI service: Attempting Gemini analysis');
+      const analysis = await analyzeGeminiProgress(chatHistory);
+      console.log('AI service: Successfully analyzed progress with Gemini');
       return analysis;
-    } catch (openRouterError) {
-      console.error('OpenRouter progress analysis error:', openRouterError);
+    } catch (geminiError) {
+      console.error('Gemini progress analysis error:', geminiError);
 
-      // Use default analysis as last resort
-      console.log('AI service: Using default analysis');
-      return defaultAnalysis;
+      // Try OpenRouter last
+      try {
+        console.log('AI service: Attempting OpenRouter analysis');
+        const analysis = await analyzeOpenRouterProgress(chatHistory);
+        console.log('AI service: Successfully analyzed progress with OpenRouter');
+        return analysis;
+      } catch (openRouterError) {
+        console.error('OpenRouter progress analysis error:', openRouterError);
+
+        // Use default analysis as last resort
+        console.log('AI service: Using default analysis');
+        return defaultAnalysis;
+      }
     }
   }
 }
@@ -145,21 +168,6 @@ function getFallbackResponse(messages: ChatCompletionMessageParam[]): string {
 5. Limited Supply: Only 21 million bitcoins will ever exist
 
 Would you like to learn more about any of these aspects?`,
-    "how do i buy bitcoin?": `Here's a basic guide to buying Bitcoin:
-
-1. Choose a reputable cryptocurrency exchange
-2. Create and verify your account
-3. Add funds to your account
-4. Place a buy order for Bitcoin
-5. Transfer to a secure wallet
-
-Remember to:
-- Start with small amounts
-- Use two-factor authentication
-- Research the exchange thoroughly
-- Keep your private keys secure
-
-Would you like more specific information about any of these steps?`,
     "default": `I apologize, but I'm currently experiencing some technical difficulties with the AI service. 
 Let me provide you with some general guidance about Bitcoin:
 
@@ -190,6 +198,7 @@ Your question was: "${lastMessageContent}"`
 // Test connection to all AI providers
 export async function testConnection() {
   const results = {
+    openai: await testOpenAIConnection(),
     gemini: await testGeminiConnection(),
     openRouter: await testOpenRouterConnection()
   };
@@ -198,9 +207,10 @@ export async function testConnection() {
 
   // Return success if at least one provider is available
   return {
-    success: results.gemini.success || results.openRouter.success,
-    message: `Gemini: ${results.gemini.message}, OpenRouter: ${results.openRouter.message}`,
+    success: results.openai.success || results.gemini.success || results.openRouter.success,
+    message: `OpenAI: ${results.openai.message}, Gemini: ${results.gemini.message}, OpenRouter: ${results.openRouter.message}`,
     availableProviders: [
+      ...(results.openai.success ? ['openai'] : []),
       ...(results.gemini.success ? ['gemini'] : []),
       ...(results.openRouter.success ? ['openRouter'] : [])
     ]
