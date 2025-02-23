@@ -6,7 +6,7 @@ i18n
   .use(HttpBackend)
   .use(initReactI18next)
   .init({
-    lng: 'en',
+    lng: 'en', // Force English as the only language
     fallbackLng: 'en',
     defaultNS: 'common',
     ns: ['common'],
