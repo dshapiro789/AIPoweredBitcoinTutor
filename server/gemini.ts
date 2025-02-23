@@ -6,10 +6,11 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 // Convert OpenAI message format to Gemini format
-function convertToGeminiHistory(messages: ChatCompletionMessageParam[]): string {
-  return messages
-    .map(msg => `${msg.role.toUpperCase()}: ${msg.content}`)
-    .join('\n');
+function convertToGeminiHistory(messages: ChatCompletionMessageParam[]): { role: string, parts: string[] }[] {
+  return messages.map(msg => ({
+    role: msg.role,
+    parts: [typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content)]
+  }));
 }
 
 export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {
@@ -18,12 +19,13 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
       history: [
         {
           role: "user",
-          parts: "You are a Bitcoin expert tutor. Please provide clear, accurate responses about Bitcoin and cryptocurrency.",
+          parts: ["You are a Bitcoin expert tutor. Please provide clear, accurate responses about Bitcoin and cryptocurrency."]
         },
         {
           role: "model",
-          parts: "I understand. I'll act as a Bitcoin expert tutor, providing accurate and educational responses about Bitcoin and cryptocurrency. How can I help you learn today?",
+          parts: ["I understand. I'll act as a Bitcoin expert tutor, providing accurate and educational responses about Bitcoin and cryptocurrency. How can I help you learn today?"]
         },
+        ...convertToGeminiHistory(messages)
       ],
       generationConfig: {
         temperature: 0.7,
@@ -33,9 +35,12 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
       },
     });
 
-    const result = await chat.sendMessage(convertToGeminiHistory(messages));
+    const lastMessage = messages[messages.length - 1];
+    const result = await chat.sendMessage(
+      typeof lastMessage.content === 'string' ? lastMessage.content : JSON.stringify(lastMessage.content)
+    );
     const response = await result.response;
-    
+
     return response.text();
   } catch (error) {
     console.error("Gemini API error:", error);
@@ -45,25 +50,31 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
 
 export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[]) {
   try {
-    const prompt = `
-      Analyze this Bitcoin learning chat history and provide feedback in JSON format:
-      ${convertToGeminiHistory(chatHistory)}
-      
-      Provide analysis in this format:
-      {
-        "understanding": number between 0-1,
-        "engagement": number between 0-1,
-        "areas_for_improvement": string array,
-        "recommended_topics": string array,
-        "confidence_by_topic": object with topic names as keys and confidence scores as values
-      }
-    `;
+    const prompt = {
+      role: "user",
+      parts: [`
+        Analyze this Bitcoin learning chat history and provide feedback.
+        History: ${chatHistory.map(msg => `${msg.role}: ${msg.content}`).join('\n')}
+
+        Provide analysis with these exact fields:
+        - understanding (number 0-1)
+        - engagement (number 0-1)
+        - areas_for_improvement (array of strings)
+        - recommended_topics (array of strings)
+        - confidence_by_topic (object with topic scores)
+      `]
+    };
 
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    
+
     try {
-      return JSON.parse(response.text());
+      // Clean up the response to ensure valid JSON
+      const cleanJson = response.text()
+        .replace(/```json\s*/, '')
+        .replace(/```\s*$/, '')
+        .trim();
+      return JSON.parse(cleanJson);
     } catch (parseError) {
       console.error("Failed to parse Gemini response as JSON:", parseError);
       return getDefaultAnalysis();
@@ -94,10 +105,12 @@ function getDefaultAnalysis() {
 
 export async function testGeminiConnection(): Promise<{ success: boolean; message: string }> {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const result = await model.generateContent("Test connection");
+    const result = await model.generateContent({
+      role: "user",
+      parts: ["Test connection"]
+    });
     const response = await result.response;
-    
+
     return {
       success: true,
       message: "Successfully connected to Gemini API"
