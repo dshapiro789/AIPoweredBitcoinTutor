@@ -1,0 +1,87 @@
+12:54:45 AM [express] GET /BTC.png 304 - 1ms
+12:55:09 AM [express] POST /api/chat/message - Starting request
+AI service: Starting tutor response request {
+  messageCount: 79,
+  subject: 'Bitcoin Basics',
+  lastMessagePreview: 'what is bitcoin'
+}
+AI service: Attempting OpenAI response
+Getting tutor response: {
+  messageCount: 79,
+  subject: 'Bitcoin Basics',
+  lastMessagePreview: 'what is bitcoin'
+}
+OpenAI API error: RateLimitError: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+    at Function.generate (/home/runner/workspace/node_modules/openai/src/error.ts:96:14)
+    at OpenAI.makeStatusError (/home/runner/workspace/node_modules/openai/src/core.ts:443:21)
+    at OpenAI.makeRequest (/home/runner/workspace/node_modules/openai/src/core.ts:507:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async getTutorResponse (/home/runner/workspace/server/openai.ts:60:22)
+    at async getTutorResponse (/home/runner/workspace/server/ai-service.ts:68:24)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:345:29) {
+  status: 429,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '91633fb72f5b7582-SEA',
+    connection: 'keep-alive',
+    'content-length': '337',
+    'content-type': 'application/json; charset=utf-8',
+    date: 'Sun, 23 Feb 2025 00:55:11 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=ZVUbKiOM0jnBa7hJ2y3NP_KH1_68TCjQ9hn5PhSJ8j8-1740272111-1.0.1.1-zTlSdc0koDZu.KFTPpKphGqcpN9N6nPrKSBaiKv3PLGciATqXkYu6rl_DIoL0U1FuxHjUMukAOL5VmKe5vEFmg; path=/; expires=Sun, 23-Feb-25 01:25:11 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=X6S0NPOh5g_gPseV4unliyN_Q5sZAXDH1V28WKCh67o-1740272111264-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    vary: 'Origin',
+    'x-content-type-options': 'nosniff',
+    'x-request-id': 'req_d79d3682bb2e26a50228d368eee65fe7'
+  },
+  request_id: 'req_d79d3682bb2e26a50228d368eee65fe7',
+  error: {
+    message: 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.',
+    type: 'insufficient_quota',
+    param: null,
+    code: 'insufficient_quota'
+  },
+  code: 'insufficient_quota',
+  param: null,
+  type: 'insufficient_quota'
+}
+AI service: Successfully got OpenAI response
+AI service: Starting progress analysis { historyLength: 80 }
+OpenAI API error: RateLimitError: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.
+    at Function.generate (/home/runner/workspace/node_modules/openai/src/error.ts:96:14)
+    at OpenAI.makeStatusError (/home/runner/workspace/node_modules/openai/src/core.ts:443:21)
+    at OpenAI.makeRequest (/home/runner/workspace/node_modules/openai/src/core.ts:507:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async analyzeProgress (/home/runner/workspace/server/openai.ts:101:22)
+    at async analyzeProgress (/home/runner/workspace/server/ai-service.ts:114:22)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:368:19) {
+  status: 429,
+  headers: {
+    'alt-svc': 'h3=":443"; ma=86400',
+    'cf-cache-status': 'DYNAMIC',
+    'cf-ray': '91633fc1c82d7582-SEA',
+    connection: 'keep-alive',
+    'content-length': '337',
+    'content-type': 'application/json; charset=utf-8',
+    date: 'Sun, 23 Feb 2025 00:55:12 GMT',
+    server: 'cloudflare',
+    'set-cookie': '__cf_bm=J9wKgDdBA48jfHeUjkbwzfIh3AhsR7sncHVWqhsFHuc-1740272112-1.0.1.1-VxBa31Lt6AwmTdRkCS08PpppfszZZHiCxBV4tY_tOXR4.dSqjKioAIgpOpeXb0UVTk.BXrAiBktl4sqPEVR2pg; path=/; expires=Sun, 23-Feb-25 01:25:12 GMT; domain=.api.openai.com; HttpOnly; Secure; SameSite=None, _cfuvid=O2scrKoDzOwU8rSahij2mkJuZrQEjkzDgvloI6hjNYg-1740272112976-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None',
+    'strict-transport-security': 'max-age=31536000; includeSubDomains; preload',
+    vary: 'Origin',
+    'x-content-type-options': 'nosniff',
+    'x-request-id': 'req_3b325efd8458d8b183e8f2fc7725e28a'
+  },
+  request_id: 'req_3b325efd8458d8b183e8f2fc7725e28a',
+  error: {
+    message: 'You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.',
+    type: 'insufficient_quota',
+    param: null,
+    code: 'insufficient_quota'
+  },
+  code: 'insufficient_quota',
+  param: null,
+  type: 'insufficient_quota'
+}
+AI service: Successfully analyzed progress with OpenAI
+12:55:12 AM [express] POST /api/chat/message 200 - 3528ms

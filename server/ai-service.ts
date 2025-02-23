@@ -61,46 +61,45 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
     lastMessagePreview: messages[messages.length - 1]?.content?.toString().substring(0, 50)
   });
 
+  // Try OpenRouter first (has higher rate limits)
   try {
-    // Try OpenAI first as it's typically fastest
-    try {
-      console.log('AI service: Attempting OpenAI response');
-      const response = await getOpenAIResponse(messages, subject);
-      if (response) {
-        console.log('AI service: Successfully got OpenAI response');
-        return response;
-      }
-    } catch (openaiError) {
-      console.error('OpenAI API error:', openaiError);
+    console.log('AI service: Attempting OpenRouter response');
+    const response = await getOpenRouterResponse(messages, subject);
+    if (response && !response.includes("technical difficulties")) {
+      console.log('AI service: Successfully got OpenRouter response');
+      return response;
     }
-
-    // If OpenAI fails, try both Gemini and OpenRouter concurrently
-    const [geminiPromise, openRouterPromise] = [
-      getGeminiResponse(messages, subject).catch(error => {
-        console.error('Gemini API error:', error);
-        return null;
-      }),
-      getOpenRouterResponse(messages, subject).catch(error => {
-        console.error('OpenRouter API error:', error);
-        return null;
-      })
-    ];
-
-    // Wait for the first successful response from either provider
-    const responses = await Promise.all([geminiPromise, openRouterPromise]);
-    const firstValidResponse = responses.find(response => response !== null);
-
-    if (firstValidResponse) {
-      return firstValidResponse;
-    }
-
-    // If all providers fail, use local fallback
-    console.log('AI service: All providers failed, using local fallback');
-    return getFallbackResponse(messages);
-  } catch (error) {
-    console.error('AI service: Unexpected error:', error);
-    return getFallbackResponse(messages);
+  } catch (openRouterError) {
+    console.error('OpenRouter API error:', openRouterError);
   }
+
+  // If OpenRouter fails, try Gemini
+  try {
+    console.log('AI service: Attempting Gemini response');
+    const response = await getGeminiResponse(messages, subject);
+    if (response) {
+      console.log('AI service: Successfully got Gemini response');
+      return response;
+    }
+  } catch (geminiError) {
+    console.error('Gemini API error:', geminiError);
+  }
+
+  // Finally try OpenAI if others fail
+  try {
+    console.log('AI service: Attempting OpenAI response');
+    const response = await getOpenAIResponse(messages, subject);
+    if (response) {
+      console.log('AI service: Successfully got OpenAI response');
+      return response;
+    }
+  } catch (openaiError) {
+    console.error('OpenAI API error:', openaiError);
+  }
+
+  // If all providers fail, use local fallback
+  console.log('AI service: All providers failed, using local fallback');
+  return getFallbackResponse(messages);
 }
 
 // Export the progress analysis function with enhanced fallbacks
@@ -363,4 +362,14 @@ export async function generatePracticalExercise(topic: string, difficulty: strin
       "Backup procedures"
     ]
   };
+}
+
+async function testGeminiConnection() {
+    //Implementation for Gemini connection test would go here.  Placeholder for completeness.
+    return {success: false, message: "Gemini connection test not implemented"};
+}
+
+async function testOpenRouterConnection() {
+    //Implementation for OpenRouter connection test would go here. Placeholder for completeness.
+    return {success: false, message: "OpenRouter connection test not implemented"};
 }
