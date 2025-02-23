@@ -7,10 +7,20 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 // Test OpenAI API connection
 export async function testOpenAIConnection(): Promise<{ success: boolean; message: string }> {
   try {
+    console.log('Testing OpenAI connection with config:', {
+      apiKeyExists: !!process.env.OPENAI_API_KEY,
+      apiKeyLength: process.env.OPENAI_API_KEY?.length
+    });
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [{ role: "user", content: "Test connection" }],
       max_tokens: 5
+    });
+
+    console.log('OpenAI test response received:', {
+      responseExists: !!response,
+      hasChoices: response.choices?.length > 0
     });
 
     return {
@@ -21,7 +31,8 @@ export async function testOpenAIConnection(): Promise<{ success: boolean; messag
     console.error("OpenAI connection test failed:", {
       error: error?.message,
       type: error?.type,
-      status: error?.status
+      status: error?.status,
+      stack: error?.stack
     });
 
     if (!process.env.OPENAI_API_KEY) {
@@ -40,12 +51,25 @@ export async function testOpenAIConnection(): Promise<{ success: boolean; messag
 
 export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {
   try {
+    console.log('Getting tutor response:', {
+      messageCount: messages.length,
+      subject,
+      lastMessagePreview: messages[messages.length - 1]?.content?.toString().substring(0, 50)
+    });
+
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
         {
           role: "system",
-          content: `You are an expert Bitcoin tutor. Your goal is to provide accurate, concise information about ${subject}. Focus on practical understanding and real-world applications.`
+          content: `You are an expert Bitcoin tutor with deep knowledge of cryptocurrency and blockchain technology. You provide clear, accurate information about ${subject} in a conversational style. 
+
+Key principles:
+- Focus on practical understanding and real-world applications
+- Explain concepts clearly without jargon
+- Use examples and analogies when helpful
+- Keep responses concise but informative
+- Address the user's specific questions directly`
         },
         ...messages.slice(-3) // Only use last 3 messages for context to improve response time
       ],
@@ -53,7 +77,19 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
       max_tokens: 500, // Reduced for faster responses
     });
 
-    return response.choices[0].message.content || getFallbackTutorResponse(messages);
+    console.log('OpenAI response received:', {
+      hasResponse: !!response,
+      hasChoices: response.choices?.length > 0,
+      contentPreview: response.choices[0]?.message?.content?.substring(0, 50)
+    });
+
+    const content = response.choices[0]?.message?.content;
+    if (!content) {
+      console.error('Empty response from OpenAI');
+      return getFallbackTutorResponse(messages);
+    }
+
+    return content;
   } catch (error) {
     console.error("OpenAI API error:", error);
     return getFallbackTutorResponse(messages);
