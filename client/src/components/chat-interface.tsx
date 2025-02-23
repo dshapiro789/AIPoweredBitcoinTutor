@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { ChatSession } from "@shared/schema";
-import { Brain, AlertTriangle, Send } from "lucide-react";
+import { Brain, AlertTriangle, Send, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 
@@ -29,6 +29,7 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
   const [messages, setMessages] = useState<Message[]>([]);
   const [analysis, setAnalysis] = useState<any>(null);
   const [isAIAvailable, setIsAIAvailable] = useState(true);
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const { t } = useTranslation();
   const [sessionStartTime] = useState(new Date());
@@ -117,6 +118,7 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
     }
 
     try {
+      setIsProcessing(true);
       const userMessage: Message = {
         role: 'user',
         content: messageToSend.trim(),
@@ -155,6 +157,8 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
         description: t('error.sendMessage', 'Failed to send message'),
         variant: "destructive",
       });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -221,23 +225,30 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
 
         <div className="sticky bottom-0 border-t bg-background p-4">
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder={t('chat.inputPlaceholder', 'Type your question about Bitcoin...')}
-              className="min-h-[44px] max-h-[160px] resize-none"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
-            />
+            <div className="relative flex-1">
+              <Textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder={t('chat.inputPlaceholder', 'Type your question about Bitcoin...')}
+                className="min-h-[44px] max-h-[160px] resize-none pr-10"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+              />
+              {isProcessing && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                  <Zap className="h-5 w-5 text-yellow-500 animate-pulse" />
+                </div>
+              )}
+            </div>
             <Button
               type="submit"
               size="icon"
               className="h-11 w-11 shrink-0 rounded-full"
-              disabled={!message.trim()}
+              disabled={!message.trim() || isProcessing}
             >
               <Send className="h-5 w-5" />
             </Button>
