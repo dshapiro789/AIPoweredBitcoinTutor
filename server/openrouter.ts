@@ -11,6 +11,92 @@ const openRouter = new OpenAI({
   }
 });
 
+// Optimized configuration
+const API_TIMEOUT = 15000; // 15 seconds
+const responseCache = new Map<string, { response: string; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+// Get chat response with enhanced error handling and logging
+export async function getChatResponse(messages: ChatCompletionMessageParam[], subject: string) {
+  const startTime = Date.now();
+  try {
+    console.log('Preparing OpenRouter chat request:', {
+      hasApiKey: !!process.env.OPENROUTER_API_KEY,
+      messageCount: messages.length,
+      subject,
+      firstMessagePreview: messages[0]?.content?.toString().substring(0, 50)
+    });
+
+    // Check cache
+    const lastMessage = messages[messages.length - 1].content?.toString() || "";
+    const cacheKey = `${subject}:${lastMessage}`;
+    const cached = responseCache.get(cacheKey);
+
+    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+      console.log('Returning cached OpenRouter response');
+      return cached.response;
+    }
+
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('OpenRouter request timed out')), API_TIMEOUT);
+    });
+
+    // Only use recent messages for context
+    const essentialMessages = messages.slice(-3);
+
+    const responsePromise = openRouter.chat.completions.create({
+      model: "mistralai/mistral-7b-instruct:free",
+      messages: [
+        {
+          role: "system",
+          content: `You are an expert Bitcoin tutor. Current subject: ${subject}. Provide concise, accurate responses.`
+        },
+        ...essentialMessages
+      ],
+      temperature: 0.7,
+      max_tokens: 500 // Reduced for faster responses
+    });
+
+    const response = await Promise.race([responsePromise, timeoutPromise]) as any;
+
+    const endTime = Date.now();
+    console.log('OpenRouter chat response succeeded:', {
+      duration: `${endTime - startTime}ms`,
+      choices: response.choices?.length,
+      messageContent: response.choices[0]?.message?.content?.substring(0, 50) + '...',
+      usage: response.usage,
+      id: response.id
+    });
+
+    const responseText = response.choices[0]?.message?.content || getFallbackResponse();
+
+    // Cache the response
+    responseCache.set(cacheKey, {
+      response: responseText,
+      timestamp: Date.now()
+    });
+
+    return responseText;
+  } catch (error: any) {
+    const endTime = Date.now();
+    console.error('OpenRouter chat request failed:', {
+      duration: `${endTime - startTime}ms`,
+      type: error?.constructor?.name,
+      message: error?.message,
+      status: error?.response?.status,
+      data: error?.response?.data,
+      stack: error?.stack,
+      requestConfig: {
+        messageCount: messages.length,
+        subject,
+        model: "mistralai/mistral-7b-instruct:free"
+      }
+    });
+    return getFallbackResponse();
+  }
+}
+
 // Test connectivity to OpenRouter API
 export async function testOpenRouterConnection(): Promise<{ success: boolean; message: string }> {
   try {
@@ -88,59 +174,6 @@ export async function testOpenRouterConnection(): Promise<{ success: boolean; me
       success: false, 
       message: `Connection failed: ${error?.message || 'Unknown error'}` 
     };
-  }
-}
-
-// Get chat response with enhanced error handling and logging
-export async function getChatResponse(messages: ChatCompletionMessageParam[], subject: string) {
-  const startTime = Date.now();
-  try {
-    console.log('Preparing OpenRouter chat request:', {
-      hasApiKey: !!process.env.OPENROUTER_API_KEY,
-      messageCount: messages.length,
-      subject,
-      firstMessagePreview: messages[0]?.content?.toString().substring(0, 50)
-    });
-
-    const response = await openRouter.chat.completions.create({
-      model: "mistralai/mistral-7b-instruct:free",
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert Bitcoin tutor. Current subject: ${subject}`
-        },
-        ...messages
-      ],
-      temperature: 0.7,
-      max_tokens: 1000
-    });
-
-    const endTime = Date.now();
-    console.log('OpenRouter chat response succeeded:', {
-      duration: `${endTime - startTime}ms`,
-      choices: response.choices?.length,
-      messageContent: response.choices[0]?.message?.content?.substring(0, 50) + '...',
-      usage: response.usage,
-      id: response.id
-    });
-
-    return response.choices[0]?.message?.content || getFallbackResponse();
-  } catch (error: any) {
-    const endTime = Date.now();
-    console.error('OpenRouter chat request failed:', {
-      duration: `${endTime - startTime}ms`,
-      type: error?.constructor?.name,
-      message: error?.message,
-      status: error?.response?.status,
-      data: error?.response?.data,
-      stack: error?.stack,
-      requestConfig: {
-        messageCount: messages.length,
-        subject,
-        model: "mistralai/mistral-7b-instruct:free"
-      }
-    });
-    return getFallbackResponse();
   }
 }
 

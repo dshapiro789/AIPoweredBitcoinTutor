@@ -60,39 +60,33 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
     lastMessagePreview: messages[messages.length - 1]?.content?.toString().substring(0, 50)
   });
 
-  // Try Gemini first
+  // Try both providers concurrently with a race condition
   try {
-    const response = await getGeminiResponse(messages, subject);
-    console.log('AI service: Successfully got Gemini response');
-    return response;
-  } catch (geminiError) {
-    console.error('Gemini API error:', {
-      error: geminiError instanceof Error ? {
-        name: geminiError.name,
-        message: geminiError.message,
-        stack: geminiError.stack
-      } : geminiError
-    });
+    const [geminiPromise, openRouterPromise] = [
+      getGeminiResponse(messages, subject).catch(error => {
+        console.error('Gemini API error:', error);
+        return null;
+      }),
+      getOpenRouterResponse(messages, subject).catch(error => {
+        console.error('OpenRouter API error:', error);
+        return null;
+      })
+    ];
 
-    // Try OpenRouter as fallback
-    try {
-      console.log('AI service: Attempting OpenRouter fallback');
-      const response = await getOpenRouterResponse(messages, subject);
-      console.log('AI service: Successfully got OpenRouter response');
-      return response;
-    } catch (openRouterError) {
-      console.error('OpenRouter API error:', {
-        error: openRouterError instanceof Error ? {
-          name: openRouterError.name,
-          message: openRouterError.message,
-          stack: openRouterError.stack
-        } : openRouterError
-      });
+    // Wait for the first successful response
+    const responses = await Promise.all([geminiPromise, openRouterPromise]);
+    const firstValidResponse = responses.find(response => response !== null);
 
-      // Use local fallback as last resort
-      console.log('AI service: Using local fallback response');
-      return getFallbackResponse(messages);
+    if (firstValidResponse) {
+      return firstValidResponse;
     }
+
+    // If both providers fail, use local fallback
+    console.log('AI service: Both providers failed, using local fallback');
+    return getFallbackResponse(messages);
+  } catch (error) {
+    console.error('AI service: Unexpected error:', error);
+    return getFallbackResponse(messages);
   }
 }
 
@@ -129,8 +123,8 @@ export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[])
 // Helper function for local fallback responses
 function getFallbackResponse(messages: ChatCompletionMessageParam[]): string {
   const lastMessage = messages[messages.length - 1];
-  const lastMessageContent = typeof lastMessage?.content === 'string' 
-    ? lastMessage.content 
+  const lastMessageContent = typeof lastMessage?.content === 'string'
+    ? lastMessage.content
     : Array.isArray(lastMessage?.content)
       ? lastMessage.content.map(part => typeof part === 'string' ? part : '').join(' ')
       : '';

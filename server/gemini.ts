@@ -17,16 +17,24 @@ const model = genAI.getGenerativeModel({
   ],
 });
 
-// Maximum retries for API calls
-const MAX_RETRIES = 3;
-const RETRY_DELAY = 1000; // 1 second
+// Optimized retry configuration
+const MAX_RETRIES = 2; // Reduced from 3
+const RETRY_DELAY = 500; // Reduced from 1000ms to 500ms
+const API_TIMEOUT = 15000; // 15 second timeout
+
+// Simple in-memory cache
+const responseCache = new Map<string, { response: string; timestamp: number }>();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache TTL
 
 async function retryWithDelay<T>(
   operation: () => Promise<T>,
   retries: number = MAX_RETRIES
 ): Promise<T> {
   try {
-    return await operation();
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Operation timed out')), API_TIMEOUT);
+    });
+    return await Promise.race([operation(), timeoutPromise]) as T;
   } catch (error) {
     if (retries > 0) {
       console.log(`Retrying operation, ${retries} attempts remaining`);
@@ -45,23 +53,36 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
       lastMessagePreview: messages[messages.length - 1]?.content?.toString().substring(0, 50)
     });
 
+    // Check cache for the last message
+    const lastMessage = messages[messages.length - 1].content?.toString() || "";
+    const cacheKey = `${subject}:${lastMessage}`;
+    const cached = responseCache.get(cacheKey);
+
+    if (cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+      console.log('Returning cached response');
+      return cached.response;
+    }
+
     const chat = await retryWithDelay(() => model.startChat({
       generationConfig: {
         temperature: 0.7,
         topK: 1,
         topP: 0.8,
-        maxOutputTokens: 2048,
+        maxOutputTokens: 1024, // Reduced from 2048 for faster responses
       },
     }));
+
+    // Only send essential context
+    const essentialMessages = messages.slice(-3); // Only use last 3 messages for context
 
     // Add the system message first
     console.log('Sending system message to chat');
     await retryWithDelay(() => chat.sendMessage([{
-      text: "You are a Bitcoin expert tutor. Please provide clear, accurate responses about Bitcoin and cryptocurrency."
+      text: "You are a Bitcoin expert tutor. Provide concise, accurate responses about Bitcoin and cryptocurrency."
     }]));
 
-    // Send each message in the history
-    for (const msg of messages) {
+    // Send recent message history
+    for (const msg of essentialMessages) {
       const content = typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content);
       console.log('Sending chat message:', {
         role: msg.role,
@@ -73,12 +94,18 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
     // Get the final response
     console.log('Getting final response');
     const result = await retryWithDelay(() => chat.sendMessage([{
-      text: messages[messages.length - 1].content?.toString() || ""
+      text: lastMessage
     }]));
     const response = await result.response;
 
     console.log('Got successful response:', {
       responsePreview: response.text().substring(0, 50)
+    });
+
+    // Cache the response
+    responseCache.set(cacheKey, {
+      response: response.text(),
+      timestamp: Date.now()
     });
 
     return response.text();
