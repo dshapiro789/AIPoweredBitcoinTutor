@@ -1,5 +1,5 @@
-import { type ChatCompletionMessageParam, type ChatCompletionContentPartText } from "openai/resources/chat/completions";
-import { getChatResponse, analyzeLearningProgress } from "./openrouter";
+import { type ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import { getTutorResponse as getOpenAIResponse, analyzeProgress as analyzeOpenAIProgress } from "./openai";
 
 // Add type definitions
 type TopicReadingMaterial = {
@@ -55,84 +55,32 @@ const defaultAnalysis = {
   }
 };
 
-const defaultLearningPath = {
-  next_topics: [
-    {
-      topic: "Bitcoin Fundamentals",
-      description: "Learn the basics of Bitcoin and blockchain technology",
-      prerequisites: [],
-      practical_exercises: ["Create a wallet", "Send a test transaction"]
-    },
-    {
-      topic: "Wallet Security",
-      description: "Understanding how to secure your Bitcoin",
-      prerequisites: ["Bitcoin Fundamentals"],
-      practical_exercises: ["Setup backup procedures", "Practice recovery"]
-    }
-  ],
-  recommended_resources: [
-    "Bitcoin.org documentation",
-    "Mastering Bitcoin book"
-  ],
-  estimated_completion_time: "2-3 weeks"
-};
-
 // Export the tutor response function
 export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {
-  return getChatResponse(messages, subject);
+  try {
+    return await getOpenAIResponse(messages, subject);
+  } catch (error) {
+    console.error('AI service error:', error);
+    return getFallbackResponse(messages);
+  }
 }
 
 // Export the progress analysis function
 export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[]) {
-  return analyzeLearningProgress(chatHistory);
+  try {
+    return await analyzeOpenAIProgress(chatHistory);
+  } catch (error) {
+    console.error('Progress analysis error:', error);
+    return defaultAnalysis;
+  }
 }
 
-// Export legacy functions with default implementations
-export async function generateLearningPath(currentLevel: string, context: any) {
-  return {
-    next_topics: [
-      {
-        topic: "Bitcoin Basics",
-        description: "Learn the fundamentals of Bitcoin",
-        prerequisites: [],
-        practical_exercises: ["Create a wallet", "Send a test transaction"]
-      }
-    ],
-    recommended_resources: ["Bitcoin.org documentation"],
-    estimated_completion_time: "2-3 weeks"
-  };
-}
-
-export async function testGeminiConnection() {
-  return {
-    success: true,
-    message: "Using OpenRouter.ai DeepSeek model instead of Gemini"
-  };
-}
-
-export async function generatePracticalExercise(topic: string, difficulty: string) {
-  return {
-    exercise: "Create a basic Bitcoin wallet and explain the importance of backing up your seed phrase.",
-    hints: [
-      "Think about what makes a wallet secure",
-      "Consider the consequences of losing access",
-      "Research different backup methods"
-    ],
-    solution: "1. Choose a reputable wallet\n2. Follow setup instructions\n3. Securely store seed phrase\n4. Test recovery process",
-    learning_objectives: [
-      "Understanding wallet security",
-      "Importance of seed phrases",
-      "Backup procedures"
-    ]
-  };
-}
-
-function getFallbackTutorResponse(messages: ChatCompletionMessageParam[]): string {
+function getFallbackResponse(messages: ChatCompletionMessageParam[]): string {
   const lastMessage = messages[messages.length - 1];
-  const lastMessageContent = typeof lastMessage?.content === 'string'
-    ? lastMessage.content
+  const lastMessageContent = typeof lastMessage?.content === 'string' 
+    ? lastMessage.content 
     : Array.isArray(lastMessage?.content)
-      ? (lastMessage.content as ChatCompletionContentPartText[]).map(part => part.text).join(' ')
+      ? lastMessage.content.map(part => typeof part === 'string' ? part : '').join(' ')
       : '';
 
   const normalizedQuestion = lastMessageContent.toLowerCase().trim();
@@ -225,222 +173,6 @@ Bitcoin's Unique Properties:
 - Programmable money features`,
         estimated_time: "20 minutes"
       }
-    ],
-    "Wallet Security": [
-      {
-        title: "Understanding Bitcoin Wallets",
-        content: `Learn the fundamentals of Bitcoin wallets and how to secure your assets:
-
-Key Points:
-- Types of wallets (hot vs cold storage)
-- Private key management
-- Seed phrases and backups
-- Common security threats
-
-Best Practices:
-- Choosing the right wallet type
-- Proper backup procedures
-- Two-factor authentication
-- Regular security audits`,
-        estimated_time: "20 minutes"
-      },
-      {
-        title: "Advanced Wallet Security",
-        content: `Master advanced security features for protecting your Bitcoin:
-
-Key Points:
-- Hardware wallet implementation
-- Multi-signature setups
-- Watch-only wallets
-- Air-gapped transactions
-
-Security Measures:
-- Physical security considerations
-- Inheritance planning
-- Emergency recovery procedures
-- Security model trade-offs`,
-        estimated_time: "25 minutes"
-      }
-    ],
-    "Transaction Fundamentals": [
-      {
-        title: "Understanding Bitcoin Transactions",
-        content: `Master the basics of Bitcoin transactions and how they work:
-
-Key Points:
-- UTXO model explained
-- Transaction inputs and outputs
-- Mining fees and confirmation
-- Transaction mempool
-
-Transaction Components:
-- Address formats and types
-- Script verification process
-- Fee calculation methods
-- Change management`,
-        estimated_time: "20 minutes"
-      },
-      {
-        title: "Advanced Transaction Features",
-        content: `Explore advanced transaction capabilities in Bitcoin:
-
-Key Points:
-- Replace-By-Fee (RBF)
-- Child-Pays-For-Parent (CPFP)
-- Time-locked transactions
-- Multi-signature transactions
-
-Implementation:
-- Fee optimization strategies
-- Transaction batching
-- Lightning Network payments
-- Cross-chain atomic swaps`,
-        estimated_time: "25 minutes"
-      }
-    ],
-    "Mining Operations": [
-      {
-        title: "Bitcoin Mining Fundamentals",
-        content: `Understand the basics of Bitcoin mining and its role in the network:
-
-Key Points:
-- Proof of Work (PoW) explained
-- Mining hardware evolution
-- Pool mining vs solo mining
-- Energy considerations
-
-Mining Process:
-- Block creation and validation
-- Hash rate and difficulty
-- Reward mechanisms
-- Network security role`,
-        estimated_time: "25 minutes"
-      },
-      {
-        title: "Professional Mining Operations",
-        content: `Learn about professional Bitcoin mining setups and strategies:
-
-Key Points:
-- Mining farm setup
-- Cooling and ventilation
-- Power management
-- Cost optimization
-
-Operation Aspects:
-- Hardware selection criteria
-- Maintenance schedules
-- Profit calculations
-- Environmental considerations`,
-        estimated_time: "30 minutes"
-      }
-    ],
-    "Cold Storage": [
-      {
-        title: "Cold Storage Fundamentals",
-        content: `Learn about secure offline storage solutions for Bitcoin:
-
-Key Points:
-- Cold storage vs hot wallets
-- Hardware wallet types
-- Paper wallet generation
-- Air-gapped computers
-
-Implementation:
-- Safe key generation
-- Offline transaction signing
-- Backup strategies
-- Physical security measures`,
-        estimated_time: "20 minutes"
-      },
-      {
-        title: "Advanced Cold Storage",
-        content: `Master advanced cold storage techniques and security:
-
-Key Points:
-- Multi-signature setups
-- Geographically distributed backups
-- Recovery procedures
-- Inheritance planning
-
-Security Measures:
-- Metal seed storage
-- Fire and water protection
-- Access control systems
-- Regular verification procedures`,
-        estimated_time: "25 minutes"
-      }
-    ],
-    "Advanced Concepts": [
-      {
-        title: "Layer 2 Solutions",
-        content: `Explore Bitcoin's scaling solutions and advanced protocols:
-
-Key Points:
-- Lightning Network explained
-- Sidechains and drivechains
-- State channels
-- Schnorr signatures
-
-Technology Deep Dive:
-- Payment channel networks
-- Atomic swaps
-- Time-locked contracts
-- Cross-chain interoperability`,
-        estimated_time: "30 minutes"
-      },
-      {
-        title: "Future Developments",
-        content: `Understanding upcoming Bitcoin technologies and improvements:
-
-Key Points:
-- Taproot and Tapscript
-- MAST (Merkelized Abstract Syntax Trees)
-- Confidential Transactions
-- Smart contract capabilities
-
-Implementation Impact:
-- Privacy enhancements
-- Scaling improvements
-- Script efficiency
-- New use cases`,
-        estimated_time: "25 minutes"
-      }
-    ],
-    "Digital Security": [
-      {
-        title: "Cryptocurrency Security Essentials",
-        content: `Master the fundamentals of digital security for Bitcoin:
-
-Key Points:
-- Operating system security
-- Network security
-- Mobile device protection
-- Social engineering defense
-
-Security Practices:
-- Secure communication
-- Password management
-- Device encryption
-- Safe browsing habits`,
-        estimated_time: "20 minutes"
-      },
-      {
-        title: "Advanced Digital Security",
-        content: `Learn advanced security measures for protecting your Bitcoin:
-
-Key Points:
-- Virtual machines
-- Tor network usage
-- PGP encryption
-- Hardware security modules
-
-Implementation:
-- Air-gapped computing
-- Secure boot processes
-- Network isolation
-- Security auditing`,
-        estimated_time: "25 minutes"
-      }
     ]
   };
 
@@ -501,4 +233,46 @@ function getDefaultExercises(topic: string): string[] {
     ]
   };
   return exercises[topic] || [`Practice ${topic} concepts through hands-on exercises`];
+}
+
+// Export additional utility functions
+export async function generateLearningPath(currentLevel: string, context: any) {
+  return {
+    next_topics: [
+      {
+        topic: "Bitcoin Basics",
+        description: getDefaultTopicDescription("Bitcoin Basics"),
+        prerequisites: [],
+        practical_exercises: getDefaultExercises("Bitcoin Basics"),
+        reading_materials: getDefaultReadingMaterials("Bitcoin Basics"),
+        quizzes: getDefaultQuizzes("Bitcoin Basics")
+      }
+    ],
+    recommended_resources: ["Bitcoin.org documentation"],
+    estimated_completion_time: "2-3 weeks"
+  };
+}
+
+export async function testGeminiConnection() {
+  return {
+    success: true,
+    message: "Using OpenAI GPT-4o model"
+  };
+}
+
+export async function generatePracticalExercise(topic: string, difficulty: string) {
+  return {
+    exercise: "Create a basic Bitcoin wallet and explain the importance of backing up your seed phrase.",
+    hints: [
+      "Think about what makes a wallet secure",
+      "Consider the consequences of losing access",
+      "Research different backup methods"
+    ],
+    solution: "1. Choose a reputable wallet\n2. Follow setup instructions\n3. Securely store seed phrase\n4. Test recovery process",
+    learning_objectives: [
+      "Understanding wallet security",
+      "Importance of seed phrases",
+      "Backup procedures"
+    ]
+  };
 }
