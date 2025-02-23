@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import type { BitcoinTopic, ChatSession } from "@shared/schema";
-import { Bitcoin } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
@@ -73,7 +72,12 @@ export default function Home() {
         <Card className="bg-gradient-to-br from-primary/10 via-primary/5 to-background border-2">
           <CardContent className="p-6 sm:p-8 space-y-6">
             <div className="flex items-center gap-3 mb-4">
-              <Bitcoin className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
+              <img 
+                src="/btcl.png"
+                alt="Bitcoin Logo"
+                className="w-8 h-8 sm:w-10 sm:h-10 transition-transform duration-200 hover:scale-110"
+                loading="lazy"
+              />
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
                 AI-Powered Bitcoin Tutor
               </h1>
