@@ -230,7 +230,7 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder={t('chat.inputPlaceholder', 'Type your question about Bitcoin...')}
-                className="min-h-[44px] max-h-[160px] resize-none pr-10"
+                className="min-h-[44px] max-h-[160px] resize-none pr-12"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
@@ -240,7 +240,9 @@ export default function ChatInterface({ session, subject, initialMessage }: Chat
               />
               {isProcessing && (
                 <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  <Zap className="h-5 w-5 text-yellow-500 animate-pulse" />
+                  <div className="bg-yellow-500/10 rounded-full p-1.5">
+                    <Zap className="h-6 w-6 text-yellow-500 animate-[pulse_1s_ease-in-out_infinite] dark:text-yellow-400" />
+                  </div>
                 </div>
               )}
             </div>
