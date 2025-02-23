@@ -55,22 +55,61 @@ const defaultAnalysis = {
   }
 };
 
-// Export the tutor response function
+// Export the tutor response function with enhanced error handling
 export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {
+  console.log('AI service: Starting tutor response request', {
+    messageCount: messages.length,
+    subject,
+    lastMessagePreview: messages[messages.length - 1]?.content?.toString().substring(0, 50)
+  });
+
   try {
-    return await getGeminiResponse(messages, subject);
+    const response = await getGeminiResponse(messages, subject);
+    console.log('AI service: Successfully got tutor response', {
+      responsePreview: response.substring(0, 50)
+    });
+    return response;
   } catch (error) {
-    console.error('AI service error:', error);
+    console.error('AI service error:', {
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      } : error,
+      context: {
+        messageCount: messages.length,
+        subject
+      }
+    });
     return getFallbackResponse(messages);
   }
 }
 
-// Export the progress analysis function
+// Export the progress analysis function with enhanced logging
 export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[]) {
+  console.log('AI service: Starting progress analysis', {
+    historyLength: chatHistory.length
+  });
+
   try {
-    return await analyzeGeminiProgress(chatHistory);
+    const analysis = await analyzeGeminiProgress(chatHistory);
+    console.log('AI service: Successfully analyzed progress', {
+      analysis: {
+        understanding: analysis.understanding,
+        engagement: analysis.engagement,
+        areasCount: analysis.areas_for_improvement?.length,
+        topicsCount: analysis.recommended_topics?.length
+      }
+    });
+    return analysis;
   } catch (error) {
-    console.error('Progress analysis error:', error);
+    console.error('Progress analysis error:', {
+      error: error instanceof Error ? {
+        name: error.name,
+        message: error.message,
+        stack: error.stack
+      } : error
+    });
     return defaultAnalysis;
   }
 }
@@ -82,6 +121,10 @@ function getFallbackResponse(messages: ChatCompletionMessageParam[]): string {
     : Array.isArray(lastMessage?.content)
       ? lastMessage.content.map(part => typeof part === 'string' ? part : '').join(' ')
       : '';
+
+  console.log('Using fallback response for message:', {
+    contentPreview: lastMessageContent.substring(0, 50)
+  });
 
   const normalizedQuestion = lastMessageContent.toLowerCase().trim();
 
@@ -120,6 +163,22 @@ Your question was: "${lastMessageContent}"`
   }
 
   return fallbackResponses.default;
+}
+
+// Export the test function with enhanced error handling
+export async function testConnection() {
+  console.log('AI service: Testing connection to Gemini');
+  try {
+    const result = await testGeminiConnection();
+    console.log('AI service: Connection test result:', result);
+    return result;
+  } catch (error) {
+    console.error('AI service: Connection test failed:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to test connection"
+    };
+  }
 }
 
 function getDefaultTopicDescription(topic: string): string {
