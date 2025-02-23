@@ -1,5 +1,6 @@
 import { type ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { getTutorResponse as getGeminiResponse, analyzeProgress as analyzeGeminiProgress, testGeminiConnection } from "./gemini";
+import { getChatResponse as getOpenRouterResponse, analyzeLearningProgress as analyzeOpenRouterProgress, testOpenRouterConnection } from "./openrouter";
 
 // Add type definitions
 type TopicReadingMaterial = {
@@ -38,16 +39,12 @@ const mandatoryTopics: string[] = [
   "Mining Operations"
 ];
 
-// Shared constants
+// Shared constants for fallback responses
 const defaultAnalysis = {
   understanding: 0.7,
   engagement: 0.8,
   areas_for_improvement: ["Bitcoin Basics", "Security Best Practices"],
-  recommended_topics: [
-    "Understanding Bitcoin Wallets",
-    "Transaction Fundamentals",
-    "Security Essentials"
-  ],
+  recommended_topics: ["Understanding Bitcoin Wallets", "Transaction Fundamentals"],
   confidence_by_topic: {
     "Bitcoin Basics": 0.6,
     "Wallet Security": 0.5,
@@ -55,7 +52,7 @@ const defaultAnalysis = {
   }
 };
 
-// Export the tutor response function with enhanced error handling
+// Export the tutor response function with enhanced error handling and fallbacks
 export async function getTutorResponse(messages: ChatCompletionMessageParam[], subject: string) {
   console.log('AI service: Starting tutor response request', {
     messageCount: messages.length,
@@ -63,57 +60,73 @@ export async function getTutorResponse(messages: ChatCompletionMessageParam[], s
     lastMessagePreview: messages[messages.length - 1]?.content?.toString().substring(0, 50)
   });
 
+  // Try Gemini first
   try {
     const response = await getGeminiResponse(messages, subject);
-    console.log('AI service: Successfully got tutor response', {
-      responsePreview: response.substring(0, 50)
-    });
+    console.log('AI service: Successfully got Gemini response');
     return response;
-  } catch (error) {
-    console.error('AI service error:', {
-      error: error instanceof Error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      } : error,
-      context: {
-        messageCount: messages.length,
-        subject
-      }
+  } catch (geminiError) {
+    console.error('Gemini API error:', {
+      error: geminiError instanceof Error ? {
+        name: geminiError.name,
+        message: geminiError.message,
+        stack: geminiError.stack
+      } : geminiError
     });
-    return getFallbackResponse(messages);
+
+    // Try OpenRouter as fallback
+    try {
+      console.log('AI service: Attempting OpenRouter fallback');
+      const response = await getOpenRouterResponse(messages, subject);
+      console.log('AI service: Successfully got OpenRouter response');
+      return response;
+    } catch (openRouterError) {
+      console.error('OpenRouter API error:', {
+        error: openRouterError instanceof Error ? {
+          name: openRouterError.name,
+          message: openRouterError.message,
+          stack: openRouterError.stack
+        } : openRouterError
+      });
+
+      // Use local fallback as last resort
+      console.log('AI service: Using local fallback response');
+      return getFallbackResponse(messages);
+    }
   }
 }
 
-// Export the progress analysis function with enhanced logging
+// Export the progress analysis function with enhanced fallbacks
 export async function analyzeProgress(chatHistory: ChatCompletionMessageParam[]) {
   console.log('AI service: Starting progress analysis', {
     historyLength: chatHistory.length
   });
 
+  // Try Gemini first
   try {
     const analysis = await analyzeGeminiProgress(chatHistory);
-    console.log('AI service: Successfully analyzed progress', {
-      analysis: {
-        understanding: analysis.understanding,
-        engagement: analysis.engagement,
-        areasCount: analysis.areas_for_improvement?.length,
-        topicsCount: analysis.recommended_topics?.length
-      }
-    });
+    console.log('AI service: Successfully analyzed progress with Gemini');
     return analysis;
-  } catch (error) {
-    console.error('Progress analysis error:', {
-      error: error instanceof Error ? {
-        name: error.name,
-        message: error.message,
-        stack: error.stack
-      } : error
-    });
-    return defaultAnalysis;
+  } catch (geminiError) {
+    console.error('Gemini progress analysis error:', geminiError);
+
+    // Try OpenRouter as fallback
+    try {
+      console.log('AI service: Attempting OpenRouter analysis');
+      const analysis = await analyzeOpenRouterProgress(chatHistory);
+      console.log('AI service: Successfully analyzed progress with OpenRouter');
+      return analysis;
+    } catch (openRouterError) {
+      console.error('OpenRouter progress analysis error:', openRouterError);
+
+      // Use default analysis as last resort
+      console.log('AI service: Using default analysis');
+      return defaultAnalysis;
+    }
   }
 }
 
+// Helper function for local fallback responses
 function getFallbackResponse(messages: ChatCompletionMessageParam[]): string {
   const lastMessage = messages[messages.length - 1];
   const lastMessageContent = typeof lastMessage?.content === 'string' 
@@ -122,7 +135,7 @@ function getFallbackResponse(messages: ChatCompletionMessageParam[]): string {
       ? lastMessage.content.map(part => typeof part === 'string' ? part : '').join(' ')
       : '';
 
-  console.log('Using fallback response for message:', {
+  console.log('Using local fallback response for message:', {
     contentPreview: lastMessageContent.substring(0, 50)
   });
 
@@ -138,6 +151,21 @@ function getFallbackResponse(messages: ChatCompletionMessageParam[]): string {
 5. Limited Supply: Only 21 million bitcoins will ever exist
 
 Would you like to learn more about any of these aspects?`,
+    "how do i buy bitcoin?": `Here's a basic guide to buying Bitcoin:
+
+1. Choose a reputable cryptocurrency exchange
+2. Create and verify your account
+3. Add funds to your account
+4. Place a buy order for Bitcoin
+5. Transfer to a secure wallet
+
+Remember to:
+- Start with small amounts
+- Use two-factor authentication
+- Research the exchange thoroughly
+- Keep your private keys secure
+
+Would you like more specific information about any of these steps?`,
     "default": `I apologize, but I'm currently experiencing some technical difficulties with the AI service. 
 Let me provide you with some general guidance about Bitcoin:
 
@@ -165,20 +193,24 @@ Your question was: "${lastMessageContent}"`
   return fallbackResponses.default;
 }
 
-// Export the test function with enhanced error handling
+// Test connection to all AI providers
 export async function testConnection() {
-  console.log('AI service: Testing connection to Gemini');
-  try {
-    const result = await testGeminiConnection();
-    console.log('AI service: Connection test result:', result);
-    return result;
-  } catch (error) {
-    console.error('AI service: Connection test failed:', error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : "Failed to test connection"
-    };
-  }
+  const results = {
+    gemini: await testGeminiConnection(),
+    openRouter: await testOpenRouterConnection()
+  };
+
+  console.log('AI service: Connection test results:', results);
+
+  // Return success if at least one provider is available
+  return {
+    success: results.gemini.success || results.openRouter.success,
+    message: `Gemini: ${results.gemini.message}, OpenRouter: ${results.openRouter.message}`,
+    availableProviders: [
+      ...(results.gemini.success ? ['gemini'] : []),
+      ...(results.openRouter.success ? ['openRouter'] : [])
+    ]
+  };
 }
 
 function getDefaultTopicDescription(topic: string): string {
@@ -309,13 +341,6 @@ export async function generateLearningPath(currentLevel: string, context: any) {
     ],
     recommended_resources: ["Bitcoin.org documentation"],
     estimated_completion_time: "2-3 weeks"
-  };
-}
-
-export async function testGeminiConnection() {
-  return {
-    success: true,
-    message: "Using Gemini model"
   };
 }
 

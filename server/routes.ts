@@ -1,7 +1,7 @@
 import { Express } from "express";
 import { Server, createServer } from "http";
 import { storage } from "./storage";
-import { getTutorResponse, analyzeProgress, generateLearningPath, testGeminiConnection } from "./ai-service";
+import { getTutorResponse, analyzeProgress, generateLearningPath, testConnection } from "./ai-service";
 import { insertUserSchema, insertChatSessionSchema, insertLearningProgressSchema, insertUserQuizAttemptSchema } from "@shared/schema";
 import { ZodError } from "zod";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
@@ -90,7 +90,7 @@ export function registerRoutes(app: Express): Server {
   // Test Gemini API integration
   app.get("/api/test-gemini", async (req, res) => {
     try {
-      const testResult = await testGeminiConnection();
+      const testResult = await testConnection("gemini"); // Changed to use testConnection
       res.json(testResult);
     } catch (error) {
       console.error("Gemini test failed:", error);

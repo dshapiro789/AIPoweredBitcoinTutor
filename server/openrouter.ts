@@ -5,7 +5,7 @@ import type { ChatCompletionMessageParam } from "openai/resources/chat/completio
 const openRouter = new OpenAI({
   baseURL: "https://openrouter.ai/api/v1",
   apiKey: process.env.OPENROUTER_API_KEY || "",
-  headers: {
+  defaultHeaders: {
     "HTTP-Referer": process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}.replit.dev` : "http://localhost:3000",
     "X-Title": "Bitcoin Learning Platform"
   }
