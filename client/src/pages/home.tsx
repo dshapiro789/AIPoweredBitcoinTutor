@@ -79,7 +79,7 @@ export default function Home() {
                 loading="lazy"
               />
               <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
-                Your AI-Powered Bitcoin Tutor
+                Your Personal AI-Powered Bitcoin Tutor
               </h1>
             </div>
 
